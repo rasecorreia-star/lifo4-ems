@@ -1,0 +1,183 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './store/auth.store';
+import { useEffect } from 'react';
+
+// Layouts
+import MainLayout from './components/layout/MainLayout';
+import AuthLayout from './components/layout/AuthLayout';
+
+// Pages
+import Dashboard from './pages/Dashboard';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import SystemDetail from './pages/systems/SystemDetail';
+import SystemList from './pages/systems/SystemList';
+import SystemSettings from './pages/systems/SystemSettings';
+import SystemSchedules from './pages/systems/SystemSchedules';
+import BMSConfig from './pages/systems/BMSConfig';
+import HardwareConfig from './pages/systems/HardwareConfig';
+import BatteryDiagnostics from './pages/systems/BatteryDiagnostics';
+import SystemComparison from './pages/SystemComparison';
+import SystemsMap from './pages/SystemsMap';
+import Analytics from './pages/Analytics';
+import Optimization from './pages/Optimization';
+import GridIntegration from './pages/GridIntegration';
+import BlackStart from './pages/BlackStart';
+import Alerts from './pages/Alerts';
+import Reports from './pages/Reports';
+import Maintenance from './pages/Maintenance';
+import EventLog from './pages/EventLog';
+import NotificationSettings from './pages/NotificationSettings';
+import FirmwareManagement from './pages/FirmwareManagement';
+import ApiKeys from './pages/ApiKeys';
+import DataExport from './pages/DataExport';
+import AuditLog from './pages/AuditLog';
+import HelpCenter from './pages/HelpCenter';
+import LoadProfile from './pages/LoadProfile';
+import EnergyCosts from './pages/EnergyCosts';
+import WeatherIntegration from './pages/WeatherIntegration';
+import BatteryHealth from './pages/BatteryHealth';
+import CarbonFootprint from './pages/CarbonFootprint';
+import DemandResponse from './pages/DemandResponse';
+import EnergyTrading from './pages/EnergyTrading';
+import AlarmConfiguration from './pages/AlarmConfiguration';
+import ControlPanel from './pages/ControlPanel';
+import PredictiveMaintenance from './pages/PredictiveMaintenance';
+import Benchmarking from './pages/Benchmarking';
+import Gamification from './pages/Gamification';
+import Warranties from './pages/Warranties';
+import Inventory from './pages/Inventory';
+import Commissioning from './pages/Commissioning';
+import Compliance from './pages/Compliance';
+import VirtualPowerPlant from './pages/VirtualPowerPlant';
+import CustomerPortal from './pages/CustomerPortal';
+import Simulation from './pages/Simulation';
+import MultiSiteDashboard from './pages/MultiSiteDashboard';
+import RemoteDiagnostics from './pages/RemoteDiagnostics';
+import IntegrationHub from './pages/IntegrationHub';
+import SLADashboard from './pages/SLADashboard';
+import TrainingCenter from './pages/TrainingCenter';
+import DocumentationCenter from './pages/DocumentationCenter';
+import SupportTickets from './pages/SupportTickets';
+import BackupManagement from './pages/BackupManagement';
+import LicenseManagement from './pages/LicenseManagement';
+import SessionManagement from './pages/SessionManagement';
+import SystemLogs from './pages/SystemLogs';
+import NetworkConfig from './pages/NetworkConfig';
+import ScheduledTasks from './pages/ScheduledTasks';
+import ContractManagement from './pages/ContractManagement';
+import WorkOrders from './pages/WorkOrders';
+import AssetManagement from './pages/AssetManagement';
+import NotificationTemplates from './pages/NotificationTemplates';
+import DataImport from './pages/DataImport';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+import Users from './pages/Users';
+import NotFound from './pages/NotFound';
+
+// Components
+import LoadingScreen from './components/ui/LoadingScreen';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+function App() {
+  const { isLoading, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <Routes>
+      {/* Auth Routes */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Route>
+
+      {/* Protected Routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/systems" element={<SystemList />} />
+        <Route path="/systems/:systemId" element={<SystemDetail />} />
+        <Route path="/systems/:systemId/control" element={<ControlPanel />} />
+        <Route path="/systems/:systemId/settings" element={<SystemSettings />} />
+        <Route path="/systems/:systemId/schedules" element={<SystemSchedules />} />
+        <Route path="/systems/:systemId/bms-config" element={<BMSConfig />} />
+        <Route path="/systems/:systemId/hardware" element={<HardwareConfig />} />
+        <Route path="/systems/:systemId/diagnostics" element={<BatteryDiagnostics />} />
+        <Route path="/systems/compare" element={<SystemComparison />} />
+        <Route path="/systems/map" element={<SystemsMap />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/benchmarking" element={<Benchmarking />} />
+        <Route path="/gamification" element={<Gamification />} />
+        <Route path="/battery-health" element={<BatteryHealth />} />
+        <Route path="/load-profile" element={<LoadProfile />} />
+        <Route path="/energy-costs" element={<EnergyCosts />} />
+        <Route path="/weather" element={<WeatherIntegration />} />
+        <Route path="/optimization" element={<Optimization />} />
+        <Route path="/grid" element={<GridIntegration />} />
+        <Route path="/grid/:systemId" element={<GridIntegration />} />
+        <Route path="/demand-response" element={<DemandResponse />} />
+        <Route path="/trading" element={<EnergyTrading />} />
+        <Route path="/blackstart" element={<BlackStart />} />
+        <Route path="/alerts" element={<Alerts />} />
+        <Route path="/alarm-config" element={<AlarmConfiguration />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/carbon" element={<CarbonFootprint />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/warranties" element={<Warranties />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/commissioning" element={<Commissioning />} />
+        <Route path="/compliance" element={<Compliance />} />
+        <Route path="/vpp" element={<VirtualPowerPlant />} />
+        <Route path="/my-system" element={<CustomerPortal />} />
+        <Route path="/simulation" element={<Simulation />} />
+        <Route path="/multi-site" element={<MultiSiteDashboard />} />
+        <Route path="/remote-diagnostics" element={<RemoteDiagnostics />} />
+        <Route path="/integrations" element={<IntegrationHub />} />
+        <Route path="/sla" element={<SLADashboard />} />
+        <Route path="/predictive" element={<PredictiveMaintenance />} />
+        <Route path="/events" element={<EventLog />} />
+        <Route path="/notifications" element={<NotificationSettings />} />
+        <Route path="/firmware" element={<FirmwareManagement />} />
+        <Route path="/api-keys" element={<ApiKeys />} />
+        <Route path="/export" element={<DataExport />} />
+        <Route path="/audit" element={<AuditLog />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/help" element={<HelpCenter />} />
+        <Route path="/training" element={<TrainingCenter />} />
+        <Route path="/docs" element={<DocumentationCenter />} />
+        <Route path="/support" element={<SupportTickets />} />
+        <Route path="/backup" element={<BackupManagement />} />
+        <Route path="/license" element={<LicenseManagement />} />
+        <Route path="/sessions" element={<SessionManagement />} />
+        <Route path="/logs" element={<SystemLogs />} />
+        <Route path="/network" element={<NetworkConfig />} />
+        <Route path="/tasks" element={<ScheduledTasks />} />
+        <Route path="/contracts" element={<ContractManagement />} />
+        <Route path="/work-orders" element={<WorkOrders />} />
+        <Route path="/assets" element={<AssetManagement />} />
+        <Route path="/notification-templates" element={<NotificationTemplates />} />
+        <Route path="/data-import" element={<DataImport />} />
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
+export default App;

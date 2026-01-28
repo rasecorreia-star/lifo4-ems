@@ -72,6 +72,7 @@ import WorkOrders from './pages/WorkOrders';
 import AssetManagement from './pages/AssetManagement';
 import NotificationTemplates from './pages/NotificationTemplates';
 import DataImport from './pages/DataImport';
+import DigitalTwin from './pages/DigitalTwin';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
@@ -147,6 +148,8 @@ function App() {
         <Route path="/vpp" element={<VirtualPowerPlant />} />
         <Route path="/my-system" element={<CustomerPortal />} />
         <Route path="/simulation" element={<Simulation />} />
+        <Route path="/digital-twin" element={<DigitalTwin />} />
+        <Route path="/digital-twin/:systemId" element={<DigitalTwin />} />
         <Route path="/multi-site" element={<MultiSiteDashboard />} />
         <Route path="/remote-diagnostics" element={<RemoteDiagnostics />} />
         <Route path="/integrations" element={<IntegrationHub />} />

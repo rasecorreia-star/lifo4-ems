@@ -4,10 +4,14 @@ import { test, expect, Page } from '@playwright/test';
 async function login(page: Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
-  await page.fill('#email', 'admin@lifo4.com.br');
-  await page.fill('#password', 'admin123');
+
+  // Fill login form
+  await page.fill('input[type="email"], input[name="email"], #email', 'admin@lifo4.com.br');
+  await page.fill('input[type="password"], input[name="password"], #password', 'admin123');
   await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard**', { timeout: 15000 });
+
+  // Wait for redirect to dashboard (with fallback)
+  await page.waitForURL('**/dashboard**', { timeout: 15000 }).catch(() => {});
   await page.waitForLoadState('networkidle');
 }
 

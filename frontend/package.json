@@ -14,7 +14,9 @@
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",
-    "test:e2e:debug": "npx playwright test --debug"
+    "test:e2e:debug": "npx playwright test --debug",
+    "test:e2e:coverage": "npx playwright test tests/e2e/complete-coverage.spec.ts --headed",
+    "mock:server": "node tests/mock-server.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

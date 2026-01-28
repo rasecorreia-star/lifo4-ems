@@ -40,7 +40,9 @@ import BatteryHealth from './pages/BatteryHealth';
 import CarbonFootprint from './pages/CarbonFootprint';
 import DemandResponse from './pages/DemandResponse';
 import EnergyTrading from './pages/EnergyTrading';
+import TradingDashboard from './pages/TradingDashboard';
 import AlarmConfiguration from './pages/AlarmConfiguration';
+import Assistant from './pages/Assistant';
 import ControlPanel from './pages/ControlPanel';
 import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import Benchmarking from './pages/Benchmarking';
@@ -130,7 +132,9 @@ function App() {
         <Route path="/grid/:systemId" element={<GridIntegration />} />
         <Route path="/demand-response" element={<DemandResponse />} />
         <Route path="/trading" element={<EnergyTrading />} />
+        <Route path="/trading-dashboard" element={<TradingDashboard />} />
         <Route path="/blackstart" element={<BlackStart />} />
+        <Route path="/assistant" element={<Assistant />} />
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/alarm-config" element={<AlarmConfiguration />} />
         <Route path="/reports" element={<Reports />} />

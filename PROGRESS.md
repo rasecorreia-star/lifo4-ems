@@ -5,6 +5,27 @@
 
 ---
 
+## 🧪 Testes E2E (Playwright)
+
+### Testes Criados:
+- `sidebar-complete.spec.ts` - Navegação por todos os 56 itens do sidebar
+- `crud-operations.spec.ts` - Operações CRUD completas
+
+### Resultados (2026-01-28):
+- ✅ 35/36 testes passando
+- ✅ Login via formulário funcionando
+- ✅ Navegação sidebar completa
+- ✅ VPP com 4 tabs funcionais
+- ✅ Trading Dashboard acessível
+- ✅ Assistant (chat IA) acessível
+- ✅ Wizard "Novo Sistema BESS" com 6 passos
+
+### Rotas Corrigidas:
+- `/trading-dashboard` - TradingDashboard.tsx
+- `/assistant` - Assistant.tsx
+
+---
+
 ## 📋 Resumo do Plano
 
 Implementação de **17 funcionalidades** divididas em 4 fases:

@@ -426,16 +426,16 @@ export default function AlarmConfiguration() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1">
                         {rule.channels.includes('email') && (
-                          <Mail className="w-4 h-4 text-foreground-muted" title="Email" />
+                          <Mail className="w-4 h-4 text-foreground-muted" aria-label="Email" />
                         )}
                         {rule.channels.includes('sms') && (
-                          <MessageSquare className="w-4 h-4 text-foreground-muted" title="SMS" />
+                          <MessageSquare className="w-4 h-4 text-foreground-muted" aria-label="SMS" />
                         )}
                         {rule.channels.includes('push') && (
-                          <Bell className="w-4 h-4 text-foreground-muted" title="Push" />
+                          <Bell className="w-4 h-4 text-foreground-muted" aria-label="Push" />
                         )}
                         {rule.channels.includes('webhook') && (
-                          <Webhook className="w-4 h-4 text-foreground-muted" title="Webhook" />
+                          <Webhook className="w-4 h-4 text-foreground-muted" aria-label="Webhook" />
                         )}
                       </div>
                     </td>

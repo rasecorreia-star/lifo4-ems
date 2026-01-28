@@ -31,6 +31,7 @@ import {
   MoreVertical,
   Info,
   Cpu,
+  Shield,
 } from 'lucide-react';
 import {
   LineChart,

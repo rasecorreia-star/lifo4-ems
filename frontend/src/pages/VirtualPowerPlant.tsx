@@ -97,12 +97,12 @@ export default function VirtualPowerPlant() {
   }, []);
 
   const capacityByLocation = useMemo(() => {
-    const locationMap = new Map<string, number>();
+    const locationObj: Record<string, number> = {};
     assets.forEach(asset => {
       const city = asset.location.split(',')[0];
-      locationMap.set(city, (locationMap.get(city) || 0) + asset.capacity);
+      locationObj[city] = (locationObj[city] || 0) + asset.capacity;
     });
-    return Array.from(locationMap.entries()).map(([name, value]) => ({ name, value }));
+    return Object.entries(locationObj).map(([name, value]) => ({ name, value }));
   }, [assets]);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];

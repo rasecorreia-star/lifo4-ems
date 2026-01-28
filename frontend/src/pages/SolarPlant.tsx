@@ -3,49 +3,29 @@
  * Comprehensive view of solar-BESS hybrid system
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  LinearProgress,
-  Chip,
-  IconButton,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Alert,
-  Tooltip,
-  Switch,
-  FormControlLabel,
-  Slider,
-  Button,
-  Stack,
-  Divider
-} from '@mui/material';
-import {
-  WbSunny as SunIcon,
-  Battery80 as BatteryIcon,
-  Power as PowerIcon,
-  Speed as GaugeIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckIcon,
-  Refresh as RefreshIcon,
-  Timeline as TimelineIcon,
-  Cloud as CloudIcon,
-  Thermostat as TempIcon,
-  ElectricalServices as GridIcon,
-  PlayArrow as PlayIcon,
-  Stop as StopIcon
-} from '@mui/icons-material';
+  Sun,
+  Battery,
+  Power,
+  Gauge,
+  AlertTriangle,
+  CheckCircle,
+  RefreshCw,
+  TrendingUp,
+  Cloud,
+  Thermometer,
+  Zap,
+  Play,
+  Square,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
 import {
   LineChart,
   Line,
@@ -190,53 +170,47 @@ const generateInverterData = (): InverterTelemetry[] => {
 };
 
 // Components
-const StatCard: React.FC<{
+const StatCard = ({
+  title,
+  value,
+  unit,
+  icon: Icon,
+  color,
+  progress
+}: {
   title: string;
   value: string | number;
   unit: string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   color: string;
   progress?: number;
-}> = ({ title, value, unit, icon, color, progress }) => (
-  <Card sx={{ height: '100%' }}>
-    <CardContent>
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography variant="h4" component="div" sx={{ color }}>
-            {typeof value === 'number' ? value.toFixed(1) : value}
-            <Typography variant="body1" component="span" sx={{ ml: 0.5 }}>
-              {unit}
-            </Typography>
-          </Typography>
-        </Box>
-        <Box sx={{ color, opacity: 0.8 }}>
-          {icon}
-        </Box>
-      </Stack>
+}) => (
+  <Card>
+    <CardContent className="pt-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm text-foreground-muted mb-1">{title}</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold" style={{ color }}>
+              {typeof value === 'number' ? value.toFixed(1) : value}
+            </span>
+            <span className="text-sm text-foreground-muted">{unit}</span>
+          </div>
+        </div>
+        <div style={{ color }} className="opacity-80">
+          <Icon className="w-8 h-8" />
+        </div>
+      </div>
       {progress !== undefined && (
-        <LinearProgress
-          variant="determinate"
-          value={progress}
-          sx={{
-            mt: 2,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: `${color}20`,
-            '& .MuiLinearProgress-bar': {
-              backgroundColor: color,
-              borderRadius: 4
-            }
-          }}
-        />
+        <div className="mt-4">
+          <Progress value={progress} className="h-2" indicatorClassName={`bg-[${color}]`} />
+        </div>
       )}
     </CardContent>
   </Card>
 );
 
-const PowerFlowDiagram: React.FC<{ overview: PlantOverview }> = ({ overview }) => {
+const PowerFlowDiagram = ({ overview }: { overview: PlantOverview }) => {
   const pieData = [
     { name: 'Solar', value: overview.currentGenerationKW, color: COLORS.solar },
     { name: 'Battery', value: Math.abs(overview.currentStorageKW), color: COLORS.battery },
@@ -245,10 +219,12 @@ const PowerFlowDiagram: React.FC<{ overview: PlantOverview }> = ({ overview }) =
 
   return (
     <Card>
+      <CardHeader>
+        <CardTitle>Power Flow</CardTitle>
+      </CardHeader>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Power Flow</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
@@ -268,40 +244,38 @@ const PowerFlowDiagram: React.FC<{ overview: PlantOverview }> = ({ overview }) =
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Stack spacing={1}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SunIcon sx={{ color: COLORS.solar }} />
-                <Typography>Solar: {overview.currentGenerationKW.toFixed(0)} kW</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BatteryIcon sx={{ color: COLORS.battery }} />
-                <Typography>
-                  Battery: {overview.currentStorageKW > 0 ? 'Charging' : 'Discharging'}{' '}
-                  {Math.abs(overview.currentStorageKW).toFixed(0)} kW
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <GridIcon sx={{ color: COLORS.grid }} />
-                <Typography>
-                  Grid: {overview.gridExportKW > 0 ? 'Export' : 'Import'}{' '}
-                  {(overview.gridExportKW || overview.gridImportKW).toFixed(0)} kW
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PowerIcon sx={{ color: COLORS.load }} />
-                <Typography>Load: {overview.currentLoadKW.toFixed(0)} kW</Typography>
-              </Box>
-            </Stack>
-          </Grid>
-        </Grid>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Sun className="w-5 h-5" style={{ color: COLORS.solar }} />
+              <span>Solar: {overview.currentGenerationKW.toFixed(0)} kW</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Battery className="w-5 h-5" style={{ color: COLORS.battery }} />
+              <span>
+                Battery: {overview.currentStorageKW > 0 ? 'Charging' : 'Discharging'}{' '}
+                {Math.abs(overview.currentStorageKW).toFixed(0)} kW
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5" style={{ color: COLORS.grid }} />
+              <span>
+                Grid: {overview.gridExportKW > 0 ? 'Export' : 'Import'}{' '}
+                {(overview.gridExportKW || overview.gridImportKW).toFixed(0)} kW
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Power className="w-5 h-5" style={{ color: COLORS.load }} />
+              <span>Load: {overview.currentLoadKW.toFixed(0)} kW</span>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-const ForecastChart: React.FC<{ forecast: PowerForecast[] }> = ({ forecast }) => {
+const ForecastChart = ({ forecast }: { forecast: PowerForecast[] }) => {
   const chartData = forecast.map(f => ({
     time: new Date(f.timestamp).getHours() + ':00',
     power: f.powerKW,
@@ -312,11 +286,13 @@ const ForecastChart: React.FC<{ forecast: PowerForecast[] }> = ({ forecast }) =>
 
   return (
     <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          <TimelineIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5" />
           Power Forecast (24h)
-        </Typography>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -354,129 +330,126 @@ const ForecastChart: React.FC<{ forecast: PowerForecast[] }> = ({ forecast }) =>
   );
 };
 
-const InverterTable: React.FC<{ inverters: InverterTelemetry[] }> = ({ inverters }) => {
-  const getStatusChip = (status: string) => {
+const InverterTable = ({ inverters }: { inverters: InverterTelemetry[] }) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'running':
-        return <Chip label="Running" color="success" size="small" icon={<CheckIcon />} />;
+        return <Badge variant="success" className="gap-1"><CheckCircle className="w-3 h-3" />Running</Badge>;
       case 'standby':
-        return <Chip label="Standby" color="warning" size="small" />;
+        return <Badge variant="warning">Standby</Badge>;
       case 'fault':
-        return <Chip label="Fault" color="error" size="small" icon={<WarningIcon />} />;
+        return <Badge variant="destructive" className="gap-1"><AlertTriangle className="w-3 h-3" />Fault</Badge>;
       default:
-        return <Chip label={status} size="small" />;
+        return <Badge>{status}</Badge>;
     }
   };
 
   return (
     <Card>
+      <CardHeader>
+        <CardTitle>Inverter Fleet</CardTitle>
+      </CardHeader>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Inverter Fleet</Typography>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Inverter</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">AC Power</TableCell>
-                <TableCell align="right">Efficiency</TableCell>
-                <TableCell align="right">Temperature</TableCell>
-                <TableCell align="right">Energy Today</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-3 px-2 font-medium">Inverter</th>
+                <th className="text-left py-3 px-2 font-medium">Status</th>
+                <th className="text-right py-3 px-2 font-medium">AC Power</th>
+                <th className="text-right py-3 px-2 font-medium">Efficiency</th>
+                <th className="text-right py-3 px-2 font-medium">Temperature</th>
+                <th className="text-right py-3 px-2 font-medium">Energy Today</th>
+              </tr>
+            </thead>
+            <tbody>
               {inverters.map(inv => (
-                <TableRow key={inv.inverterId}>
-                  <TableCell>{inv.inverterId}</TableCell>
-                  <TableCell>{getStatusChip(inv.status)}</TableCell>
-                  <TableCell align="right">{inv.acPowerKW.toFixed(1)} kW</TableCell>
-                  <TableCell align="right">{inv.efficiency.toFixed(1)}%</TableCell>
-                  <TableCell align="right">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                      <TempIcon sx={{ fontSize: 16, mr: 0.5, color: inv.temperatureC > 50 ? 'error.main' : 'text.secondary' }} />
+                <tr key={inv.inverterId} className="border-b border-border/50">
+                  <td className="py-3 px-2">{inv.inverterId}</td>
+                  <td className="py-3 px-2">{getStatusBadge(inv.status)}</td>
+                  <td className="text-right py-3 px-2">{inv.acPowerKW.toFixed(1)} kW</td>
+                  <td className="text-right py-3 px-2">{inv.efficiency.toFixed(1)}%</td>
+                  <td className="text-right py-3 px-2">
+                    <span className={cn("flex items-center justify-end gap-1", inv.temperatureC > 50 && "text-danger-500")}>
+                      <Thermometer className="w-4 h-4" />
                       {inv.temperatureC.toFixed(1)}°C
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">{inv.energyTodayKWh.toFixed(0)} kWh</TableCell>
-                </TableRow>
+                    </span>
+                  </td>
+                  <td className="text-right py-3 px-2">{inv.energyTodayKWh.toFixed(0)} kWh</td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-const ControlPanel: React.FC<{
+const ControlPanelComponent = ({
+  curtailment,
+  onCurtailmentChange,
+}: {
   curtailment: CurtailmentStatus;
   onCurtailmentChange: (value: number) => void;
-}> = ({ curtailment, onCurtailmentChange }) => {
-  const [curtailmentSlider, setCurtailmentSlider] = useState(0);
+}) => {
+  const [curtailmentSlider, setCurtailmentSlider] = useState([0]);
 
   return (
     <Card>
+      <CardHeader>
+        <CardTitle>Plant Control</CardTitle>
+      </CardHeader>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Plant Control</Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Curtailment Control</Typography>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-medium mb-3">Curtailment Control</h4>
             {curtailment.isActive && (
-              <Alert severity="warning" sx={{ mb: 2 }}>
+              <div className="bg-warning-500/10 border border-warning-500/30 text-warning-500 p-3 rounded-lg mb-4 text-sm">
                 Active Curtailment: {curtailment.currentCurtailmentKW.toFixed(0)} kW ({curtailment.currentCurtailmentPercent.toFixed(1)}%)
                 {curtailment.reason && ` - ${curtailment.reason}`}
-              </Alert>
+              </div>
             )}
-            <Typography gutterBottom>Manual Curtailment: {curtailmentSlider}%</Typography>
+            <p className="text-sm text-foreground-muted mb-2">Manual Curtailment: {curtailmentSlider[0]}%</p>
             <Slider
               value={curtailmentSlider}
-              onChange={(_, value) => setCurtailmentSlider(value as number)}
-              onChangeCommitted={(_, value) => onCurtailmentChange(value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: '0%' },
-                { value: 50, label: '50%' },
-                { value: 100, label: '100%' }
-              ]}
+              onValueChange={setCurtailmentSlider}
+              onValueCommit={(value) => onCurtailmentChange(value[0])}
+              max={100}
+              step={1}
+              className="mb-4"
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2" gutterBottom>Quick Actions</Typography>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PlayIcon />}
-                size="small"
-              >
+            <div className="flex justify-between text-xs text-foreground-muted">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium mb-3">Quick Actions</h4>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="default" size="sm" className="gap-1 bg-success-500 hover:bg-success-600">
+                <Play className="w-4 h-4" />
                 Start All
               </Button>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<StopIcon />}
-                size="small"
-              >
+              <Button variant="destructive" size="sm" className="gap-1">
+                <Square className="w-4 h-4" />
                 Stop All
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<RefreshIcon />}
-                size="small"
-              >
+              <Button variant="outline" size="sm" className="gap-1">
+                <RefreshCw className="w-4 h-4" />
                 Reset Faults
               </Button>
-            </Stack>
-          </Grid>
-        </Grid>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
 // Main Component
-const SolarPlant: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
+const SolarPlant = () => {
   const [overview, setOverview] = useState<PlantOverview>(generateMockData());
   const [forecast, setForecast] = useState<PowerForecast[]>(generateForecastData());
   const [inverters, setInverters] = useState<InverterTelemetry[]>(generateInverterData());
@@ -516,157 +489,144 @@ const SolarPlant: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="h4">
-          <SunIcon sx={{ mr: 1, verticalAlign: 'middle', color: COLORS.solar }} />
-          Solar Plant Dashboard
-        </Typography>
-        <Tooltip title="Refresh">
-          <IconButton onClick={() => setOverview(generateMockData())}>
-            <RefreshIcon />
-          </IconButton>
-        </Tooltip>
-      </Stack>
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-warning-500/10">
+            <Sun className="w-6 h-6 text-warning-500" />
+          </div>
+          <h1 className="text-2xl font-bold">Solar Plant Dashboard</h1>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setOverview(generateMockData())}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+      </div>
 
       {/* Overview Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Solar Generation"
-            value={overview.currentGenerationKW}
-            unit="kW"
-            icon={<SunIcon fontSize="large" />}
-            color={COLORS.solar}
-            progress={(overview.currentGenerationKW / overview.solarCapacityKW) * 100}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Battery SOC"
-            value={overview.bessSOC}
-            unit="%"
-            icon={<BatteryIcon fontSize="large" />}
-            color={COLORS.battery}
-            progress={overview.bessSOC}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Grid Export"
-            value={overview.gridExportKW}
-            unit="kW"
-            icon={<GridIcon fontSize="large" />}
-            color={COLORS.grid}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="System Efficiency"
-            value={overview.efficiency}
-            unit="%"
-            icon={<GaugeIcon fontSize="large" />}
-            color="#9C27B0"
-            progress={overview.efficiency}
-          />
-        </Grid>
-      </Grid>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Solar Generation"
+          value={overview.currentGenerationKW}
+          unit="kW"
+          icon={Sun}
+          color={COLORS.solar}
+          progress={(overview.currentGenerationKW / overview.solarCapacityKW) * 100}
+        />
+        <StatCard
+          title="Battery SOC"
+          value={overview.bessSOC}
+          unit="%"
+          icon={Battery}
+          color={COLORS.battery}
+          progress={overview.bessSOC}
+        />
+        <StatCard
+          title="Grid Export"
+          value={overview.gridExportKW}
+          unit="kW"
+          icon={Zap}
+          color={COLORS.grid}
+        />
+        <StatCard
+          title="System Efficiency"
+          value={overview.efficiency}
+          unit="%"
+          icon={Gauge}
+          color="#9C27B0"
+          progress={overview.efficiency}
+        />
+      </div>
 
       {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
-          <Tab label="Overview" />
-          <Tab label="Forecast" />
-          <Tab label="Inverters" />
-          <Tab label="Control" />
-        </Tabs>
-      </Paper>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="forecast">Forecast</TabsTrigger>
+          <TabsTrigger value="inverters">Inverters</TabsTrigger>
+          <TabsTrigger value="control">Control</TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      {tabValue === 0 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <PowerFlowDiagram overview={overview} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Plant Summary</Typography>
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Total Capacity</Typography>
-                    <Typography variant="h5">{overview.totalCapacityKW} kW</Typography>
-                  </Box>
-                  <Divider />
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">Solar Capacity</Typography>
-                      <Typography variant="h6">{overview.solarCapacityKW} kW</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">BESS Capacity</Typography>
-                      <Typography variant="h6">{overview.bessCapacityKW} kW / {overview.bessCapacityKWh} kWh</Typography>
-                    </Grid>
-                  </Grid>
-                  <Divider />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Current Load</Typography>
-                    <Typography variant="h6">{overview.currentLoadKW.toFixed(0)} kW</Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      )}
-
-      {tabValue === 1 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ForecastChart forecast={forecast} />
-          </Grid>
-          <Grid item xs={12} md={4}>
             <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  <CloudIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Weather Conditions
-                </Typography>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography>Temperature</Typography>
-                    <Typography>28°C</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography>Cloud Cover</Typography>
-                    <Typography>35%</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography>Humidity</Typography>
-                    <Typography>65%</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography>Wind Speed</Typography>
-                    <Typography>12 km/h</Typography>
-                  </Box>
-                </Stack>
+              <CardHeader>
+                <CardTitle>Plant Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-foreground-muted">Total Capacity</p>
+                  <p className="text-2xl font-bold">{overview.totalCapacityKW} kW</p>
+                </div>
+                <hr className="border-border" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-foreground-muted">Solar Capacity</p>
+                    <p className="text-xl font-semibold">{overview.solarCapacityKW} kW</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground-muted">BESS Capacity</p>
+                    <p className="text-xl font-semibold">{overview.bessCapacityKW} kW / {overview.bessCapacityKWh} kWh</p>
+                  </div>
+                </div>
+                <hr className="border-border" />
+                <div>
+                  <p className="text-sm text-foreground-muted">Current Load</p>
+                  <p className="text-xl font-semibold">{overview.currentLoadKW.toFixed(0)} kW</p>
+                </div>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
-      )}
+          </div>
+        </TabsContent>
 
-      {tabValue === 2 && (
-        <InverterTable inverters={inverters} />
-      )}
+        <TabsContent value="forecast">
+          <div className="grid grid-cols-1 gap-6">
+            <ForecastChart forecast={forecast} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Cloud className="w-5 h-5" />
+                    Weather Conditions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-foreground-muted">Temperature</span>
+                    <span>28°C</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground-muted">Cloud Cover</span>
+                    <span>35%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground-muted">Humidity</span>
+                    <span>65%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground-muted">Wind Speed</span>
+                    <span>12 km/h</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
 
-      {tabValue === 3 && (
-        <ControlPanel
-          curtailment={curtailment}
-          onCurtailmentChange={handleCurtailmentChange}
-        />
-      )}
-    </Box>
+        <TabsContent value="inverters">
+          <InverterTable inverters={inverters} />
+        </TabsContent>
+
+        <TabsContent value="control">
+          <ControlPanelComponent
+            curtailment={curtailment}
+            onCurtailmentChange={handleCurtailmentChange}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

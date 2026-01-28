@@ -28,7 +28,9 @@ import {
   Building2,
   Globe,
   ShoppingCart,
-  Handshake,
+  Users as Handshake,
+  Home,
+  Factory,
 } from 'lucide-react';
 import {
   LineChart,

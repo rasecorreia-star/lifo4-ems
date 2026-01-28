@@ -20,6 +20,7 @@ import {
   FileText,
   Download,
   Sparkles,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/services/api';

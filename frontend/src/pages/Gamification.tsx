@@ -16,7 +16,7 @@ import {
   Lock,
   ChevronRight,
 } from 'lucide-react';
-import PageHeader from '@/components/ui/PageHeader';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

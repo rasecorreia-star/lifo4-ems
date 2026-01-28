@@ -32,6 +32,7 @@ import {
   Wifi,
   WifiOff,
   Loader2,
+  TrendingUp,
 } from 'lucide-react';
 import {
   LineChart,

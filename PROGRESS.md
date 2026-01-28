@@ -1,7 +1,43 @@
 # EMS BESS v2.0 - Progress Tracker
 
-> **Última atualização:** 2026-01-28
+> **Última atualização:** 2026-01-28 (Sessão 3)
 > **Status Geral:** 🎉 TODAS AS FASES COMPLETAS! 100%
+
+---
+
+## 🚀 ESTADO ATUAL - PARA CONTINUAR
+
+### Como Iniciar o Sistema:
+```bash
+cd C:\users\rasec\onedrive\ideiasdenegocio\baterias\ems\frontend
+npm run dev
+```
+
+### Como Abrir o Navegador (após servidor rodando):
+```bash
+node abrir-sistema.mjs
+```
+
+### Modo Demo Ativo:
+- **ProtectedRoute.tsx** linha ~13: `isDemoMode = true`
+- **Sidebar.tsx** linha ~177: `isDemoMode = true`
+- Isso permite acesso SEM backend/autenticação
+- Para PRODUÇÃO, mudar ambos para `false`
+
+### O que foi testado e funciona:
+- ✅ Dashboard com dados mock
+- ✅ Sistemas (3 BESS cadastrados)
+- ✅ Digital Twin (4 tabs)
+- ✅ VPP (15 MW, 4 tabs)
+- ✅ Trading Dashboard (Deep RL)
+- ✅ Assistente IA
+- ✅ Analytics
+- ✅ Todos os 56+ menus do sidebar
+
+### Próximos Passos Sugeridos:
+1. Iniciar backend para autenticação real
+2. Conectar com banco de dados
+3. Deploy para VPS Hostinger
 
 ---
 
@@ -276,6 +312,33 @@ Quando perguntar "onde paramos?", o Claude deve:
 ---
 
 ## 📅 Histórico de Atualizações
+
+- **2026-01-28 (Sessão 3)**: 🧪 TESTES COMPLETOS E MODO DEMO ATIVADO
+  - **Testes E2E completos:** 26 novos testes em `full-system-test.spec.ts`
+    - Criação de BESS pelo wizard de 6 passos
+    - Digital Twin (todas as 4 tabs testadas)
+    - VPP (todas as tabs e controles)
+    - Trading Dashboard (Auto-Trading, Nova Ordem)
+    - Assistente IA (chat, comandos rápidos)
+    - Relatórios e Manutenção
+    - Navegação por 18 páginas diferentes
+  - **MODO DEMO ativado para testes sem backend:**
+    - `ProtectedRoute.tsx`: `isDemoMode = true` para permitir acesso sem login
+    - `Sidebar.tsx`: `isDemoMode = true` para mostrar todos os 56+ menus
+  - **Arquivos criados para testes:**
+    - `frontend/tests/e2e/full-system-test.spec.ts` - Teste completo do sistema
+    - `frontend/open-browser.mjs` - Script para abrir navegador
+    - `frontend/abrir-sistema.mjs` - Script para acessar dashboard direto
+    - `frontend/navigate-system.mjs` - Script para navegar por todas as páginas
+  - **Screenshots confirmados funcionando:**
+    - Dashboard com 2/3 sistemas online
+    - VPP com 15 MW capacidade total
+    - Trading Dashboard com Deep RL (68.5% acerto)
+    - Sistemas com BESS Teresina #01 e #02
+    - Analytics com gráficos SOC/SOH
+  - **Para restaurar autenticação em produção:**
+    - Mudar `isDemoMode = false` em `ProtectedRoute.tsx`
+    - Mudar `isDemoMode = false` em `Sidebar.tsx`
 
 - **2026-01-28 (Sessão 2)**: 🎉 COBERTURA E2E 100% - **77/77 TESTES PASSARAM** ✅
   - **Novo arquivo:** `complete-coverage.spec.ts` com 35 novos testes

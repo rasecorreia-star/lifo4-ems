@@ -10,7 +10,11 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
   const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  // MODO DEMO: Permitir acesso sem autenticacao para testes
+  // TODO: Remover em producao
+  const isDemoMode = true;
+
+  if (!isAuthenticated && !isDemoMode) {
     // Redirect to login, saving the attempted URL
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

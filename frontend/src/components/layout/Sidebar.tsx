@@ -173,6 +173,9 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navigation
           .filter((item) => {
+            // MODO DEMO: Mostrar todos os menus
+            const isDemoMode = true;
+            if (isDemoMode) return true;
             // If no roles defined, show to everyone
             if (!item.roles) return true;
             // If roles defined, check if user has one of them

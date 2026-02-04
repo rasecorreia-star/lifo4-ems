@@ -159,10 +159,91 @@ const mockSystems = [
   },
 ];
 
+// Cache for mock-bess data
+let mockBessCache = null;
+let mockBessCacheTime = 0;
+const MOCK_BESS_URL = 'http://localhost:3002';
+
+// Fetch data from mock-bess simulator
+const fetchMockBessData = async () => {
+  // Use cache if less than 1 second old
+  if (mockBessCache && Date.now() - mockBessCacheTime < 1000) {
+    return mockBessCache;
+  }
+
+  try {
+    const response = await fetch(`${MOCK_BESS_URL}/api/status`);
+    if (response.ok) {
+      const result = await response.json();
+      mockBessCache = result.data;
+      mockBessCacheTime = Date.now();
+      return mockBessCache;
+    }
+  } catch (e) {
+    // Mock-bess not available, use fallback
+  }
+  return null;
+};
+
 const generateTelemetry = (systemId) => {
   const system = mockSystems.find(s => s.id === systemId);
   if (!system || system.connectionStatus === 'offline') return null;
 
+  // Try to use mock-bess data if available
+  const bessData = mockBessCache;
+  if (bessData && bessData.bms) {
+    const bms = bessData.bms;
+    const inv = bessData.inverter;
+
+    const cells = bms.cells.map((c, i) => ({
+      index: i,
+      voltage: c.voltage,
+      temperature: bms.temperatures[i % bms.temperatures.length]?.value || 28,
+      isBalancing: c.isBalancing,
+      status: c.voltage < 3.0 || c.voltage > 3.5 ? 'attention' : 'normal',
+    }));
+
+    // Update system status based on mock-bess
+    if (inv) {
+      system.status = inv.battery.charging ? 'charging' : inv.battery.discharging ? 'discharging' : 'idle';
+    }
+
+    return {
+      id: `tel-${Date.now()}`,
+      systemId,
+      timestamp: new Date(),
+      soc: bms.soc,
+      soh: bms.soh,
+      totalVoltage: bms.voltage,
+      current: bms.current,
+      power: bms.voltage * bms.current,
+      temperature: {
+        min: bms.tempMin,
+        max: bms.tempMax,
+        average: (bms.tempMin + bms.tempMax) / 2,
+        sensors: bms.temperatures.map(t => t.value),
+      },
+      cells,
+      chargeCapacity: system.batterySpec.nominalCapacity * (bms.soc / 100),
+      energyRemaining: system.batterySpec.energyCapacity * (bms.soc / 100),
+      cycleCount: bms.cycles,
+      isCharging: inv?.battery.charging || false,
+      isDischarging: inv?.battery.discharging || false,
+      isBalancing: bms.balancingActive,
+      alarms: Object.entries(bms.alarms).filter(([,v]) => v).map(([type]) => type),
+      warnings: Object.entries(bms.warnings).filter(([,v]) => v).map(([type]) => type),
+      // Extra data from inverter
+      inverter: inv ? {
+        mode: inv.mode,
+        pvPower: inv.pv.power,
+        gridPower: inv.grid.power,
+        loadPower: inv.output.power,
+        gridConnected: inv.grid.connected,
+      } : null,
+    };
+  }
+
+  // Fallback to random data if mock-bess not available
   const soc = 45 + Math.random() * 50;
   const isCharging = system.status === 'charging';
   const isDischarging = system.status === 'discharging';
@@ -202,6 +283,11 @@ const generateTelemetry = (systemId) => {
     warnings: [],
   };
 };
+
+// Periodically fetch mock-bess data
+setInterval(async () => {
+  await fetchMockBessData();
+}, 1000);
 
 const mockAlerts = [
   {
@@ -766,6 +852,260 @@ app.post('/api/v1/alerts/read-multiple', (req, res) => {
     const alert = mockAlerts.find(a => a.id === id);
     if (alert) alert.isRead = true;
   });
+  res.json({ success: true });
+});
+
+// ============================================
+// DEVICE DISCOVERY ROUTES
+// ============================================
+
+// Store for discovered devices and connections
+const discoveredDevices = [];
+const deviceConnections = {};
+let lastDiscoveryCheck = Date.now();
+
+// Check mock-bess for new devices (now checks ALL 9 devices)
+const checkForNewDevices = async () => {
+  try {
+    // Use /api/devices to get ALL BESS units
+    const response = await fetch('http://localhost:3002/api/devices');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.data && Array.isArray(data.data)) {
+        for (const device of data.data) {
+          const deviceId = `discovered-${device.id}`;
+
+          // Check if already discovered
+          const exists = discoveredDevices.some(d => d.id === deviceId);
+          if (!exists && device.online) {
+            const newDevice = {
+              id: deviceId,
+              name: device.name || `BESS ${device.id}`,
+              type: 'bms',
+              manufacturer: 'JK BMS',
+              model: `LiFePO4 ${device.capacity}Ah`,
+              protocol: 'mqtt',
+              address: 'localhost',
+              port: 1883,
+              topic: `lifo4/${device.id}/telemetry`,
+              serialNumber: device.id,
+              firmware: '11.XW',
+              discoveredAt: new Date().toISOString(),
+              signalStrength: -45 + Math.floor(Math.random() * 10),
+              status: 'new',
+              site: device.site,
+              soc: device.soc,
+              capacity: device.capacity,
+            };
+            discoveredDevices.push(newDevice);
+            console.log('New device discovered:', newDevice.name);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Mock-bess not available
+  }
+};
+
+// Start periodic discovery check
+setInterval(checkForNewDevices, 10000);
+checkForNewDevices(); // Initial check
+
+// Get newly discovered devices (since last check)
+app.get('/api/v1/discovery/new', (req, res) => {
+  const newDevices = discoveredDevices.filter(d =>
+    d.status === 'new' && new Date(d.discoveredAt).getTime() > lastDiscoveryCheck
+  );
+  lastDiscoveryCheck = Date.now();
+  res.json({ success: true, data: newDevices });
+});
+
+// Scan for devices
+app.post('/api/v1/discovery/scan', async (req, res) => {
+  await checkForNewDevices();
+
+  // Return all discovered devices
+  res.json({
+    success: true,
+    data: discoveredDevices.map(d => ({
+      ...d,
+      status: deviceConnections[d.id]?.enabled ? 'added' : d.status
+    }))
+  });
+});
+
+// Add discovered device to system
+app.post('/api/v1/discovery/add', (req, res) => {
+  const device = req.body;
+  const systemId = `sys-${Date.now()}`;
+
+  // Create a new system entry in mockSystems
+  const newSystem = {
+    id: systemId,
+    name: device.name || `${device.manufacturer} ${device.model}`,
+    siteId: 'site-1',
+    organizationId: 'org-1',
+    serialNumber: device.serialNumber || `AUTO-${Date.now()}`,
+    model: device.model || 'Auto-discovered',
+    manufacturer: device.manufacturer || 'Unknown',
+    installationDate: new Date(),
+    batterySpec: {
+      chemistry: 'LiFePO4',
+      nominalCapacity: 200,
+      nominalVoltage: 51.2,
+      energyCapacity: 10.24,
+      cellCount: 16,
+      cellsInParallel: 4,
+      maxChargeCurrent: 100,
+      maxDischargeCurrent: 150,
+      maxChargeVoltage: 58.4,
+      minDischargeVoltage: 40,
+      maxTemperature: 55,
+      minTemperature: 0,
+    },
+    status: 'idle',
+    connectionStatus: 'online',
+    lastCommunication: new Date(),
+    deviceId: device.id,
+    mqttTopic: device.topic || `lifo4/bess/${systemId}`,
+    firmwareVersion: device.firmware || '1.0.0',
+    operationMode: 'auto',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  // Add to mockSystems array
+  mockSystems.push(newSystem);
+  console.log(`New system added: ${newSystem.name} (${systemId})`);
+
+  // Create connection config
+  deviceConnections[device.id] = {
+    ...device,
+    enabled: true,
+    connectedAt: new Date().toISOString(),
+    systemId: systemId,
+  };
+
+  // Also create connection for the new system ID
+  deviceConnections[systemId] = {
+    ...device,
+    systemId,
+    enabled: true,
+    connectionStatus: 'connected',
+    connectedAt: new Date().toISOString(),
+  };
+
+  // Update device status in discovered list
+  const idx = discoveredDevices.findIndex(d => d.id === device.id);
+  if (idx !== -1) {
+    discoveredDevices[idx].status = 'added';
+  }
+
+  res.json({ success: true, data: { system: newSystem, connection: deviceConnections[device.id] } });
+});
+
+// ============================================
+// CONNECTION CONFIG ROUTES
+// ============================================
+
+// Get connection config for a system
+app.get('/api/v1/systems/:systemId/connection', (req, res) => {
+  const { systemId } = req.params;
+  const connection = deviceConnections[systemId] || {
+    id: `conn-${systemId}`,
+    systemId,
+    protocol: 'http',
+    enabled: systemId === 'sys-1', // sys-1 is connected by default
+    apiUrl: 'http://localhost:3002',
+    bmsModel: 'PB2A16S20P',
+    bmsManufacturer: 'JK BMS',
+    connectionStatus: systemId === 'sys-1' ? 'connected' : 'disconnected',
+  };
+  res.json({ success: true, data: connection });
+});
+
+// Save connection config
+app.post('/api/v1/systems/:systemId/connection', (req, res) => {
+  const { systemId } = req.params;
+  deviceConnections[systemId] = {
+    ...req.body,
+    systemId,
+    updatedAt: new Date().toISOString(),
+  };
+  res.json({ success: true, data: deviceConnections[systemId] });
+});
+
+// Test connection
+app.post('/api/v1/systems/:systemId/connection/test', async (req, res) => {
+  const config = req.body;
+
+  try {
+    if (config.protocol === 'http' && config.apiUrl) {
+      const response = await fetch(`${config.apiUrl}/health`);
+      if (response.ok) {
+        res.json({
+          success: true,
+          data: { message: 'Dispositivo respondeu corretamente' }
+        });
+      } else {
+        res.json({
+          success: false,
+          error: { message: `Dispositivo retornou erro: ${response.status}` }
+        });
+      }
+    } else if (config.protocol === 'mqtt') {
+      // Simulate MQTT test
+      res.json({
+        success: true,
+        data: { message: `Broker MQTT ${config.mqttBroker}:${config.mqttPort} acessivel` }
+      });
+    } else {
+      res.json({
+        success: true,
+        data: { message: 'Configuracao validada (simulado)' }
+      });
+    }
+  } catch (error) {
+    res.json({
+      success: false,
+      error: { message: `Nao foi possivel conectar: ${error.message}` }
+    });
+  }
+});
+
+// Connect device
+app.post('/api/v1/systems/:systemId/connection/connect', (req, res) => {
+  const { systemId } = req.params;
+  const config = req.body;
+
+  deviceConnections[systemId] = {
+    ...config,
+    systemId,
+    enabled: true,
+    connectionStatus: 'connected',
+    connectedAt: new Date().toISOString(),
+  };
+
+  // Update the mock system status
+  const system = mockSystems.find(s => s.id === systemId);
+  if (system) {
+    system.connectionStatus = 'online';
+  }
+
+  res.json({ success: true, data: deviceConnections[systemId] });
+});
+
+// Disconnect device
+app.post('/api/v1/systems/:systemId/connection/disconnect', (req, res) => {
+  const { systemId } = req.params;
+
+  if (deviceConnections[systemId]) {
+    deviceConnections[systemId].enabled = false;
+    deviceConnections[systemId].connectionStatus = 'disconnected';
+  }
+
   res.json({ success: true });
 });
 

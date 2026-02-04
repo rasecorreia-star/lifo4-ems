@@ -18,6 +18,7 @@ import { systemsApi, telemetryApi } from '@/services/api';
 import { socketService } from '@/services/socket';
 import { BessSystem, TelemetryData } from '@/types';
 import SystemRegistrationModal, { SystemFormData } from '@/components/systems/SystemRegistrationModal';
+import DeviceDiscovery from '@/components/systems/DeviceDiscovery';
 
 export default function SystemList() {
   const [systems, setSystems] = useState<BessSystem[]>([]);
@@ -155,12 +156,18 @@ export default function SystemList() {
             <GitCompare className="w-5 h-5" />
             Comparar
           </Link>
+          <DeviceDiscovery
+            onDeviceAdded={(device) => {
+              console.log('Device added:', device);
+              fetchSystems(); // Refresh list
+            }}
+          />
           <button
             onClick={() => setIsRegistrationModalOpen(true)}
             className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Novo Sistema
+            Novo Sistema (Manual)
           </button>
         </div>
       </div>

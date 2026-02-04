@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BESS Mock Simulator - Multi-Device Control Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #e94560;
+    }
+    .header h1 { font-size: 24px; margin-bottom: 5px; }
+    .header .subtitle { color: #888; font-size: 14px; }
+    .header .stats { display: flex; justify-content: center; gap: 30px; margin-top: 15px; }
+    .header .stat-item { text-align: center; }
+    .header .stat-value { font-size: 24px; font-weight: bold; }
+    .header .stat-label { font-size: 11px; color: #888; text-transform: uppercase; }
+    .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+
+    /* Device Grid */
+    .devices-section { margin-bottom: 30px; }
+    .devices-section h2 {
+      font-size: 18px;
+      color: #e94560;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+    }
+    .device-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .device-card:hover { background: #1e2d4a; }
+    .device-card.selected { border-color: #e94560; }
+    .device-card.offline { opacity: 0.5; }
+    .device-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .device-name { font-weight: bold; font-size: 14px; }
+    .device-site { font-size: 11px; color: #888; margin-top: 2px; }
+    .device-status {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .device-status.online { background: #4ade80; color: #000; }
+    .device-status.offline { background: #666; color: #fff; }
+    .device-status.connected { background: #3b82f6; color: #fff; }
+    .device-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .device-metric {
+      background: #0f3460;
+      padding: 8px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .device-metric-value { font-size: 16px; font-weight: bold; }
+    .device-metric-label { font-size: 9px; color: #888; text-transform: uppercase; }
+    .device-metric-value.charging { color: #4ade80; }
+    .device-metric-value.discharging { color: #f87171; }
+    .device-metric-value.warning { color: #fbbf24; }
+
+    /* Scenario Control */
+    .scenario-section {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .scenario-section h3 { font-size: 14px; color: #e94560; margin-bottom: 10px; }
+    .scenarios { display: flex; flex-wrap: wrap; gap: 8px; }
+    .scenario-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .scenario-btn:hover { background: #1e4d8c; }
+    .scenario-btn.active { background: #e94560; }
+    .scenario-actions { margin-top: 15px; display: flex; gap: 10px; }
+    .apply-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .apply-btn.selected { background: #3b82f6; color: #fff; }
+    .apply-btn.all { background: #e94560; color: #fff; }
+
+    /* Detail Panel */
+    .detail-section {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #0f3460;
+    }
+    .detail-title { font-size: 18px; font-weight: bold; }
+    .detail-subtitle { font-size: 12px; color: #888; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card {
+      background: #0f3460;
+      border-radius: 12px;
+      padding: 15px;
+    }
+    .card h2 {
+      font-size: 14px;
+      color: #e94560;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat {
+      background: #16213e;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
+    .stat-value { font-size: 18px; font-weight: bold; margin-top: 2px; }
+    .stat-value.positive { color: #4ade80; }
+    .stat-value.negative { color: #f87171; }
+    .stat-value.warning { color: #fbbf24; }
+
+    .cell-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .cell {
+      background: #16213e;
+      padding: 6px 4px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 10px;
+    }
+    .cell.balancing { background: #fbbf24; color: #000; }
+    .cell .voltage { font-weight: bold; }
+
+    .power-flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      background: #16213e;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .power-node {
+      text-align: center;
+      min-width: 70px;
+    }
+    .power-node .icon { font-size: 24px; margin-bottom: 4px; }
+    .power-node .value { font-size: 13px; font-weight: bold; }
+    .power-node .label { font-size: 9px; color: #888; }
+    .power-arrow { font-size: 18px; color: #888; }
+
+    .refresh-info { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+
+    /* Connection indicator */
+    .connection-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .connection-badge.ems { background: #3b82f6; color: #fff; }
+    .connection-badge.ems::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>BESS Mock Simulator - Multi-Device</h1>
+    <div class="subtitle">Simulando 9 unidades BESS com JK BMS + ANENJI Inverter</div>
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-value" id="totalDevices">9</div>
+        <div class="stat-label">Dispositivos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="onlineDevices" style="color:#4ade80">0</div>
+        <div class="stat-label">Online</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="totalPower">0 kW</div>
+        <div class="stat-label">Potencia Total</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="avgSoc">0%</div>
+        <div class="stat-label">SOC Medio</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Devices Grid -->
+    <div class="devices-section">
+      <h2>Dispositivos BESS</h2>
+      <div class="devices-grid" id="devicesGrid"></div>
+    </div>
+
+    <!-- Scenario Control -->
+    <div class="scenario-section">
+      <h3>Controle de Cenario</h3>
+      <div>Cenario atual: <strong id="currentScenario">-</strong></div>
+      <div class="scenarios" id="scenarioButtons"></div>
+      <div class="scenario-actions">
+        <button class="apply-btn selected" onclick="applyScenarioToSelected()">Aplicar ao Selecionado</button>
+        <button class="apply-btn all" onclick="applyScenarioToAll()">Aplicar a TODOS</button>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-section" id="detailPanel" style="display:none;">
+      <div class="detail-header">
+        <div>
+          <div class="detail-title" id="detailTitle">-</div>
+          <div class="detail-subtitle" id="detailSubtitle">-</div>
+        </div>
+        <div id="detailBadges"></div>
+      </div>
+
+      <!-- Power Flow -->
+      <div class="power-flow">
+        <div class="power-node">
+          <div class="icon">&#9728;</div>
+          <div class="value" id="pvPower">0 W</div>
+          <div class="label">Solar</div>
+        </div>
+        <div class="power-arrow" id="pvArrow">&#8594;</div>
+        <div class="power-node">
+          <div class="icon">&#128267;</div>
+          <div class="value" id="batteryPower">0 W</div>
+          <div class="label">Bateria</div>
+        </div>
+        <div class="power-arrow">&#8594;</div>
+        <div class="power-node">
+          <div class="icon">&#127968;</div>
+          <div class="value" id="loadPower">0 W</div>
+          <div class="label">Carga</div>
+        </div>
+        <div class="power-arrow">&#8596;</div>
+        <div class="power-node">
+          <div class="icon">&#9889;</div>
+          <div class="value" id="gridPower">0 W</div>
+          <div class="label">Rede</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- BMS Card -->
+        <div class="card">
+          <h2>BMS - JK PB2A16S20P</h2>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-label">Tensao</div>
+              <div class="stat-value" id="bmsVoltage">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Corrente</div>
+              <div class="stat-value" id="bmsCurrent">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">SOC</div>
+              <div class="stat-value" id="bmsSoc">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Potencia</div>
+              <div class="stat-value" id="bmsPower">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Temperatura</div>
+              <div class="stat-value" id="bmsTemp">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Ciclos</div>
+              <div class="stat-value" id="bmsCycles">-</div>
+            </div>
+          </div>
+          <h3 style="font-size:12px; margin-top:12px; margin-bottom:6px; color:#888;">Tensao das Celulas</h3>
+          <div class="cell-grid" id="cellGrid"></div>
+          <div id="bmsAlarms" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- Inverter Card -->
+        <div class="card">
+          <h2>Inversor - ANENJI ANJ-6200W</h2>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-label">Modo</div>
+              <div class="stat-value" id="invMode">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">PV Power</div>
+              <div class="stat-value positive" id="invPvPower">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">PV Voltage</div>
+              <div class="stat-value" id="invPvVoltage">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Carga</div>
+              <div class="stat-value" id="invLoadPercent">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Saida</div>
+              <div class="stat-value" id="invOutputPower">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Rede</div>
+              <div class="stat-value" id="invGridStatus">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid Meter Card -->
+        <div class="card">
+          <h2>Medidor de Rede</h2>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-label">Tensao</div>
+              <div class="stat-value" id="gridVoltage">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Frequencia</div>
+              <div class="stat-value" id="gridFreq">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Potencia</div>
+              <div class="stat-value" id="gridMeterPower">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Fator Potencia</div>
+              <div class="stat-value" id="gridPF">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Importada</div>
+              <div class="stat-value" id="gridImport">-</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Exportada</div>
+              <div class="stat-value" id="gridExport">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="refresh-info">Atualizacao automatica a cada 2 segundos</div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let devices = [];
+    let selectedDeviceId = null;
+    let selectedScenario = 'normal';
+
+    // Fetch all devices
+    async function fetchDevices() {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices`);
+        const { data } = await res.json();
+        devices = data;
+        renderDevicesGrid();
+        updateHeaderStats();
+
+        // Auto-select first device if none selected
+        if (!selectedDeviceId && devices.length > 0) {
+          selectDevice(devices[0].id);
+        }
+      } catch (e) {
+        console.error('Failed to fetch devices:', e);
+      }
+    }
+
+    // Fetch scenarios
+    async function fetchScenarios() {
+      try {
+        const res = await fetch(`${API_BASE}/api/scenarios`);
+        const { data } = await res.json();
+        renderScenarios(data);
+      } catch (e) {
+        console.error('Failed to fetch scenarios:', e);
+      }
+    }
+
+    // Fetch single device detail
+    async function fetchDeviceDetail(deviceId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${deviceId}`);
+        const { data } = await res.json();
+        updateDetailPanel(data);
+      } catch (e) {
+        console.error('Failed to fetch device detail:', e);
+      }
+    }
+
+    // Render devices grid
+    function renderDevicesGrid() {
+      const container = document.getElementById('devicesGrid');
+      container.innerHTML = devices.map(d => {
+        const powerClass = d.power > 10 ? 'charging' : d.power < -10 ? 'discharging' : '';
+        const socClass = d.soc < 20 ? 'warning' : '';
+        return `
+          <div class="device-card ${d.online ? '' : 'offline'} ${selectedDeviceId === d.id ? 'selected' : ''}"
+               onclick="selectDevice('${d.id}')">
+            <div class="device-header">
+              <div>
+                <div class="device-name">${d.name}</div>
+                <div class="device-site">${d.site} - ${d.capacity}Ah</div>
+              </div>
+              <div style="display:flex;gap:5px;flex-direction:column;align-items:flex-end;">
+                <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? 'Online' : 'Offline'}</span>
+              </div>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric">
+                <div class="device-metric-value ${socClass}">${d.soc.toFixed(0)}%</div>
+                <div class="device-metric-label">SOC</div>
+              </div>
+              <div class="device-metric">
+                <div class="device-metric-value ${powerClass}">${Math.abs(d.power).toFixed(0)}W</div>
+                <div class="device-metric-label">${d.power > 5 ? 'Carga' : d.power < -5 ? 'Descarga' : 'Idle'}</div>
+              </div>
+              <div class="device-metric">
+                <div class="device-metric-value">${d.scenario}</div>
+                <div class="device-metric-label">Cenario</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Update header stats
+    function updateHeaderStats() {
+      const online = devices.filter(d => d.online).length;
+      const totalPower = devices.reduce((sum, d) => sum + (d.online ? d.power : 0), 0);
+      const avgSoc = devices.filter(d => d.online).reduce((sum, d) => sum + d.soc, 0) / (online || 1);
+
+      document.getElementById('totalDevices').textContent = devices.length;
+      document.getElementById('onlineDevices').textContent = online;
+      document.getElementById('totalPower').textContent = `${(totalPower/1000).toFixed(1)} kW`;
+      document.getElementById('avgSoc').textContent = `${avgSoc.toFixed(0)}%`;
+    }
+
+    // Render scenarios
+    function renderScenarios(scenarios) {
+      const container = document.getElementById('scenarioButtons');
+      container.innerHTML = scenarios.map(s =>
+        `<button class="scenario-btn ${selectedScenario === s.id ? 'active' : ''}"
+                 data-id="${s.id}"
+                 onclick="selectScenario('${s.id}')">${s.name}</button>`
+      ).join('');
+    }
+
+    // Select scenario
+    function selectScenario(id) {
+      selectedScenario = id;
+      document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === id);
+      });
+    }
+
+    // Apply scenario to selected device
+    async function applyScenarioToSelected() {
+      if (!selectedDeviceId) {
+        alert('Selecione um dispositivo primeiro!');
+        return;
+      }
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/scenario`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: selectedScenario })
+        });
+        fetchDevices();
+        fetchDeviceDetail(selectedDeviceId);
+      } catch (e) {
+        console.error('Failed to set scenario:', e);
+      }
+    }
+
+    // Apply scenario to ALL devices
+    async function applyScenarioToAll() {
+      try {
+        await fetch(`${API_BASE}/api/scenario/all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: selectedScenario })
+        });
+        fetchDevices();
+        if (selectedDeviceId) fetchDeviceDetail(selectedDeviceId);
+      } catch (e) {
+        console.error('Failed to set scenario for all:', e);
+      }
+    }
+
+    // Select device
+    function selectDevice(deviceId) {
+      selectedDeviceId = deviceId;
+      document.querySelectorAll('.device-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event?.target?.closest('.device-card')?.classList.add('selected');
+
+      document.getElementById('detailPanel').style.display = 'block';
+      fetchDeviceDetail(deviceId);
+
+      // Update current scenario display
+      const device = devices.find(d => d.id === deviceId);
+      if (device) {
+        document.getElementById('currentScenario').textContent = device.scenario;
+        selectScenario(device.scenario);
+      }
+    }
+
+    // Update detail panel
+    function updateDetailPanel(data) {
+      document.getElementById('detailTitle').textContent = data.config.name;
+      document.getElementById('detailSubtitle').textContent =
+        `${data.config.site} | ${data.config.capacity}Ah | Cenario: ${data.scenario}`;
+
+      // Badges
+      document.getElementById('detailBadges').innerHTML = `
+        <span class="device-status ${data.online ? 'online' : 'offline'}">${data.online ? 'Online' : 'Offline'}</span>
+      `;
+
+      const bms = data.bms;
+      const inv = data.inverter;
+      const grid = data.grid;
+
+      // BMS
+      document.getElementById('bmsVoltage').textContent = `${bms.voltage.toFixed(2)} V`;
+      document.getElementById('bmsCurrent').textContent = `${bms.current.toFixed(1)} A`;
+      document.getElementById('bmsCurrent').className = `stat-value ${bms.current > 0 ? 'positive' : bms.current < 0 ? 'negative' : ''}`;
+      document.getElementById('bmsSoc').textContent = `${bms.soc.toFixed(1)}%`;
+      document.getElementById('bmsSoc').className = `stat-value ${bms.soc < 20 ? 'warning' : ''}`;
+      document.getElementById('bmsPower').textContent = `${Math.abs(bms.voltage * bms.current).toFixed(0)} W`;
+      document.getElementById('bmsTemp').textContent = `${bms.tempMin.toFixed(1)} - ${bms.tempMax.toFixed(1)} C`;
+      document.getElementById('bmsCycles').textContent = bms.cycles;
+
+      // Cells
+      const cellGrid = document.getElementById('cellGrid');
+      cellGrid.innerHTML = bms.cells.map(c =>
+        `<div class="cell ${c.isBalancing ? 'balancing' : ''}">
+          <div style="font-size:8px;color:#666">${c.index}</div>
+          <div class="voltage">${c.voltage.toFixed(3)}</div>
+        </div>`
+      ).join('');
+
+      // Alarms
+      const alarmDiv = document.getElementById('bmsAlarms');
+      const activeAlarms = Object.entries(bms.alarms).filter(([,v]) => v).map(([k]) => k);
+      if (activeAlarms.length > 0) {
+        alarmDiv.innerHTML = `<div style="background:#f87171;color:#000;padding:8px;border-radius:4px;font-size:11px;">
+          ALARMES: ${activeAlarms.join(', ')}</div>`;
+      } else {
+        alarmDiv.innerHTML = '';
+      }
+
+      // Inverter
+      document.getElementById('invMode').textContent = inv.mode;
+      document.getElementById('invPvPower').textContent = `${inv.pv.power.toFixed(0)} W`;
+      document.getElementById('invPvVoltage').textContent = `${inv.pv.voltage.toFixed(1)} V`;
+      document.getElementById('invLoadPercent').textContent = `${inv.output.loadPercent.toFixed(1)}%`;
+      document.getElementById('invOutputPower').textContent = `${inv.output.power.toFixed(0)} W`;
+      document.getElementById('invGridStatus').textContent = inv.grid.connected ? 'Conectada' : 'Desconectada';
+      document.getElementById('invGridStatus').className = `stat-value ${inv.grid.connected ? 'positive' : 'negative'}`;
+
+      // Grid
+      document.getElementById('gridVoltage').textContent = `${grid.voltage.toFixed(1)} V`;
+      document.getElementById('gridFreq').textContent = `${grid.frequency.toFixed(2)} Hz`;
+      document.getElementById('gridMeterPower').textContent = `${grid.power} W`;
+      document.getElementById('gridMeterPower').className = `stat-value ${grid.power > 0 ? 'negative' : grid.power < 0 ? 'positive' : ''}`;
+      document.getElementById('gridPF').textContent = grid.powerFactor.toFixed(2);
+      document.getElementById('gridImport').textContent = `${grid.energyImport.toFixed(1)} kWh`;
+      document.getElementById('gridExport').textContent = `${grid.energyExport.toFixed(1)} kWh`;
+
+      // Power flow
+      document.getElementById('pvPower').textContent = `${inv.pv.power.toFixed(0)} W`;
+      document.getElementById('batteryPower').textContent = `${Math.abs(inv.battery.power).toFixed(0)} W`;
+      document.getElementById('batteryPower').style.color = inv.battery.charging ? '#4ade80' : '#f87171';
+      document.getElementById('loadPower').textContent = `${inv.output.power.toFixed(0)} W`;
+      document.getElementById('gridPower').textContent = `${Math.abs(grid.power)} W`;
+      document.getElementById('gridPower').style.color = grid.power > 0 ? '#f87171' : grid.power < 0 ? '#4ade80' : '#888';
+    }
+
+    // Initial load
+    fetchScenarios();
+    fetchDevices();
+
+    // Auto-refresh
+    setInterval(() => {
+      fetchDevices();
+      if (selectedDeviceId) {
+        fetchDeviceDetail(selectedDeviceId);
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

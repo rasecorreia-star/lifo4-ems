@@ -1,30 +1,60 @@
 # EMS BESS v2.0 - Progress Tracker
 
-> **Última atualização:** 2026-01-28 (Sessão 3)
-> **Status Geral:** 🎉 TODAS AS FASES COMPLETAS! 100%
+> **Última atualização:** 2026-02-04 (Sessão 5)
+> **Status Geral:** 🎉 DEPLOY EM PRODUÇÃO! 100%
+
+---
+
+## ✅ SESSÃO 5 - CONCLUÍDA
+
+### O que foi feito:
+1. ✅ Atualizado `deploy.sh` - mudou REMOTE_DIR de `/opt/EMS` para `/opt/EMS`
+2. ✅ Atualizado `deploy/deploy-server.sh` - mudou PROJECT_DIR para `/opt/EMS`
+3. ✅ Atualizado `deploy/deploy-server.sh` - mudou COMPOSE_FILE para `docker-compose.prebuilt.yml`
+4. ✅ Parou containers antigos em `/opt/EMS` no VPS
+5. ✅ Criou diretório `/opt/EMS` no VPS
+6. ✅ Deploy para `/opt/EMS` concluído
+7. ✅ Sistema testado e funcionando (HTTP 200)
 
 ---
 
 ## 🚀 ESTADO ATUAL - PARA CONTINUAR
 
-### Como Iniciar o Sistema:
+### Sistema em PRODUÇÃO:
+```
+EMS BESS:     http://76.13.164.252:8081
+SistPericia:  http://76.13.164.252:8080
+```
+
+### Desenvolvimento Local:
 ```bash
 cd C:\users\rasec\onedrive\ideiasdenegocio\baterias\ems\frontend
 npm run dev
+# Acesse: http://localhost:5173
 ```
 
-### Como Abrir o Navegador (após servidor rodando):
+### Deploy para Produção:
 ```bash
-node abrir-sistema.mjs
+# 1. Build local (já feito, só refazer se mudar código)
+cd frontend && npm run build
+
+# 2. Enviar para VPS
+cd .. && tar -czvf /tmp/ems.tar.gz frontend/dist backend/demo-server-full.js deploy/
+scp -i ~/.ssh/id_ed25519 /tmp/ems.tar.gz root@76.13.164.252:/tmp/
+
+# 3. No servidor
+ssh -i ~/.ssh/id_ed25519 root@76.13.164.252
+cd /opt/EMS && tar -xzf /tmp/ems.tar.gz
+cd deploy && docker compose -f docker-compose.prebuilt.yml up -d --build
 ```
 
 ### Modo Demo Ativo:
 - **ProtectedRoute.tsx** linha ~13: `isDemoMode = true`
 - **Sidebar.tsx** linha ~177: `isDemoMode = true`
 - Isso permite acesso SEM backend/autenticação
-- Para PRODUÇÃO, mudar ambos para `false`
+- Para PRODUÇÃO com auth real, mudar ambos para `false`
 
-### O que foi testado e funciona:
+### O que está funcionando:
 - ✅ Dashboard com dados mock
 - ✅ Sistemas (3 BESS cadastrados)
 - ✅ Digital Twin (4 tabs)
@@ -33,11 +63,13 @@ node abrir-sistema.mjs
 - ✅ Assistente IA
 - ✅ Analytics
 - ✅ Todos os 56+ menus do sidebar
+- ✅ **DEPLOY EM PRODUÇÃO** (porta 8081)
 
 ### Próximos Passos Sugeridos:
-1. Iniciar backend para autenticação real
-2. Conectar com banco de dados
-3. Deploy para VPS Hostinger
+1. ~~Deploy para VPS Hostinger~~ ✅ FEITO
+2. Configurar domínio (opcional)
+3. Implementar backend real com autenticação
+4. Conectar com banco de dados PostgreSQL
 
 ---
 
@@ -313,6 +345,31 @@ Quando perguntar "onde paramos?", o Claude deve:
 
 ## 📅 Histórico de Atualizações
 
+- **2026-02-04 (Sessão 4)**: 🚀 DEPLOY EM PRODUÇÃO NO VPS HOSTINGER
+  - **Deploy automático configurado:**
+    - Script `deploy.sh` na raiz do projeto
+    - Script `deploy/deploy-server.sh` no servidor
+    - Docker Compose otimizado para VPS 3GB RAM
+  - **Problemas resolvidos:**
+    - VPS travava com build local (3GB RAM insuficiente)
+    - Solução: Build pré-compilado no Windows, envio apenas do `dist/`
+    - Swap de 2GB criado para evitar travamentos futuros
+  - **Containers configurados:**
+    - `ems-nginx` (porta 8081)
+    - `ems-frontend` (nginx:alpine com dist/)
+    - `ems-backend` (Node.js demo server)
+  - **Arquivos criados:**
+    - `frontend/Dockerfile.prebuilt` - Usa dist/ pré-compilado
+    - `backend/Dockerfile.demo` - Backend demo em JS puro
+    - `deploy/docker-compose.prebuilt.yml` - Compose otimizado
+  - **URLs em produção:**
+    - EMS BESS: http://76.13.164.252:8081
+    - SistPericia: http://76.13.164.252:8080
+  - **Recursos do VPS:**
+    - Disco: 27GB livres de 48GB
+    - RAM: 3.8GB + 2GB Swap
+    - Docker images: ~16GB (podem ser limpas)
+
 - **2026-01-28 (Sessão 3)**: 🧪 TESTES COMPLETOS E MODO DEMO ATIVADO
   - **Testes E2E completos:** 26 novos testes em `full-system-test.spec.ts`
     - Criação de BESS pelo wizard de 6 passos
@@ -492,59 +549,76 @@ Antes de fazer commit, SEMPRE verificar:
 
 ---
 
-## 🚀 Informações de Deploy - VPS Hostinger
+## 🚀 DEPLOY EM PRODUÇÃO - VPS Hostinger
 
-> **⚠️ ATENÇÃO:** Executar deploy APENAS quando solicitado explicitamente pelo usuário!
+### ✅ STATUS: ONLINE
+
+| Sistema | Porta | URL | Status |
+|---------|-------|-----|--------|
+| **EMS BESS** | 8081 | http://76.13.164.252:8081 | ✅ Online |
+| **SistPericia** | 8080 | http://76.13.164.252:8080 | ✅ Online |
 
 ### Credenciais de Acesso
 
 ```
-SSH: ssh root@76.13.164.252
-Senha root: Cesar26642773.
+SSH: ssh -i ~/.ssh/id_ed25519 root@76.13.164.252
 ```
 
 ### Especificações do Servidor
 
 | Item | Valor |
 |------|-------|
-| **Sistema Operacional** | Ubuntu |
-| **RAM** | 3 GB |
-| **Disco** | 50 GB |
+| **Sistema Operacional** | Ubuntu 24.04 |
+| **RAM** | 3.8 GB + 2GB Swap |
+| **Disco** | 48 GB (27 GB livres) |
 | **IP** | 76.13.164.252 |
-| **Domínio** | Apenas IP por enquanto |
+| **Diretório EMS** | /opt/EMS |
+| **Diretório SistPericia** | /opt/sistpericia |
 
-### Notas Importantes de Deploy
+### Containers Rodando
 
-1. **Já existe um sistema rodando** no servidor - NÃO sobrescrever!
-2. **Adicionar porta diferente** para este sistema (o outro sistema usa o IP com porta adicionada)
-3. **Verificar portas disponíveis** antes do deploy
-4. **Fazer backup** do sistema existente antes de qualquer alteração
+```
+ems-nginx              porta 8081 (frontend proxy)
+ems-frontend           porta 80 (interno)
+ems-backend            porta 3000 (demo server)
+sistpericia_nginx      porta 8080
+sistpericia_frontend
+sistpericia_backend    porta 8000
+sistpericia_postgres   porta 5433
+sistpericia_redis      porta 6380
+sistpericia_minio      porta 9000-9001
+```
 
-### Portas Sugeridas para Deploy
-
-| Serviço | Porta Sugerida |
-|---------|----------------|
-| Frontend (EMS BESS) | 3001 ou 8080 |
-| Backend API | 4001 ou 8081 |
-| AI Service | 8001 |
-| MQTT Broker | 1884 |
-
-### Comandos de Deploy (usar apenas quando solicitado)
+### Comandos Úteis
 
 ```bash
-# Conectar ao servidor
-ssh root@76.13.164.252
+# Conectar ao VPS
+ssh -i ~/.ssh/id_ed25519 root@76.13.164.252
 
-# Verificar serviços rodando
+# Ver status dos containers
 docker ps
 
-# Verificar portas em uso
-netstat -tlnp
+# Reiniciar EMS
+cd /opt/EMS/deploy && docker compose -f docker-compose.prebuilt.yml restart
 
-# Deploy com docker-compose (ajustar portas antes)
-cd /root/ems-bess
-docker-compose -f docker-compose.prod.yml up -d
+# Reiniciar SistPericia
+cd /opt/sistpericia && docker compose -f docker-compose.prod.yml restart
+
+# Ver logs EMS
+docker logs ems-backend -f
+
+# Ver uso de recursos
+docker stats --no-stream
+free -h
+df -h
 ```
+
+### Arquivos de Deploy
+
+- `/opt/EMS/deploy/docker-compose.prebuilt.yml` - Compose do EMS (pré-compilado)
+- `/opt/EMS/frontend/dist/` - Frontend compilado
+- `/opt/EMS/backend/demo-server-full.js` - Backend demo
+- `/opt/sistpericia/docker-compose.prod.yml` - Compose do SistPericia
 
 ---
 

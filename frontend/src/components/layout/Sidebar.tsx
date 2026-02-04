@@ -201,6 +201,19 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
         ))}
       </nav>
 
+      {/* Dev Tools */}
+      <div className="px-3 py-2 border-t border-border">
+        <a
+          href="http://localhost:3002"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+        >
+          <Cpu className="w-5 h-5" />
+          Mock BESS Simulator
+        </a>
+      </div>
+
       {/* User Info & Logout */}
       <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 mb-3">

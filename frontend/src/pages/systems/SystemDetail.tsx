@@ -35,6 +35,7 @@ import {
 import { systemsApi, telemetryApi, controlApi } from '@/services/api';
 import { socketService } from '@/services/socket';
 import { BessSystem, TelemetryData, CellData } from '@/types';
+import ConnectionConfig from '@/components/systems/ConnectionConfig';
 
 export default function SystemDetail() {
   const { systemId } = useParams<{ systemId: string }>();
@@ -265,6 +266,16 @@ export default function SystemDetail() {
           </Link>
         </div>
       </div>
+
+      {/* Connection Config */}
+      <ConnectionConfig
+        systemId={systemId || ''}
+        systemName={system.name}
+        onConnectionChange={(connected) => {
+          // Refresh data when connection changes
+          if (connected) fetchData();
+        }}
+      />
 
       {/* Main Stats */}
       {telemetry && isOnline ? (

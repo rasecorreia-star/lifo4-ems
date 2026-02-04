@@ -1,7 +1,11 @@
 version: '3.8'
 
-# Configuracao otimizada para VPS com 3GB RAM
-# Uso estimado: ~2.5GB RAM total
+# ===========================================
+# EMS BESS - Production Docker Compose
+# VPS: 76.13.164.252 (3GB RAM / 50GB Disk)
+# Diretorio: /opt/ems
+# Porta: 80 (HTTP)
+# ===========================================
 
 services:
   # ===================
@@ -11,7 +15,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: lifo4-backend
+    container_name: ems-backend
     restart: unless-stopped
     expose:
       - "3000"
@@ -24,7 +28,7 @@ services:
       - redis
       - mosquitto
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
@@ -42,12 +46,12 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    container_name: lifo4-frontend
+    container_name: ems-frontend
     restart: unless-stopped
     expose:
       - "80"
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
@@ -60,7 +64,7 @@ services:
     build:
       context: ../ai-service
       dockerfile: Dockerfile
-    container_name: lifo4-ai
+    container_name: ems-ai
     restart: unless-stopped
     expose:
       - "8000"
@@ -72,7 +76,7 @@ services:
     volumes:
       - ai-models:/app/models
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
@@ -83,7 +87,7 @@ services:
   # ===================
   redis:
     image: redis:7-alpine
-    container_name: lifo4-redis
+    container_name: ems-redis
     restart: unless-stopped
     expose:
       - "6379"
@@ -91,7 +95,7 @@ services:
       - redis-data:/data
     command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
@@ -102,7 +106,7 @@ services:
   # ===================
   mosquitto:
     image: eclipse-mosquitto:2
-    container_name: lifo4-mqtt
+    container_name: ems-mqtt
     restart: unless-stopped
     ports:
       - "1883:1883"
@@ -112,7 +116,7 @@ services:
       - mosquitto-data:/mosquitto/data
       - mosquitto-log:/mosquitto/log
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
@@ -123,7 +127,7 @@ services:
   # ===================
   nginx:
     image: nginx:alpine
-    container_name: lifo4-nginx
+    container_name: ems-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -138,14 +142,14 @@ services:
       - frontend
       - ai-service
     networks:
-      - lifo4-network
+      - ems-network
     deploy:
       resources:
         limits:
           memory: 64M
 
 networks:
-  lifo4-network:
+  ems-network:
     driver: bridge
 
 volumes:

@@ -1,17 +1,20 @@
-# Lifo4 EMS - Backend Dockerfile
+# EMS BESS - Backend Dockerfile
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install ALL dependencies (including devDependencies for TypeScript)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source
 COPY . .
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies after build
+RUN npm prune --production
 
 # Production image
 FROM node:20-alpine
@@ -43,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Use dumb-init to handle signals
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server.js"]

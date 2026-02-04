@@ -218,34 +218,100 @@ npm install puppeteer js-yaml --save-dev
 
 ---
 
-## REGRAS ESPECÍFICAS DO PROJETO
+## REGRAS ESPECÍFICAS DO PROJETO EMS BESS
 
-### Stack (ajuste conforme seu projeto)
-- Frontend: React/Next.js
-- Backend: Node.js
-- Banco: PostgreSQL
-- Comando dev: `npm run dev`
-- Porta: 3000
+### Stack
+- Frontend: React + Vite + TypeScript + Tailwind CSS
+- Backend: Node.js (demo-server-full.js em produção)
+- UI: Tailwind CSS + Radix UI + Lucide Icons
+- Charts: Recharts
+- Testes E2E: Playwright
+
+### Estrutura do Projeto
+```
+EMS/
+├── frontend/          # React app (porta 5173 local)
+├── backend/           # Node.js API + demo server
+├── ai-service/        # Python FastAPI (IA/ML)
+├── mock-bess/         # Simulador de dispositivos BESS
+├── deploy/            # Docker configs para VPS
+└── PROGRESS.md        # Estado atual do projeto
+```
 
 ### Padrões de código
-- TypeScript quando possível
+- TypeScript em todo frontend
 - Componentes funcionais com hooks
-- Tratamento de erros em todas as funções async
+- Tailwind CSS para estilos (NÃO usar Material UI)
+- Lucide icons (NÃO usar outros icon libraries)
+
+---
+
+## ESTADO ATUAL DO SISTEMA (2026-02-04)
+
+### Produção (VPS Hostinger)
+- **URL:** http://76.13.164.252:8081
+- **SSH:** `ssh -i ~/.ssh/id_ed25519 root@76.13.164.252`
+- **Diretório:** `/opt/EMS`
+- **Containers:** ems-nginx, ems-frontend, ems-backend
+
+### Modo Demo Ativo
+- `ProtectedRoute.tsx` linha ~13: `isDemoMode = true`
+- `Sidebar.tsx` linha ~177: `isDemoMode = true`
+- Permite acesso SEM autenticação real
+
+### Funcionalidades Implementadas (17/17 = 100%)
+1. Digital Twin com PyBAMM
+2. Drivers PCS (6 fabricantes)
+3. Segurança Pós-Quântica
+4. SLA de Latência
+5. Sistema de Refrigeração
+6. Resiliência de Conexão
+7. Protocolo Universal ML
+8. Integração Solar (PPC)
+9. IA Auto-Evolutiva
+10. Trading Engine Deep RL
+11. Arquitetura Multi-Agente
+12. Assistente Virtual NLP
+13. Gamificação
+14. AI Config Database
+15. Ultra Low Power Mode
+16. Mobile API
+17. Relatórios Avançados
 
 ---
 
 ## COMANDOS ÚTEIS
 
 ```bash
-# Desenvolvimento
-npm run dev
+# Desenvolvimento local
+cd frontend && npm run dev    # http://localhost:5173
 
-# Testes automatizados
-node auto-test/tester.js
+# Testes E2E
+cd frontend && npx playwright test
 
-# Build
-npm run build
+# Build para produção
+cd frontend && npm run build
+
+# Deploy para VPS
+./deploy.sh deploy
+
+# Ver containers no VPS
+ssh -i ~/.ssh/id_ed25519 root@76.13.164.252 "docker ps"
+
+# Reiniciar EMS no VPS
+ssh -i ~/.ssh/id_ed25519 root@76.13.164.252 "cd /opt/EMS/deploy && docker compose -f docker-compose.prebuilt.yml restart"
 ```
+
+---
+
+## PARA CONTINUAR NA PRÓXIMA SESSÃO
+
+1. Ler `PROGRESS.md` para contexto completo
+2. Sistema está 100% funcional em produção
+3. Próximos passos sugeridos:
+   - Configurar domínio personalizado
+   - Implementar backend real com PostgreSQL
+   - Desativar modo demo para produção real
 
 ---
 

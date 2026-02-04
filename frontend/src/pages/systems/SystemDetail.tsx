@@ -35,7 +35,6 @@ import {
 import { systemsApi, telemetryApi, controlApi } from '@/services/api';
 import { socketService } from '@/services/socket';
 import { BessSystem, TelemetryData, CellData } from '@/types';
-import ConnectionConfig from '@/components/systems/ConnectionConfig';
 
 export default function SystemDetail() {
   const { systemId } = useParams<{ systemId: string }>();
@@ -73,7 +72,27 @@ export default function SystemDetail() {
     fetchData();
   }, [systemId]);
 
-  // Real-time updates
+  // Auto-refresh polling (every 1 second)
+  useEffect(() => {
+    if (!systemId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const [systemRes, telemetryRes] = await Promise.all([
+          systemsApi.getById(systemId),
+          telemetryApi.getCurrent(systemId).catch(() => null),
+        ]);
+        setSystem(systemRes.data.data || null);
+        setTelemetry(telemetryRes?.data.data || null);
+      } catch (err) {
+        // Silent fail on auto-refresh
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [systemId]);
+
+  // Real-time updates via WebSocket (fallback)
   useEffect(() => {
     if (!systemId) return;
 
@@ -94,9 +113,12 @@ export default function SystemDetail() {
   // Control functions
   const handleStartCharge = async () => {
     if (!systemId) return;
+    console.log('[Control] Starting charge for:', systemId);
     setControlLoading('charge');
     try {
-      await controlApi.startCharge(systemId);
+      const res = await controlApi.startCharge(systemId);
+      console.log('[Control] Charge started:', res.data);
+      fetchData(); // Refresh data
     } catch (err) {
       console.error('Failed to start charge:', err);
     } finally {
@@ -106,9 +128,12 @@ export default function SystemDetail() {
 
   const handleStopCharge = async () => {
     if (!systemId) return;
+    console.log('[Control] Stopping charge for:', systemId);
     setControlLoading('stopCharge');
     try {
-      await controlApi.stopCharge(systemId);
+      const res = await controlApi.stopCharge(systemId);
+      console.log('[Control] Charge stopped:', res.data);
+      fetchData(); // Refresh data
     } catch (err) {
       console.error('Failed to stop charge:', err);
     } finally {
@@ -118,11 +143,29 @@ export default function SystemDetail() {
 
   const handleStartDischarge = async () => {
     if (!systemId) return;
+    console.log('[Control] Starting discharge for:', systemId);
     setControlLoading('discharge');
     try {
-      await controlApi.startDischarge(systemId);
+      const res = await controlApi.startDischarge(systemId);
+      console.log('[Control] Discharge started:', res.data);
+      fetchData(); // Refresh data
     } catch (err) {
       console.error('Failed to start discharge:', err);
+    } finally {
+      setControlLoading(null);
+    }
+  };
+
+  const handleStopDischarge = async () => {
+    if (!systemId) return;
+    console.log('[Control] Stopping discharge for:', systemId);
+    setControlLoading('stopDischarge');
+    try {
+      const res = await controlApi.stopDischarge(systemId);
+      console.log('[Control] Discharge stopped:', res.data);
+      fetchData(); // Refresh data
+    } catch (err) {
+      console.error('Failed to stop discharge:', err);
     } finally {
       setControlLoading(null);
     }
@@ -136,6 +179,33 @@ export default function SystemDetail() {
       await controlApi.emergencyStop(systemId, 'User initiated emergency stop');
     } catch (err) {
       console.error('Failed to emergency stop:', err);
+    } finally {
+      setControlLoading(null);
+    }
+  };
+
+  const handleConnect = async () => {
+    if (!systemId) return;
+    setControlLoading('connect');
+    try {
+      await controlApi.connect(systemId);
+      fetchData(); // Refresh data after connect
+    } catch (err) {
+      console.error('Failed to connect:', err);
+    } finally {
+      setControlLoading(null);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!systemId) return;
+    if (!confirm('Tem certeza que deseja desconectar o sistema?')) return;
+    setControlLoading('disconnect');
+    try {
+      await controlApi.disconnect(systemId);
+      fetchData(); // Refresh data after disconnect
+    } catch (err) {
+      console.error('Failed to disconnect:', err);
     } finally {
       setControlLoading(null);
     }
@@ -267,15 +337,67 @@ export default function SystemDetail() {
         </div>
       </div>
 
-      {/* Connection Config */}
-      <ConnectionConfig
-        systemId={systemId || ''}
-        systemName={system.name}
-        onConnectionChange={(connected) => {
-          // Refresh data when connection changes
-          if (connected) fetchData();
-        }}
-      />
+      {/* Connection Control - Always visible */}
+      <div className="bg-surface rounded-xl border border-border p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold text-foreground">Status de Conexão</h3>
+            <span className={cn(
+              'px-2.5 py-1 text-xs font-medium rounded-full',
+              isOnline ? 'bg-success-500/20 text-success-500' : 'bg-red-500/20 text-red-400'
+            )}>
+              {isOnline ? 'Conectado' : 'Desconectado'}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            {isOnline ? (
+              <button
+                onClick={handleDisconnect}
+                disabled={controlLoading !== null}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                <WifiOff className="w-4 h-4" />
+                {controlLoading === 'disconnect' ? 'Desconectando...' : 'Desconectar'}
+              </button>
+            ) : (
+              <button
+                onClick={handleConnect}
+                disabled={controlLoading !== null}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                <Wifi className="w-4 h-4" />
+                {controlLoading === 'connect' ? 'Conectando...' : 'Conectar'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Alarm Banner */}
+      {telemetry && telemetry.alarms && telemetry.alarms.length > 0 && (
+        <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 animate-pulse">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
+            <div>
+              <h3 className="font-bold text-red-500">ALARMES ATIVOS</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {telemetry.alarms.map((alarm: string) => (
+                  <span key={alarm} className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-medium uppercase">
+                    {alarm === 'overvoltage' && '⚡ Sobretensão'}
+                    {alarm === 'undervoltage' && '⚡ Subtensão'}
+                    {alarm === 'overcurrent' && '🔌 Sobrecorrente'}
+                    {alarm === 'overtemp' && '🌡️ Sobretemperatura'}
+                    {alarm === 'undertemp' && '❄️ Subtemperatura'}
+                    {alarm === 'cellImbalance' && '⚖️ Desbalanceamento'}
+                    {alarm === 'shortCircuit' && '💥 Curto-Circuito'}
+                    {alarm === 'mosfetOvertemp' && '🔥 MOSFET Superaquecido'}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Stats */}
       {telemetry && isOnline ? (
@@ -287,13 +409,13 @@ export default function SystemDetail() {
                 <span className="text-foreground-muted text-sm">Estado de Carga</span>
                 <Battery className="w-5 h-5 text-primary" />
               </div>
-              <div className="relative w-full h-3 bg-background rounded-full overflow-hidden mb-2">
+              <div className="relative w-full h-3 bg-slate-700 rounded-full overflow-hidden mb-2">
                 <div
-                  className={cn(
-                    'absolute inset-y-0 left-0 rounded-full transition-all',
-                    telemetry.soc > 20 ? 'bg-primary' : 'bg-danger-500'
-                  )}
-                  style={{ width: `${telemetry.soc}%` }}
+                  className="absolute top-0 left-0 h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, telemetry.soc || 0))}%`,
+                    backgroundColor: telemetry.soc > 20 ? '#10b981' : '#ef4444'
+                  }}
                 />
               </div>
               <p className="text-3xl font-bold text-foreground">
@@ -374,7 +496,30 @@ export default function SystemDetail() {
 
           {/* Control Panel */}
           <div className="bg-surface rounded-xl border border-border p-4">
-            <h3 className="font-semibold text-foreground mb-4">Controle</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-foreground">Controle</h3>
+              <div className="flex gap-2">
+                {isOnline ? (
+                  <button
+                    onClick={handleDisconnect}
+                    disabled={controlLoading !== null}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <WifiOff className="w-4 h-4" />
+                    {controlLoading === 'disconnect' ? 'Desconectando...' : 'Desconectar'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleConnect}
+                    disabled={controlLoading !== null}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Wifi className="w-4 h-4" />
+                    {controlLoading === 'connect' ? 'Conectando...' : 'Conectar'}
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={handleStartCharge}
@@ -411,6 +556,15 @@ export default function SystemDetail() {
               >
                 <Zap className="w-4 h-4" />
                 {controlLoading === 'discharge' ? 'Iniciando...' : 'Iniciar Descarga'}
+              </button>
+
+              <button
+                onClick={handleStopDischarge}
+                disabled={controlLoading !== null || !telemetry.isDischarging}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-surface-hover hover:bg-surface-active text-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                <Square className="w-4 h-4" />
+                {controlLoading === 'stopDischarge' ? 'Parando...' : 'Parar Descarga'}
               </button>
 
               <button

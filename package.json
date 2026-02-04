@@ -4,6 +4,10 @@
   "description": "Sistema profissional de gerenciamento de energia para BESS (Battery Energy Storage Systems) desenvolvido pela Lifo4 Energia.",
   "main": "mock-server.js",
   "scripts": {
+    "dev": "concurrently --names \"FRONTEND,MOCK-BESS\" --prefix-colors \"cyan,yellow\" \"npm run dev --prefix frontend\" \"npm start --prefix mock-bess\"",
+    "frontend": "npm run dev --prefix frontend",
+    "mock": "npm start --prefix mock-bess",
+    "build": "npm run build --prefix frontend",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,5 +18,10 @@
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "js-yaml": "^4.1.1",
+    "puppeteer": "^24.36.1"
   }
 }

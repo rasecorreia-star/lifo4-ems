@@ -12,6 +12,9 @@ import {
   ChevronRight,
   GitCompare,
   MapPin,
+  Radio,
+  FileEdit,
+  X,
 } from 'lucide-react';
 import { cn, formatPercent, formatPower, formatRelativeTime, getSystemStatusLabel } from '@/lib/utils';
 import { systemsApi, telemetryApi } from '@/services/api';
@@ -27,45 +30,70 @@ export default function SystemList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
+  const [isAddSystemModalOpen, setIsAddSystemModalOpen] = useState(false);
+  const [showAutoDiscovery, setShowAutoDiscovery] = useState(false);
 
   // Handle new system registration
   const handleRegisterSystem = async (formData: SystemFormData) => {
     try {
-      // Here you would call the API to create the system
       console.log('Registering new system:', formData);
 
-      // For now, simulate adding to the list
-      const newSystem: BessSystem = {
-        id: `sys-${Date.now()}`,
+      // Chamar API para criar sistema
+      const systemData = {
         name: formData.name,
         model: `${formData.batteryChemistry} ${formData.cellsInSeries}S${formData.cellsInParallel}P`,
-        serialNumber: `SN-${Date.now()}`,
-        firmwareVersion: '1.0.0',
         capacity: formData.totalCapacityKwh,
         nominalVoltage: formData.nominalVoltage,
         maxChargePower: formData.inverterPowerKw * 1000,
         maxDischargePower: formData.inverterPowerKw * 1000,
-        status: 'offline',
-        connectionStatus: 'offline',
-        operationMode: 'standby',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        location: {
+          lat: formData.location.latitude,
+          lng: formData.location.longitude,
+          address: formData.location.address,
+          city: formData.location.city,
+          state: formData.location.state,
+        },
+        batterySpec: {
+          chemistry: formData.batteryChemistry,
+          cellManufacturer: formData.cellManufacturer,
+          cellModel: formData.cellModel,
+          nominalCellVoltage: formData.nominalCellVoltage,
+          cellsInSeries: formData.cellsInSeries,
+          cellsInParallel: formData.cellsInParallel,
+        },
+        bmsConfig: {
+          manufacturer: formData.bmsManufacturer,
+          model: formData.bmsModel,
+          protocol: formData.bmsProtocol,
+          address: formData.bmsAddress,
+          port: formData.bmsPort,
+        },
+        inverterConfig: {
+          manufacturer: formData.inverterManufacturer,
+          model: formData.inverterModel,
+          powerKw: formData.inverterPowerKw,
+        },
       };
 
-      setSystems((prev) => [newSystem, ...prev]);
+      await systemsApi.create(systemData);
 
-      // In production, you would call:
-      // await systemsApi.create(formData);
-      // fetchSystems();
+      // Recarregar lista de sistemas
+      fetchSystems();
+
+      alert('Sistema cadastrado com sucesso!');
     } catch (error) {
       console.error('Failed to register system:', error);
+      alert('Erro ao cadastrar sistema. Tente novamente.');
     }
   };
 
   // Fetch systems
-  const fetchSystems = async () => {
+  const fetchSystems = async (showLoading = false) => {
     try {
-      setIsLoading(true);
+      // Só mostra loading na primeira carga
+      if (showLoading || systems.length === 0) {
+        setIsLoading(true);
+      }
       const response = await systemsApi.getAll();
       const systemsList = response.data.data || [];
       setSystems(systemsList);
@@ -93,7 +121,9 @@ export default function SystemList() {
   };
 
   useEffect(() => {
-    fetchSystems();
+    fetchSystems(true); // Primeira carga com loading
+    const interval = setInterval(() => fetchSystems(false), 3000); // Atualizações silenciosas
+    return () => clearInterval(interval);
   }, []);
 
   // Real-time telemetry updates
@@ -156,18 +186,12 @@ export default function SystemList() {
             <GitCompare className="w-5 h-5" />
             Comparar
           </Link>
-          <DeviceDiscovery
-            onDeviceAdded={(device) => {
-              console.log('Device added:', device);
-              fetchSystems(); // Refresh list
-            }}
-          />
           <button
-            onClick={() => setIsRegistrationModalOpen(true)}
+            onClick={() => setIsAddSystemModalOpen(true)}
             className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Novo Sistema (Manual)
+            Novo Sistema
           </button>
         </div>
       </div>
@@ -213,7 +237,7 @@ export default function SystemList() {
       </div>
 
       {/* Systems Grid */}
-      {isLoading ? (
+      {isLoading && systems.length === 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
             <SystemCardSkeleton key={i} />
@@ -230,7 +254,7 @@ export default function SystemList() {
           </p>
           {!searchQuery && statusFilter === 'all' && (
             <button
-              onClick={() => setIsRegistrationModalOpen(true)}
+              onClick={() => setIsAddSystemModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
             >
               <Plus className="w-5 h-5" />
@@ -247,6 +271,103 @@ export default function SystemList() {
               telemetry={telemetryMap[system.id]}
             />
           ))}
+        </div>
+      )}
+
+      {/* Add System Selection Modal */}
+      {isAddSystemModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsAddSystemModalOpen(false)}
+          />
+          <div className="relative bg-surface border border-border rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+            <button
+              onClick={() => setIsAddSystemModalOpen(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-surface-hover rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-xl font-bold text-foreground mb-2">Adicionar Novo Sistema</h2>
+            <p className="text-foreground-muted text-sm mb-6">
+              Escolha como deseja adicionar o sistema BESS
+            </p>
+
+            <div className="grid gap-4">
+              {/* Opção Automático */}
+              <button
+                onClick={() => {
+                  setIsAddSystemModalOpen(false);
+                  setShowAutoDiscovery(true);
+                }}
+                className="flex items-start gap-4 p-4 bg-surface-hover hover:bg-primary/10 border border-border hover:border-primary rounded-xl transition-all text-left group"
+              >
+                <div className="p-3 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
+                  <Radio className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground mb-1">Descoberta Automática</h3>
+                  <p className="text-sm text-foreground-muted">
+                    Escaneia a rede local para encontrar dispositivos BESS compatíveis (BMS, Inversores, Medidores).
+                    Após conectar, você pode editar os dados.
+                  </p>
+                  <span className="inline-block mt-2 text-xs text-primary font-medium">
+                    Recomendado para dispositivos na mesma rede
+                  </span>
+                </div>
+              </button>
+
+              {/* Opção Manual */}
+              <button
+                onClick={() => {
+                  setIsAddSystemModalOpen(false);
+                  setIsRegistrationModalOpen(true);
+                }}
+                className="flex items-start gap-4 p-4 bg-surface-hover hover:bg-secondary/10 border border-border hover:border-secondary rounded-xl transition-all text-left group"
+              >
+                <div className="p-3 bg-secondary/20 rounded-lg group-hover:bg-secondary/30 transition-colors">
+                  <FileEdit className="w-6 h-6 text-secondary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground mb-1">Cadastro Manual</h3>
+                  <p className="text-sm text-foreground-muted">
+                    Preencha manualmente todas as especificações técnicas do sistema BESS,
+                    incluindo BMS, bateria, inversor e proteções.
+                  </p>
+                  <span className="inline-block mt-2 text-xs text-secondary font-medium">
+                    Para configuração detalhada ou dispositivos remotos
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto Discovery Modal */}
+      {showAutoDiscovery && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowAutoDiscovery(false)}
+          />
+          <div className="relative bg-surface border border-border rounded-2xl p-6 w-full max-w-2xl mx-4 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <button
+              onClick={() => setShowAutoDiscovery(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-surface-hover rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-foreground mb-4">Descoberta Automática de Dispositivos</h2>
+            <DeviceDiscovery
+              onDeviceAdded={(device) => {
+                console.log('Device added:', device);
+                setShowAutoDiscovery(false);
+                fetchSystems();
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -297,25 +418,38 @@ interface SystemCardProps {
 function SystemCard({ system, telemetry }: SystemCardProps) {
   const isOnline = system.connectionStatus === 'online';
   const hasError = system.status === 'error';
+  const hasAlarms = telemetry?.alarms && (telemetry.alarms as string[]).length > 0;
 
   return (
     <Link
       to={`/systems/${system.id}`}
       className={cn(
-        'bg-surface rounded-xl border p-4 hover:bg-surface-hover transition-all group',
-        hasError ? 'border-danger-500/50' : 'border-border'
+        'bg-surface rounded-xl border p-4 hover:bg-surface-hover transition-all group relative',
+        hasAlarms ? 'border-red-500 border-2 bg-red-500/10 animate-pulse' : hasError ? 'border-danger-500/50' : 'border-border'
       )}
     >
+      {/* Alarm Badge */}
+      {hasAlarms && (
+        <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg z-10">
+          <AlertTriangle className="w-3 h-3" />
+          {(telemetry?.alarms as string[]).length} ALARME{(telemetry?.alarms as string[]).length > 1 ? 'S' : ''}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
             className={cn(
               'w-12 h-12 rounded-xl flex items-center justify-center',
-              isOnline ? 'bg-primary/10' : 'bg-surface-active'
+              hasAlarms ? 'bg-red-500/20' : isOnline ? 'bg-primary/10' : 'bg-surface-active'
             )}
           >
-            <Battery className={cn('w-6 h-6', isOnline ? 'text-primary' : 'text-foreground-subtle')} />
+            {hasAlarms ? (
+              <AlertTriangle className="w-6 h-6 text-red-500" />
+            ) : (
+              <Battery className={cn('w-6 h-6', isOnline ? 'text-primary' : 'text-foreground-subtle')} />
+            )}
           </div>
           <div>
             <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -353,13 +487,13 @@ function SystemCard({ system, telemetry }: SystemCardProps) {
       {telemetry && isOnline ? (
         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
           <div className="text-center">
-            <div className="relative w-full h-2 bg-background rounded-full overflow-hidden mb-1">
+            <div className="relative w-full h-2 rounded-full overflow-hidden mb-1" style={{ backgroundColor: '#334155' }}>
               <div
-                className={cn(
-                  'absolute inset-y-0 left-0 rounded-full transition-all',
-                  telemetry.soc > 20 ? 'bg-primary' : 'bg-danger-500'
-                )}
-                style={{ width: `${telemetry.soc}%` }}
+                className="absolute inset-y-0 left-0 rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, Math.max(0, telemetry.soc || 0))}%`,
+                  backgroundColor: telemetry.soc > 20 ? '#10b981' : '#ef4444'
+                }}
               />
             </div>
             <p className="text-lg font-semibold text-primary">{formatPercent(telemetry.soc, 0)}</p>

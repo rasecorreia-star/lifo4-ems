@@ -304,6 +304,67 @@ app.post('/api/devices/:deviceId/soc', (req, res) => {
   res.json({ success: true });
 });
 
+// Set current/power for device
+app.post('/api/devices/:deviceId/current', (req, res) => {
+  const unit = bessUnits[req.params.deviceId];
+  if (!unit) {
+    return res.status(404).json({ success: false, error: 'Device not found' });
+  }
+  unit.bms.state.current = parseFloat(req.body.current) || 0;
+  res.json({ success: true, data: { current: unit.bms.state.current } });
+});
+
+// Set temperature for device
+app.post('/api/devices/:deviceId/temperature', (req, res) => {
+  const unit = bessUnits[req.params.deviceId];
+  if (!unit) {
+    return res.status(404).json({ success: false, error: 'Device not found' });
+  }
+  const temp = parseFloat(req.body.temperature) || 25;
+  unit.bms.state.temps = unit.bms.state.temps.map(() => temp + (Math.random() - 0.5) * 2);
+  unit.bms.state.tempMosfet = temp + 5 + Math.random() * 2;
+  res.json({ success: true, data: { temperature: temp } });
+});
+
+// Set cell voltages for device
+app.post('/api/devices/:deviceId/voltage', (req, res) => {
+  const unit = bessUnits[req.params.deviceId];
+  if (!unit) {
+    return res.status(404).json({ success: false, error: 'Device not found' });
+  }
+  const cellVoltage = parseFloat(req.body.cellVoltage) || 3.2;
+  unit.bms.state.cells = unit.bms.state.cells.map(() => cellVoltage + (Math.random() - 0.5) * 0.01);
+  res.json({ success: true, data: { cellVoltage } });
+});
+
+// Trigger alarm for device
+app.post('/api/devices/:deviceId/alarm', (req, res) => {
+  const unit = bessUnits[req.params.deviceId];
+  if (!unit) {
+    return res.status(404).json({ success: false, error: 'Device not found' });
+  }
+  const { alarm, active } = req.body;
+  if (unit.bms.state.alarms.hasOwnProperty(alarm)) {
+    // Set manual alarm (persists until reset)
+    unit.bms.state.manualAlarms[alarm] = active !== false;
+    unit.bms.state.alarms[alarm] = active !== false;
+    console.log(`[ALARM] ${req.params.deviceId}: ${alarm} = ${active}`);
+    res.json({ success: true, data: { alarm, active: unit.bms.state.alarms[alarm] } });
+  } else {
+    res.status(400).json({ success: false, error: 'Invalid alarm type' });
+  }
+});
+
+// Reset alarms for device
+app.post('/api/devices/:deviceId/reset-alarms', (req, res) => {
+  const unit = bessUnits[req.params.deviceId];
+  if (!unit) {
+    return res.status(404).json({ success: false, error: 'Device not found' });
+  }
+  unit.bms.resetAlarms();
+  res.json({ success: true });
+});
+
 // Get available scenarios
 app.get('/api/scenarios', (req, res) => {
   res.json({ success: true, data: getScenarios() });

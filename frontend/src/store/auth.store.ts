@@ -139,6 +139,31 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: async () => {
         const { accessToken, refreshToken } = get();
 
+        // MODO DEMO: Sempre fazer login automático
+        const isDemoMode = true; // TODO: Mudar para false em produção
+        if (isDemoMode) {
+          try {
+            const response = await authApi.login({
+              email: 'demo@lifo4.com.br',
+              password: 'demo123'
+            });
+            const { user, tokens } = response.data.data!;
+            set({
+              user,
+              accessToken: tokens.accessToken,
+              refreshToken: tokens.refreshToken,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            return;
+          } catch (e) {
+            console.error('Demo login failed:', e);
+            // Fallback: continuar sem autenticação
+            set({ isLoading: false });
+            return;
+          }
+        }
+
         if (!accessToken && !refreshToken) {
           set({ isLoading: false });
           return;

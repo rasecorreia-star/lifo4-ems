@@ -12,12 +12,15 @@ import {
   PaginationParams,
 } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const API_VERSION = import.meta.env.VITE_API_VERSION || 'v1';
+// Em produção, VITE_API_URL vazio significa usar URL relativa (mesmo host)
+const API_URL = import.meta.env.VITE_API_URL !== undefined
+  ? import.meta.env.VITE_API_URL
+  : 'http://localhost:3001';
+const API_VERSION = import.meta.env.VITE_API_VERSION;
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: `${API_URL}/api/${API_VERSION}`,
+  baseURL: API_VERSION ? `${API_URL}/api/${API_VERSION}` : `${API_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -204,6 +207,13 @@ export const controlApi = {
 
   calibrateSoc: (systemId: string, actualSoc: number) =>
     api.post(`/control/${systemId}/calibrate-soc`, { actualSoc }),
+
+  // Connect/Disconnect
+  connect: (systemId: string) =>
+    api.post(`/control/${systemId}/connect`),
+
+  disconnect: (systemId: string) =>
+    api.post(`/control/${systemId}/disconnect`),
 
   // Schedules
   getSchedules: (systemId: string) =>

@@ -50,6 +50,18 @@ class JKBMS {
         mosfetOvertemp: false
       },
 
+      // Manual alarms (set via UI/API, persists until reset)
+      manualAlarms: {
+        overvoltage: false,
+        undervoltage: false,
+        overcurrent: false,
+        overtemp: false,
+        undertemp: false,
+        cellImbalance: false,
+        shortCircuit: false,
+        mosfetOvertemp: false
+      },
+
       // Warnings
       warnings: {
         highVoltage: false,
@@ -257,8 +269,8 @@ class JKBMS {
     const temps = this.state.temps;
     const current = this.state.current;
 
-    // Reset alarms first
-    this.state.alarms = {
+    // Auto-detect alarms based on conditions
+    const autoAlarms = {
       overvoltage: cells.some(v => v > 3.65),
       undervoltage: cells.some(v => v < 2.5),
       overcurrent: Math.abs(current) > 150,
@@ -267,6 +279,18 @@ class JKBMS {
       cellImbalance: (Math.max(...cells) - Math.min(...cells)) > 0.1,
       shortCircuit: false,
       mosfetOvertemp: this.state.tempMosfet > 65
+    };
+
+    // Merge with manual alarms (manual overrides auto)
+    this.state.alarms = {
+      overvoltage: this.state.manualAlarms?.overvoltage || autoAlarms.overvoltage,
+      undervoltage: this.state.manualAlarms?.undervoltage || autoAlarms.undervoltage,
+      overcurrent: this.state.manualAlarms?.overcurrent || autoAlarms.overcurrent,
+      overtemp: this.state.manualAlarms?.overtemp || autoAlarms.overtemp,
+      undertemp: this.state.manualAlarms?.undertemp || autoAlarms.undertemp,
+      cellImbalance: this.state.manualAlarms?.cellImbalance || autoAlarms.cellImbalance,
+      shortCircuit: this.state.manualAlarms?.shortCircuit || autoAlarms.shortCircuit,
+      mosfetOvertemp: this.state.manualAlarms?.mosfetOvertemp || autoAlarms.mosfetOvertemp
     };
 
     // Warnings (less severe thresholds)
@@ -396,6 +420,9 @@ class JKBMS {
   resetAlarms() {
     this.state.alarms = Object.fromEntries(
       Object.keys(this.state.alarms).map(k => [k, false])
+    );
+    this.state.manualAlarms = Object.fromEntries(
+      Object.keys(this.state.manualAlarms).map(k => [k, false])
     );
     this.state.chargingEnabled = true;
     this.state.dischargingEnabled = true;

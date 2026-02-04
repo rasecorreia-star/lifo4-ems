@@ -204,7 +204,7 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
       {/* Dev Tools */}
       <div className="px-3 py-2 border-t border-border">
         <a
-          href="http://localhost:3002"
+          href={`${window.location.protocol}//${window.location.hostname}:3002`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"

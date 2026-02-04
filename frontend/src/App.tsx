@@ -73,6 +73,21 @@ import AssetManagement from './pages/AssetManagement';
 import NotificationTemplates from './pages/NotificationTemplates';
 import DataImport from './pages/DataImport';
 import DigitalTwin from './pages/DigitalTwin';
+import CameraList from './pages/cameras/CameraList';
+import CameraDetail from './pages/cameras/CameraDetail';
+import CameraEvents from './pages/cameras/CameraEvents';
+import ThermalMonitoring from './pages/cameras/ThermalMonitoring';
+import MicrogridDashboard from './pages/microgrids/MicrogridDashboard';
+import MicrogridDetail from './pages/microgrids/MicrogridDetail';
+import EVChargerList from './pages/ev-chargers/EVChargerList';
+import EVChargerDetail from './pages/ev-chargers/EVChargerDetail';
+import ChargingSessions from './pages/ev-chargers/ChargingSessions';
+import SmartCharging from './pages/ev-chargers/SmartCharging';
+import EVChargerConfig from './pages/ev-chargers/EVChargerConfig';
+import CPMSDashboard from './pages/ev-chargers/CPMSDashboard';
+import CPMSBilling from './pages/ev-chargers/CPMSBilling';
+import CPMSEnergyManagement from './pages/ev-chargers/CPMSEnergyManagement';
+import CPMSUsers from './pages/ev-chargers/CPMSUsers';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
@@ -179,6 +194,28 @@ function App() {
         <Route path="/assets" element={<AssetManagement />} />
         <Route path="/notification-templates" element={<NotificationTemplates />} />
         <Route path="/data-import" element={<DataImport />} />
+
+        {/* Camera Routes */}
+        <Route path="/cameras" element={<CameraList />} />
+        <Route path="/cameras/thermal" element={<ThermalMonitoring />} />
+        <Route path="/cameras/events" element={<CameraEvents />} />
+        <Route path="/cameras/:id" element={<CameraDetail />} />
+
+        {/* Microgrid Routes */}
+        <Route path="/microgrids" element={<MicrogridDashboard />} />
+        <Route path="/microgrids/detail" element={<MicrogridDetail />} />
+        <Route path="/microgrids/:microgridId" element={<MicrogridDetail />} />
+
+        {/* EV Chargers / CPMS Routes */}
+        <Route path="/ev-chargers" element={<EVChargerList />} />
+        <Route path="/ev-chargers/dashboard" element={<CPMSDashboard />} />
+        <Route path="/ev-chargers/sessions" element={<ChargingSessions />} />
+        <Route path="/ev-chargers/smart-charging" element={<SmartCharging />} />
+        <Route path="/ev-chargers/billing" element={<CPMSBilling />} />
+        <Route path="/ev-chargers/energy" element={<CPMSEnergyManagement />} />
+        <Route path="/ev-chargers/users" element={<CPMSUsers />} />
+        <Route path="/ev-chargers/config" element={<EVChargerConfig />} />
+        <Route path="/ev-chargers/:chargerId" element={<EVChargerDetail />} />
       </Route>
 
       {/* 404 */}

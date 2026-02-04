@@ -77,7 +77,7 @@ function FullDashboard() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 60000); // Refresh every minute
+    const interval = setInterval(fetchData, 3000); // Refresh every 3 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -132,6 +132,62 @@ function FullDashboard() {
           <RefreshCw className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Active Alarms Banner */}
+      {(() => {
+        const allAlarms: { systemId: string; systemName: string; alarms: string[] }[] = [];
+        Object.entries(telemetryMap).forEach(([systemId, tel]) => {
+          if (tel.alarms && tel.alarms.length > 0) {
+            const sys = systems.find(s => s.id === systemId);
+            allAlarms.push({
+              systemId,
+              systemName: sys?.name || systemId,
+              alarms: tel.alarms as string[]
+            });
+          }
+        });
+        if (allAlarms.length === 0) return null;
+
+        const alarmLabels: Record<string, string> = {
+          overvoltage: '⚡ Sobretensão',
+          undervoltage: '⚡ Subtensão',
+          overcurrent: '🔌 Sobrecorrente',
+          overtemp: '🌡️ Sobretemperatura',
+          undertemp: '❄️ Subtemperatura',
+          cellImbalance: '⚖️ Desbalanceamento',
+          shortCircuit: '💥 Curto-Circuito',
+          mosfetOvertemp: '🔥 MOSFET Superaquecido'
+        };
+
+        return (
+          <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-4 animate-pulse">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-8 h-8 text-red-500 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-bold text-red-500 text-lg">🚨 ALARMES ATIVOS</h3>
+                <div className="mt-3 space-y-2">
+                  {allAlarms.map(({ systemId, systemName, alarms }) => (
+                    <Link
+                      key={systemId}
+                      to={`/systems/${systemId}`}
+                      className="block bg-red-500/30 hover:bg-red-500/40 rounded-lg p-3 transition-colors"
+                    >
+                      <div className="font-semibold text-white">{systemName}</div>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {alarms.map((alarm) => (
+                          <span key={alarm} className="px-2 py-1 bg-red-600 text-white rounded text-sm">
+                            {alarmLabels[alarm] || alarm}
+                          </span>
+                        ))}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -286,20 +342,34 @@ interface SystemRowProps {
 
 function SystemRow({ system, telemetry }: SystemRowProps) {
   const isOnline = system.connectionStatus === 'online';
+  const hasAlarms = telemetry?.alarms && (telemetry.alarms as string[]).length > 0;
 
   return (
     <Link
       to={`/systems/${system.id}`}
-      className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors"
+      className={cn(
+        "flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors relative",
+        hasAlarms && "bg-red-500/10 border-l-4 border-red-500 animate-pulse"
+      )}
     >
+      {/* Alarm indicator */}
+      {hasAlarms && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+          <AlertTriangle className="w-3 h-3" />
+          {(telemetry?.alarms as string[]).length} ALARME{(telemetry?.alarms as string[]).length > 1 ? 'S' : ''}
+        </div>
+      )}
+
       {/* Status indicator */}
       <div
         className={cn(
           'w-12 h-12 rounded-xl flex items-center justify-center',
-          isOnline ? 'bg-primary/10' : 'bg-surface-active'
+          hasAlarms ? 'bg-red-500/20' : isOnline ? 'bg-primary/10' : 'bg-surface-active'
         )}
       >
-        {isOnline ? (
+        {hasAlarms ? (
+          <AlertTriangle className="w-6 h-6 text-red-500" />
+        ) : isOnline ? (
           <Battery className="w-6 h-6 text-primary" />
         ) : (
           <WifiOff className="w-6 h-6 text-foreground-subtle" />

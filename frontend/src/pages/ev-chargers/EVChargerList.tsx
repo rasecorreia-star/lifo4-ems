@@ -100,12 +100,18 @@ export default function EVChargerList() {
     fetchChargers();
   }, []);
 
-  // Filter chargers
+  // Filter chargers with defensive checks
   const filteredChargers = chargers.filter((charger) => {
+    if (!charger) return false;
+
+    const name = charger.name || '';
+    const model = charger.model || '';
+    const serial = charger.serialNumber || '';
+
     const matchesSearch =
-      charger.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      charger.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      charger.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      serial.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === 'all' ||
@@ -114,14 +120,14 @@ export default function EVChargerList() {
     return matchesSearch && matchesStatus;
   });
 
-  // Stats
+  // Stats with defensive checks
   const stats = {
     total: chargers.length,
-    online: chargers.filter((c) => c.status === 'online' || c.status === 'available' || c.status === 'charging').length,
-    charging: chargers.filter((c) => c.status === 'charging').length,
-    available: chargers.filter((c) => c.status === 'available').length,
-    offline: chargers.filter((c) => c.status === 'offline').length,
-    faulted: chargers.filter((c) => c.status === 'faulted').length,
+    online: chargers.filter((c) => c && (c.status === 'online' || c.status === 'available' || c.status === 'charging')).length,
+    charging: chargers.filter((c) => c && c.status === 'charging').length,
+    available: chargers.filter((c) => c && c.status === 'available').length,
+    offline: chargers.filter((c) => c && c.status === 'offline').length,
+    faulted: chargers.filter((c) => c && c.status === 'faulted').length,
   };
 
   // Quick actions
@@ -146,11 +152,11 @@ export default function EVChargerList() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to="/ev-chargers/map"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium rounded-lg transition-colors"
+            to="/ev-chargers/dashboard"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 text-purple-400 font-medium rounded-lg transition-colors"
           >
             <MapPin className="w-5 h-5" />
-            Mapa
+            Dashboard CPMS
           </Link>
           <Link
             to="/ev-chargers/sessions"
@@ -165,6 +171,63 @@ export default function EVChargerList() {
           >
             <Plus className="w-5 h-5" />
             Novo Carregador
+          </Link>
+        </div>
+      </div>
+
+      {/* CPMS Quick Navigation */}
+      <div className="bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/20 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+            <Plug className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">CPMS Enterprise</h3>
+            <p className="text-xs text-foreground-muted">Sistema de Gerenciamento de Carregadores</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+          <Link
+            to="/ev-chargers/dashboard"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <MapPin className="w-4 h-4 text-purple-400" />
+            <span className="text-sm">Mapa Global</span>
+          </Link>
+          <Link
+            to="/ev-chargers/sessions"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <Clock className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm">Sessões</span>
+          </Link>
+          <Link
+            to="/ev-chargers/users"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <Car className="w-4 h-4 text-blue-400" />
+            <span className="text-sm">Usuários</span>
+          </Link>
+          <Link
+            to="/ev-chargers/billing"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <Power className="w-4 h-4 text-green-400" />
+            <span className="text-sm">Billing</span>
+          </Link>
+          <Link
+            to="/ev-chargers/energy"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <Zap className="w-4 h-4 text-orange-400" />
+            <span className="text-sm">Energia</span>
+          </Link>
+          <Link
+            to="/ev-chargers/smart-charging"
+            className="flex items-center gap-2 px-3 py-2 bg-surface rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <Battery className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm">Smart Charging</span>
           </Link>
         </div>
       </div>
@@ -296,9 +359,17 @@ interface ChargerCardProps {
 }
 
 function ChargerCard({ charger, onReset }: ChargerCardProps) {
-  const isOnline = charger.status !== 'offline' && charger.status !== 'faulted';
-  const isCharging = charger.status === 'charging';
-  const hasFault = charger.status === 'faulted';
+  // Defensive checks for missing data
+  if (!charger) return null;
+
+  const status = charger.status || 'offline';
+  const connectors = charger.connectors || [];
+  const totalEnergyKwh = charger.totalEnergyKwh ?? 0;
+  const totalSessions = charger.totalSessions ?? 0;
+
+  const isOnline = status !== 'offline' && status !== 'faulted';
+  const isCharging = status === 'charging';
+  const hasFault = status === 'faulted';
 
   const statusColors: Record<EVChargerStatus, string> = {
     online: 'bg-success-500/20 text-success-500',
@@ -318,8 +389,8 @@ function ChargerCard({ charger, onReset }: ChargerCardProps) {
     unavailable: 'Indisponivel',
   };
 
-  // Calculate total power being delivered
-  const totalPower = charger.connectors.reduce((sum, conn) => sum + (conn.currentPowerKw || 0), 0);
+  // Calculate total power being delivered (with defensive check)
+  const totalPower = connectors.reduce((sum, conn) => sum + (conn?.currentPowerKw || 0), 0);
 
   return (
     <Link
@@ -352,18 +423,18 @@ function ChargerCard({ charger, onReset }: ChargerCardProps) {
 
       {/* Status */}
       <div className="flex items-center gap-2 mb-4">
-        <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusColors[charger.status])}>
-          {statusLabels[charger.status]}
+        <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusColors[status] || statusColors.offline)}>
+          {statusLabels[status] || 'Desconhecido'}
         </span>
         <span className="text-xs text-foreground-muted">
-          OCPP {charger.ocppVersion}
+          OCPP {charger.ocppVersion || '1.6'}
         </span>
       </div>
 
       {/* Connectors */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {charger.connectors.map((connector) => (
-          <ConnectorBadge key={connector.id} connector={connector} />
+        {connectors.map((connector) => (
+          connector && <ConnectorBadge key={connector.id} connector={connector} />
         ))}
       </div>
 
@@ -376,12 +447,12 @@ function ChargerCard({ charger, onReset }: ChargerCardProps) {
         </div>
         <div className="text-center">
           <Battery className="w-4 h-4 mx-auto mb-1 text-foreground-muted" />
-          <p className="text-sm font-medium text-foreground">{charger.totalEnergyKwh.toFixed(0)} kWh</p>
+          <p className="text-sm font-medium text-foreground">{totalEnergyKwh.toFixed(0)} kWh</p>
           <p className="text-2xs text-foreground-muted">Total</p>
         </div>
         <div className="text-center">
           <Car className="w-4 h-4 mx-auto mb-1 text-foreground-muted" />
-          <p className="text-sm font-medium text-foreground">{charger.totalSessions}</p>
+          <p className="text-sm font-medium text-foreground">{totalSessions}</p>
           <p className="text-2xs text-foreground-muted">Sessoes</p>
         </div>
       </div>

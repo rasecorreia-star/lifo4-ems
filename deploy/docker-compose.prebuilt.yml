@@ -1,7 +1,7 @@
 # ===========================================
 # EMS BESS - Pre-built Docker Compose
-# Frontend pre-compiled + Backend Demo
-# VPS: 76.13.164.252 | Porta: 80
+# Frontend pre-compiled + Backend Demo + Mock BESS
+# VPS: 76.13.164.252 | Porta: 8081
 # ===========================================
 
 services:
@@ -22,6 +22,24 @@ services:
       resources:
         limits:
           memory: 256M
+
+  mock-bess:
+    build:
+      context: ../mock-bess
+      dockerfile: Dockerfile
+    container_name: ems-mock-bess
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - MOCK_PORT=3002
+    networks:
+      - ems-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   frontend:
     build:
@@ -50,6 +68,7 @@ services:
     depends_on:
       - backend
       - frontend
+      - mock-bess
     networks:
       - ems-network
     deploy:

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Battery,
@@ -114,6 +114,21 @@ function FullDashboard() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [showAllSystems, setShowAllSystems] = useState(false);
   const [showAllAlerts, setShowAllAlerts] = useState(false);
+
+  // Simulated daily values (fixed for the day based on date seed)
+  const dailyStats = useMemo(() => {
+    const today = new Date();
+    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    // Simple seeded random function
+    const seededRandom = (s: number) => {
+      const x = Math.sin(s) * 10000;
+      return x - Math.floor(x);
+    };
+    return {
+      worstPerformers: Math.floor(seededRandom(seed) * 2) + 1,
+      topRevenue: Math.floor(2500 + seededRandom(seed + 1) * 1500),
+    };
+  }, []);
 
   // Fetch dashboard data
   const fetchData = async () => {
@@ -274,8 +289,8 @@ function FullDashboard() {
         );
       })()}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards - All 8 in one row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
         <StatCard
           title="Sistemas Online"
           value={overview?.online || 0}
@@ -326,63 +341,48 @@ function FullDashboard() {
             importance: "Alertas críticos podem indicar falhas iminentes. Resolução rápida previne danos e perdas."
           }}
         />
-      </div>
-
-      {/* Stats Cards - Row 2 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Pior SoH"
-          value={(() => {
-            // Simulated worst SoH from systems
-            const worstSoH = systems.length > 0
-              ? Math.min(...systems.map(() => Math.floor(75 + Math.random() * 20)))
-              : 0;
-            return worstSoH;
-          })()}
+          title="Worst Performers"
+          value={systems.length > 0 ? dailyStats.worstPerformers : 0}
+          unit="sist."
           icon={HeartPulse}
-          color={(() => {
-            const worstSoH = systems.length > 0
-              ? Math.min(...systems.map(() => Math.floor(75 + Math.random() * 20)))
-              : 100;
-            return worstSoH < 80 ? 'danger' : worstSoH < 90 ? 'warning' : 'success';
-          })()}
+          color={dailyStats.worstPerformers > 1 ? 'danger' : dailyStats.worstPerformers > 0 ? 'warning' : 'success'}
           tooltipInfo={{
-            title: "Pior State of Health (SoH)",
-            description: "Menor valor de saúde da bateria entre todos os sistemas. Indica o sistema que precisa de mais atenção.",
-            calculation: "Mínimo(SoH de cada sistema) - calculado via diagnóstico de capacidade vs capacidade nominal.",
-            importance: "SoH < 80% indica degradação significativa. Planeje substituição de células ou módulos."
+            title: "Worst Performers (SoH)",
+            description: "Quantas unidades estão degradando mais rápido que a média da frota.",
+            calculation: "Sistemas com SoH abaixo da média - indica degradação acelerada comparado aos demais.",
+            importance: "Indica problemas de climatização (HVAC) ou ciclos excessivos naquela localidade. Requer investigação."
           }}
         />
         <StatCard
           title="Top Receita"
-          value={(() => {
-            // Simulated top revenue in R$
-            const topRevenue = systems.length > 0 ? Math.floor(2500 + Math.random() * 1500) : 0;
-            return topRevenue;
-          })()}
+          value={systems.length > 0 ? dailyStats.topRevenue.toLocaleString('pt-BR') : '0'}
+          prefix="R$"
           icon={DollarSign}
           color="success"
           tooltipInfo={{
-            title: "Top Gerador de Receita",
-            description: "Maior valor de receita gerada por um único sistema hoje através de arbitragem e serviços ancilares.",
-            calculation: "Máximo(receita diária de cada sistema) = energia descarga × tarifa ponta - energia carga × tarifa fora-ponta.",
+            title: "Top Revenue Generators",
+            description: "Maior receita gerada por um único sistema hoje via arbitragem tarifária.",
+            calculation: "(Energia descarga × tarifa ponta) - (energia carga × tarifa fora-ponta) + serviços ancilares.",
             importance: "Identifica os sistemas mais lucrativos. Use como benchmark para otimizar outros sistemas."
           }}
         />
         <StatCard
-          title="Correlação Eventos"
+          title="Causas Raiz"
           value={(() => {
-            // Simulated correlated events
-            const correlatedEvents = Math.floor(alertsSummary?.total ? alertsSummary.total * 0.3 : 2);
-            return correlatedEvents;
+            // Simulated: alert groups (root causes) vs total alerts
+            const totalAlerts = alertsSummary?.total || 5;
+            const rootCauses = Math.max(1, Math.floor(totalAlerts * 0.3));
+            return rootCauses;
           })()}
+          total={alertsSummary?.total || 5}
           icon={Link2}
           color="secondary"
           tooltipInfo={{
-            title: "Correlação de Eventos",
-            description: "Número de alertas que parecem estar relacionados entre si (mesmo horário, mesma causa raiz).",
-            calculation: "Análise de padrões temporais e causais entre alertas usando ML para agrupar eventos similares.",
-            importance: "Eventos correlacionados indicam problema sistêmico. Resolva a causa raiz ao invés de sintomas individuais."
+            title: "Event Correlation",
+            description: "Agrupa alertas relacionados em causas raiz. Ex: inversor cai + bateria perde comunicação = 1 causa raiz 'Falha Conexão' ao invés de 50 erros.",
+            calculation: "ML analisa padrões temporais para agrupar alertas com mesma origem.",
+            importance: "Evita 'tempestade de alarmes'. Mostra X causas raiz de Y alertas totais."
           }}
         />
         <StatCard
@@ -513,8 +513,10 @@ function FullDashboard() {
 // Stat Card Component - 3D Style
 interface StatCardProps {
   title: string;
-  value: number;
+  value: number | string;
   total?: number;
+  unit?: string;
+  prefix?: string;
   icon: React.ElementType;
   color: 'success' | 'danger' | 'warning' | 'secondary' | 'primary';
   highlight?: boolean;
@@ -526,7 +528,7 @@ interface StatCardProps {
   };
 }
 
-function StatCard({ title, value, total, icon: Icon, color, highlight, tooltipInfo }: StatCardProps) {
+function StatCard({ title, value, total, unit, prefix, icon: Icon, color, highlight, tooltipInfo }: StatCardProps) {
   const colorGradients = {
     success: 'from-emerald-500 via-emerald-600 to-emerald-800 border-emerald-300/50 shadow-emerald-500/30',
     danger: 'from-red-500 via-red-600 to-red-800 border-red-300/50 shadow-red-500/30',
@@ -538,23 +540,23 @@ function StatCard({ title, value, total, icon: Icon, color, highlight, tooltipIn
   return (
     <div
       className={cn(
-        'relative rounded-xl p-4 bg-gradient-to-b border-2 shadow-lg overflow-hidden transition-all',
+        'relative rounded-lg p-2 bg-gradient-to-b border shadow-md overflow-hidden transition-all',
         colorGradients[color],
-        highlight && 'ring-2 ring-red-400 ring-offset-2 ring-offset-background animate-pulse'
+        highlight && 'ring-1 ring-red-400 ring-offset-1 ring-offset-background animate-pulse'
       )}
     >
       {/* Shine effect */}
-      <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+      <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg" />
 
       <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-            <Icon className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-1">
+          <div className="p-1.5 rounded bg-white/20 backdrop-blur-sm">
+            <Icon className="w-4 h-4 text-white" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {highlight && (
-              <span className="px-2 py-0.5 bg-white/20 text-white text-xs font-medium rounded-full animate-pulse">
-                Crítico
+              <span className="px-1 py-0.5 bg-white/20 text-white text-2xs font-medium rounded-full animate-pulse">
+                !
               </span>
             )}
             {tooltipInfo && (
@@ -567,13 +569,15 @@ function StatCard({ title, value, total, icon: Icon, color, highlight, tooltipIn
             )}
           </div>
         </div>
-        <p className="text-2xl font-bold text-white drop-shadow-md">
+        <p className="text-xl font-bold text-white drop-shadow-md">
+          {prefix && <span className="text-base">{prefix}</span>}
           {value}
+          {unit && <span className="text-sm font-normal ml-0.5">{unit}</span>}
           {total !== undefined && (
-            <span className="text-white/70 font-normal">/{total}</span>
+            <span className="text-white/70 font-normal text-base">/{total}</span>
           )}
         </p>
-        <p className="text-sm text-white/80">{title}</p>
+        <p className="text-xs text-white/80 truncate">{title}</p>
       </div>
     </div>
   );

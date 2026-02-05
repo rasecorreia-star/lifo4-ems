@@ -55,6 +55,7 @@ import VirtualPowerPlant from './pages/VirtualPowerPlant';
 import CustomerPortal from './pages/CustomerPortal';
 import Simulation from './pages/Simulation';
 import MultiSiteDashboard from './pages/MultiSiteDashboard';
+import Dashboard2 from './pages/Dashboard2';
 import RemoteDiagnostics from './pages/RemoteDiagnostics';
 import IntegrationHub from './pages/IntegrationHub';
 import SLADashboard from './pages/SLADashboard';
@@ -126,6 +127,7 @@ function App() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard2" element={<Dashboard2 />} />
         <Route path="/systems" element={<SystemList />} />
         <Route path="/systems/:systemId" element={<SystemDetail />} />
         <Route path="/systems/:systemId/control" element={<ControlPanel />} />

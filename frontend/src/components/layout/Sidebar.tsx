@@ -75,6 +75,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Dashboard 2', href: '/dashboard2', icon: Layers, roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER] },
   { name: 'Multi-Site', href: '/multi-site', icon: Layers, roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER] },
   { name: 'Meu Sistema', href: '/my-system', icon: Home, roles: [UserRole.USER] },
   { name: 'Sistemas', href: '/systems', icon: Battery },

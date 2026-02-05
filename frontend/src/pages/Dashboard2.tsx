@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   Battery,
   AlertTriangle,
@@ -1329,38 +1332,113 @@ export default function Dashboard2() {
         </div>
       </div>
 
-      {/* Map Placeholder */}
+      {/* Georeferenced Heat Map with Leaflet */}
       <div className="bg-surface rounded-xl border border-border p-4">
         <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
           <MapPin className="w-4 h-4" />
           Mapa de Calor Georreferenciado
         </h3>
-        <div className="relative h-64 bg-surface-hover rounded-lg overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-foreground-muted">
-            Mapa interativo com Leaflet/Mapbox
-          </div>
-          {/* Simulated map markers */}
-          {bessUnits.map((unit, i) => (
-            <div
-              key={unit.id}
-              className={cn(
-                'absolute w-4 h-4 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2',
-                unit.status === 'online' ? 'bg-emerald-500' :
-                unit.status === 'warning' ? 'bg-amber-500' :
-                unit.status === 'critical' ? 'bg-red-500 animate-pulse' : 'bg-gray-500'
-              )}
-              style={{
-                left: `${15 + (i % 4) * 20}%`,
-                top: `${20 + Math.floor(i / 4) * 40}%`,
-              }}
-              title={unit.name}
+        <div className="relative h-80 rounded-lg overflow-hidden">
+          <MapContainer
+            center={[-5.5, -42.5]}
+            zoom={7}
+            style={{ height: '100%', width: '100%' }}
+            className="rounded-lg"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-          ))}
+            {bessUnits.map((unit) => {
+              const statusColor = unit.status === 'online' ? '#10b981' :
+                unit.status === 'warning' ? '#f59e0b' :
+                unit.status === 'critical' ? '#ef4444' : '#6b7280';
+
+              const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `
+                  <div style="
+                    width: 24px;
+                    height: 24px;
+                    background: ${statusColor};
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                    ${unit.status === 'critical' ? 'animation: pulse 1s infinite;' : ''}
+                  "></div>
+                `,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+              });
+
+              return (
+                <Marker
+                  key={unit.id}
+                  position={[unit.coordinates.lat, unit.coordinates.lng]}
+                  icon={customIcon}
+                >
+                  <Popup>
+                    <div className="p-2 min-w-48">
+                      <h4 className="font-bold text-sm">{unit.name}</h4>
+                      <p className="text-xs text-gray-600">{unit.location}</p>
+                      <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
+                        <div>
+                          <span className="text-gray-500">Status:</span>
+                          <span className={`ml-1 font-medium ${
+                            unit.status === 'online' ? 'text-emerald-600' :
+                            unit.status === 'warning' ? 'text-amber-600' :
+                            unit.status === 'critical' ? 'text-red-600' : 'text-gray-600'
+                          }`}>
+                            {unit.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">SOC:</span>
+                          <span className="ml-1 font-medium">{unit.soc.toFixed(0)}%</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">SoH:</span>
+                          <span className="ml-1 font-medium">{unit.soh.toFixed(0)}%</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Temp:</span>
+                          <span className={`ml-1 font-medium ${unit.temperature > 35 ? 'text-red-600' : ''}`}>
+                            {unit.temperature.toFixed(1)}°C
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Potência:</span>
+                          <span className="ml-1 font-medium">{unit.powerMW.toFixed(1)} MW</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Latência:</span>
+                          <span className={`ml-1 font-medium ${unit.latencyMs > 500 ? 'text-amber-600' : ''}`}>
+                            {unit.latencyMs > 5000 ? 'OFFLINE' : `${unit.latencyMs.toFixed(0)}ms`}
+                          </span>
+                        </div>
+                      </div>
+                      {unit.alarms.length > 0 && (
+                        <div className="mt-2 p-1 bg-red-50 rounded text-xs text-red-700">
+                          {unit.alarms[0].message}
+                        </div>
+                      )}
+                      <Link
+                        to={`/systems/${unit.id}`}
+                        className="mt-2 block text-center text-xs text-blue-600 hover:underline"
+                      >
+                        Ver detalhes →
+                      </Link>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
         </div>
         <div className="flex items-center gap-4 mt-3 text-xs">
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-emerald-500" /> Online</div>
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-amber-500" /> Alerta</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500" /> Crítico</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" /> Crítico</div>
           <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-gray-500" /> Offline</div>
         </div>
       </div>

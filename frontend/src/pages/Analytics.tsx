@@ -302,7 +302,24 @@ export default function Analytics() {
           </button>
 
           {/* Export */}
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white font-medium rounded-lg transition-colors">
+          <button
+            onClick={() => {
+              // Export chart data to CSV
+              if (chartData.length === 0) return;
+              const headers = Object.keys(chartData[0]).join(',');
+              const rows = chartData.map(row => Object.values(row).join(','));
+              const csv = [headers, ...rows].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `analytics-${selectedSystem}-${timeRange}-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            disabled={chartData.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
             <Download className="w-4 h-4" />
             Exportar
           </button>

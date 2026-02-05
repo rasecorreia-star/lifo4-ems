@@ -692,7 +692,22 @@ export default function Reports() {
                         {report.createdAt instanceof Date ? formatRelativeTime(report.createdAt) : formatRelativeTime(new Date(report.createdAt))}
                       </span>
                       {report.status === 'completed' && (
-                        <button className="p-2 hover:bg-surface-hover rounded-lg">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Simulate download of report
+                            const reportContent = `Relatorio: ${report.name}\nTipo: ${report.type}\nData: ${new Date(report.createdAt).toLocaleDateString('pt-BR')}\n\nDados simulados do relatorio...`;
+                            const blob = new Blob([reportContent], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${report.name.replace(/\s/g, '_')}.${report.format || 'txt'}`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          }}
+                          className="p-2 hover:bg-surface-hover rounded-lg"
+                          title="Baixar relatorio"
+                        >
                           <Download className="w-4 h-4 text-primary" />
                         </button>
                       )}

@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   HelpCircle,
   Search,
@@ -19,13 +20,15 @@ import {
   Clock,
   Zap,
   Battery,
-  Settings,
   AlertTriangle,
   TrendingUp,
   Shield,
   Wrench,
   Users,
   PlayCircle,
+  X,
+  CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +44,7 @@ interface DocSection {
   title: string;
   description: string;
   icon: React.ElementType;
-  articles: Array<{ title: string; url: string }>;
+  articles: Array<{ title: string; content: string }>;
 }
 
 const faqItems: FAQItem[] = [
@@ -85,7 +88,7 @@ const faqItems: FAQItem[] = [
     id: 'faq-7',
     category: 'Alertas',
     question: 'Quais alertas sao considerados criticos?',
-    answer: 'Alertas criticos incluem: sobrecorrente, sobretemperatura (>45°C), subtensao de celula (<2.5V), sobretensao (>3.65V) e falha de comunicacao prolongada. Esses alertas podem acionar parada de emergencia.',
+    answer: 'Alertas criticos incluem: sobrecorrente, sobretemperatura (>45C), subtensao de celula (<2.5V), sobretensao (>3.65V) e falha de comunicacao prolongada. Esses alertas podem acionar parada de emergencia.',
   },
   {
     id: 'faq-8',
@@ -126,10 +129,10 @@ const docSections: DocSection[] = [
     description: 'Aprenda o basico do Lifo4 EMS',
     icon: PlayCircle,
     articles: [
-      { title: 'Introducao ao Sistema', url: '#' },
-      { title: 'Cadastrando seu Primeiro Sistema', url: '#' },
-      { title: 'Navegando pelo Dashboard', url: '#' },
-      { title: 'Entendendo as Metricas', url: '#' },
+      { title: 'Introducao ao Sistema', content: 'O Lifo4 EMS e uma plataforma completa para gerenciamento de sistemas de armazenamento de energia. Este guia ajudara voce a dar os primeiros passos no sistema, desde o cadastro ate a configuracao inicial do seu primeiro BESS.' },
+      { title: 'Cadastrando seu Primeiro Sistema', content: 'Para cadastrar um novo sistema BESS: 1) Acesse o menu Sistemas; 2) Clique em "Novo Sistema"; 3) Siga o assistente de 6 passos preenchendo informacoes do BMS, baterias, inversores e conexao; 4) Teste a comunicacao e finalize.' },
+      { title: 'Navegando pelo Dashboard', content: 'O Dashboard apresenta uma visao geral de todos os seus sistemas. Os cards mostram SOC, potencia atual, temperatura e status. Use os filtros para encontrar sistemas especificos e clique em qualquer card para ver detalhes.' },
+      { title: 'Entendendo as Metricas', content: 'SOC (State of Charge): nivel de carga da bateria (0-100%). SOH (State of Health): saude da bateria. Potencia: W/kW positivo = descarga, negativo = carga. Temperatura: deve ficar entre 15-35C para operacao ideal.' },
     ],
   },
   {
@@ -138,10 +141,10 @@ const docSections: DocSection[] = [
     description: 'Configure e monitore seus sistemas BESS',
     icon: Battery,
     articles: [
-      { title: 'Configuracao do BMS', url: '#' },
-      { title: 'Parametros de Protecao', url: '#' },
-      { title: 'Conexao Modbus', url: '#' },
-      { title: 'Diagnostico de Celulas', url: '#' },
+      { title: 'Configuracao do BMS', content: 'O BMS (Battery Management System) e o cerebro do sistema. Configure: tipo de comunicacao (Modbus TCP/RTU), enderecos de registradores, limites de tensao/corrente, e parametros de balanceamento de celulas.' },
+      { title: 'Parametros de Protecao', content: 'Configure limites de seguranca: tensao maxima/minima por celula, corrente maxima de carga/descarga, temperatura maxima/minima, delta de tensao entre celulas. O sistema acionara alarmes e protecoes automaticamente.' },
+      { title: 'Conexao Modbus', content: 'Modbus TCP: IP do BMS, porta (padrao 502), Unit ID. Modbus RTU: porta serial, baudrate, paridade, bits de parada. Teste a conexao antes de salvar para garantir comunicacao estavel.' },
+      { title: 'Diagnostico de Celulas', content: 'Monitore cada celula individualmente: tensao, temperatura, resistencia interna. Identifique celulas desbalanceadas ou com degradacao. O sistema alerta automaticamente sobre anomalias.' },
     ],
   },
   {
@@ -150,10 +153,10 @@ const docSections: DocSection[] = [
     description: 'Maximize economia e eficiencia',
     icon: TrendingUp,
     articles: [
-      { title: 'Modos de Operacao', url: '#' },
-      { title: 'Agendamentos Inteligentes', url: '#' },
-      { title: 'Integracao com Tarifas', url: '#' },
-      { title: 'Peak Shaving', url: '#' },
+      { title: 'Modos de Operacao', content: 'Manual: controle total do operador. Automatico: IA decide baseado em tarifas e previsoes. Peak Shaving: reduz picos de demanda. Backup: reserva energia para emergencias. Arbitragem: compra/vende conforme precos.' },
+      { title: 'Agendamentos Inteligentes', content: 'Crie regras automaticas: carregar durante tarifa baixa (madrugada), descarregar no horario de ponta, manter SOC minimo para backup. Combine multiplas condicoes com operadores AND/OR.' },
+      { title: 'Integracao com Tarifas', content: 'Configure sua estrutura tarifaria: horarios de ponta/fora-ponta, bandeiras tarifarias, demanda contratada. O sistema otimiza automaticamente para minimizar custos com energia.' },
+      { title: 'Peak Shaving', content: 'Reduza multas por ultrapassagem de demanda. Configure o limite desejado e o sistema automaticamente descarrega a bateria quando o consumo se aproxima do limite contratado.' },
     ],
   },
   {
@@ -162,10 +165,10 @@ const docSections: DocSection[] = [
     description: 'Configure monitoramento proativo',
     icon: AlertTriangle,
     articles: [
-      { title: 'Tipos de Alertas', url: '#' },
-      { title: 'Configurando Notificacoes', url: '#' },
-      { title: 'Resolucao de Problemas', url: '#' },
-      { title: 'Logs e Auditoria', url: '#' },
+      { title: 'Tipos de Alertas', content: 'Critico (vermelho): requer acao imediata - falhas de seguranca, temperaturas extremas. Alerta (amarelo): atencao necessaria - desvios de parametros. Info (azul): informativo - mudancas de estado, eventos programados.' },
+      { title: 'Configurando Notificacoes', content: 'Acesse Configuracoes > Notificacoes. Escolha canais: email, WhatsApp, push, Telegram. Defina quais severidades notificar em cada canal. Configure horario de silencio para alertas nao-criticos.' },
+      { title: 'Resolucao de Problemas', content: 'Cada alerta inclui: descricao do problema, timestamp, sistema afetado, acoes recomendadas. Use o historico para identificar padroes. Alertas criticos sao arquivados para auditoria.' },
+      { title: 'Logs e Auditoria', content: 'Todos os eventos sao registrados: comandos, alteracoes de configuracao, alertas, acoes de usuarios. Exporte logs em CSV/PDF para auditorias. Retencao configuravel de 30 dias a 5 anos.' },
     ],
   },
   {
@@ -174,10 +177,10 @@ const docSections: DocSection[] = [
     description: 'Conecte com outros sistemas',
     icon: Zap,
     articles: [
-      { title: 'API REST', url: '#' },
-      { title: 'Webhooks', url: '#' },
-      { title: 'SCADA e Modbus', url: '#' },
-      { title: 'Inversores Solares', url: '#' },
+      { title: 'API REST', content: 'Documentacao completa em /api-keys. Autenticacao via Bearer Token. Endpoints: GET /systems (listar), GET /telemetry (dados), POST /control (comandos). Rate limit: 1000 req/min.' },
+      { title: 'Webhooks', content: 'Receba notificacoes em tempo real. Configure URL de destino, eventos de interesse (alertas, mudancas de estado), e formato (JSON/XML). Retry automatico em caso de falha.' },
+      { title: 'SCADA e Modbus', content: 'O EMS pode atuar como escravo Modbus TCP, expondo dados para sistemas SCADA. Configure: porta de escuta, mapa de registradores, permissoes de leitura/escrita.' },
+      { title: 'Inversores Solares', content: 'Suporte a principais fabricantes: Fronius, SMA, Huawei, Growatt. Configure via Modbus ou API proprietaria. Dados de geracao solar sao integrados na otimizacao automatica.' },
     ],
   },
   {
@@ -186,26 +189,35 @@ const docSections: DocSection[] = [
     description: 'Mantenha seu sistema saudavel',
     icon: Wrench,
     articles: [
-      { title: 'Manutencao Preventiva', url: '#' },
-      { title: 'Atualizacao de Firmware', url: '#' },
-      { title: 'Calibracao de SOC', url: '#' },
-      { title: 'Vida Util da Bateria', url: '#' },
+      { title: 'Manutencao Preventiva', content: 'Checklist mensal: inspecao visual, limpeza de filtros, verificacao de conexoes. Trimestral: teste de isolamento, reaperto de terminais. Anual: calibracao de sensores, teste de capacidade.' },
+      { title: 'Atualizacao de Firmware', content: 'Mantenha BMS e inversores atualizados. O EMS notifica sobre novas versoes. Agende atualizacoes para horarios de baixa demanda. Sempre faca backup das configuracoes antes.' },
+      { title: 'Calibracao de SOC', content: 'SOC pode perder precisao ao longo do tempo. Procedimento: descarregue ate corte por baixa tensao, carregue completamente ate corte por alta tensao. O BMS recalibra automaticamente.' },
+      { title: 'Vida Util da Bateria', content: 'LiFePO4: 3000-5000 ciclos. NMC: 1000-2000 ciclos. Fatores que aceleram degradacao: temperaturas extremas, DOD alto, carga rapida frequente. O EMS estima vida restante baseado no uso.' },
     ],
   },
 ];
 
 const videoTutorials = [
-  { id: 'v1', title: 'Tour Completo do Dashboard', duration: '5:30', thumbnail: '🎬' },
-  { id: 'v2', title: 'Configurando um Novo Sistema', duration: '8:45', thumbnail: '🎬' },
-  { id: 'v3', title: 'Otimizacao com Tarifa Branca', duration: '6:20', thumbnail: '🎬' },
-  { id: 'v4', title: 'Diagnostico de Problemas', duration: '10:15', thumbnail: '🎬' },
+  { id: 'v1', title: 'Tour Completo do Dashboard', duration: '5:30', thumbnail: '', youtubeId: 'demo1' },
+  { id: 'v2', title: 'Configurando um Novo Sistema', duration: '8:45', thumbnail: '', youtubeId: 'demo2' },
+  { id: 'v3', title: 'Otimizacao com Tarifa Branca', duration: '6:20', thumbnail: '', youtubeId: 'demo3' },
+  { id: 'v4', title: 'Diagnostico de Problemas', duration: '10:15', thumbnail: '', youtubeId: 'demo4' },
 ];
 
 export default function HelpCenter() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'faq' | 'docs' | 'videos' | 'contact'>('faq');
+  const [selectedArticle, setSelectedArticle] = useState<{ title: string; content: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<typeof videoTutorials[0] | null>(null);
+
+  // Contact form state
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: 'Suporte Tecnico', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const categories = ['all', ...Array.from(new Set(faqItems.map((f) => f.category)))];
 
@@ -217,6 +229,46 @@ export default function HelpCenter() {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError('');
+
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      setSubmitError('Preencha todos os campos obrigatorios');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setSubmitSuccess(true);
+      setContactForm({ name: '', email: '', subject: 'Suporte Tecnico', message: '' });
+      setTimeout(() => setSubmitSuccess(false), 5000);
+    } catch (error) {
+      setSubmitError('Erro ao enviar mensagem. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleQuickLink = (linkType: string) => {
+    switch (linkType) {
+      case 'api':
+        navigate('/api-keys');
+        break;
+      case 'status':
+        navigate('/dashboard');
+        break;
+      case 'news':
+        navigate('/notifications');
+        break;
+      case 'community':
+        window.open('https://github.com/lifo4/ems-community', '_blank');
+        break;
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -350,13 +402,13 @@ export default function HelpCenter() {
               <ul className="space-y-2">
                 {section.articles.map((article, index) => (
                   <li key={index}>
-                    <a
-                      href={article.url}
-                      className="flex items-center gap-2 text-sm text-foreground-muted hover:text-primary transition-colors"
+                    <button
+                      onClick={() => setSelectedArticle(article)}
+                      className="flex items-center gap-2 text-sm text-foreground-muted hover:text-primary transition-colors w-full text-left"
                     >
                       <ChevronRight className="w-4 h-4" />
                       {article.title}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -371,10 +423,11 @@ export default function HelpCenter() {
           {videoTutorials.map((video) => (
             <button
               key={video.id}
+              onClick={() => setSelectedVideo(video)}
               className="bg-surface rounded-xl border border-border p-4 hover:border-primary/50 transition-colors text-left group"
             >
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg mb-3 flex items-center justify-center relative">
-                <span className="text-4xl">{video.thumbnail}</span>
+                <Video className="w-12 h-12 text-primary/50" />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                   <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
                     <PlayCircle className="w-6 h-6 text-primary" />
@@ -431,26 +484,42 @@ export default function HelpCenter() {
           {/* Contact Form */}
           <div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="font-semibold text-foreground mb-4">Enviar Mensagem</h3>
-            <form className="space-y-4">
+
+            {submitSuccess && (
+              <div className="mb-4 p-4 bg-success-500/10 border border-success-500/30 rounded-lg flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-success-500" />
+                <span className="text-success-500">Mensagem enviada com sucesso! Entraremos em contato em breve.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleContactSubmit} className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-foreground-muted mb-1">Nome</label>
+                  <label className="block text-sm text-foreground-muted mb-1">Nome *</label>
                   <input
                     type="text"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-foreground-muted mb-1">Email</label>
+                  <label className="block text-sm text-foreground-muted mb-1">Email *</label>
                   <input
                     type="email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-sm text-foreground-muted mb-1">Assunto</label>
-                <select className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <select
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
                   <option>Suporte Tecnico</option>
                   <option>Duvida sobre Funcionalidade</option>
                   <option>Problema de Conexao</option>
@@ -459,17 +528,28 @@ export default function HelpCenter() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-foreground-muted mb-1">Mensagem</label>
+                <label className="block text-sm text-foreground-muted mb-1">Mensagem *</label>
                 <textarea
                   rows={4}
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
               </div>
+              {submitError && <p className="text-sm text-danger-500">{submitError}</p>}
               <button
                 type="submit"
-                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Enviar Mensagem
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar Mensagem'
+                )}
               </button>
             </form>
           </div>
@@ -481,23 +561,85 @@ export default function HelpCenter() {
         <h3 className="font-semibold text-foreground mb-4 text-center">Links Rapidos</h3>
         <div className="flex flex-wrap justify-center gap-3">
           {[
-            { label: 'Documentacao da API', icon: FileText, url: '#' },
-            { label: 'Status do Sistema', icon: Shield, url: '#' },
-            { label: 'Novidades', icon: Zap, url: '#' },
-            { label: 'Comunidade', icon: Users, url: '#' },
+            { label: 'Documentacao da API', icon: FileText, action: 'api' },
+            { label: 'Status do Sistema', icon: Shield, action: 'status' },
+            { label: 'Novidades', icon: Zap, action: 'news' },
+            { label: 'Comunidade', icon: Users, action: 'community' },
           ].map((link) => (
-            <a
+            <button
               key={link.label}
-              href={link.url}
+              onClick={() => handleQuickLink(link.action)}
               className="flex items-center gap-2 px-4 py-2 bg-surface-hover hover:bg-surface-active text-foreground-muted hover:text-foreground rounded-lg transition-colors"
             >
               <link.icon className="w-4 h-4" />
               {link.label}
               <ExternalLink className="w-3 h-3" />
-            </a>
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Article Modal */}
+      {selectedArticle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-surface rounded-xl border border-border w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h3 className="font-semibold text-foreground">{selectedArticle.title}</h3>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground-muted" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <p className="text-foreground-muted leading-relaxed whitespace-pre-line">
+                {selectedArticle.content}
+              </p>
+            </div>
+            <div className="p-4 border-t border-border flex justify-end">
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Modal */}
+      {selectedVideo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-surface rounded-xl border border-border w-full max-w-3xl overflow-hidden">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h3 className="font-semibold text-foreground">{selectedVideo.title}</h3>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground-muted" />
+              </button>
+            </div>
+            <div className="aspect-video bg-black flex items-center justify-center">
+              <div className="text-center">
+                <Video className="w-16 h-16 text-foreground-muted mx-auto mb-4" />
+                <p className="text-foreground-muted">Video em breve disponivel</p>
+                <p className="text-sm text-foreground-subtle mt-2">Duracao: {selectedVideo.duration}</p>
+              </div>
+            </div>
+            <div className="p-4 border-t border-border flex justify-end">
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

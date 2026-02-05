@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Key,
   Plus,
@@ -19,6 +20,7 @@ import {
   Shield,
   ExternalLink,
   Code,
+  Download,
 } from 'lucide-react';
 import { cn, formatRelativeTime } from '@/lib/utils';
 
@@ -102,11 +104,13 @@ const availablePermissions = [
 ];
 
 export default function ApiKeys() {
+  const navigate = useNavigate();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState<{ key: string; name: string } | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleCopyKey = async (key: string) => {
     await navigator.clipboard.writeText(key);
@@ -142,6 +146,68 @@ export default function ApiKeys() {
 
   const activeKeys = apiKeys.filter((k) => k.status === 'active');
   const totalUsage = apiKeys.reduce((sum, k) => sum + k.usageCount, 0);
+
+  const handleViewDocs = () => {
+    navigate('/help-center');
+  };
+
+  const handleDownloadSDK = async () => {
+    setIsDownloading(true);
+    // Simulate download
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Create and download a sample SDK file
+    const sdkContent = `// Lifo4 EMS SDK v1.0
+// Documentation: https://api.lifo4.com.br/docs
+
+class Lifo4Client {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api.lifo4.com.br/v1';
+  }
+
+  async getSystems() {
+    const response = await fetch(\`\${this.baseUrl}/systems\`, {
+      headers: { 'Authorization': \`Bearer \${this.apiKey}\` }
+    });
+    return response.json();
+  }
+
+  async getTelemetry(systemId) {
+    const response = await fetch(\`\${this.baseUrl}/systems/\${systemId}/telemetry\`, {
+      headers: { 'Authorization': \`Bearer \${this.apiKey}\` }
+    });
+    return response.json();
+  }
+
+  async sendCommand(systemId, command, params = {}) {
+    const response = await fetch(\`\${this.baseUrl}/systems/\${systemId}/control\`, {
+      method: 'POST',
+      headers: {
+        'Authorization': \`Bearer \${this.apiKey}\`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ command, ...params })
+    });
+    return response.json();
+  }
+}
+
+module.exports = { Lifo4Client };
+`;
+
+    const blob = new Blob([sdkContent], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'lifo4-sdk.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setIsDownloading(false);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
@@ -222,12 +288,20 @@ export default function ApiKeys() {
               Consulte nossa documentacao completa para integrar sua aplicacao com o Lifo4 EMS.
             </p>
             <div className="flex gap-3 mt-4">
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2">
+              <button
+                onClick={handleViewDocs}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
+              >
                 <ExternalLink className="w-4 h-4" />
                 Ver Documentacao
               </button>
-              <button className="px-4 py-2 bg-surface-hover text-foreground rounded-lg hover:bg-surface-active transition-colors">
-                Baixar SDK
+              <button
+                onClick={handleDownloadSDK}
+                disabled={isDownloading}
+                className="px-4 py-2 bg-surface-hover text-foreground rounded-lg hover:bg-surface-active transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading ? 'Baixando...' : 'Baixar SDK'}
               </button>
             </div>
           </div>

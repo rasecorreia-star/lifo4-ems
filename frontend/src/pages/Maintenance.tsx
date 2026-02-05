@@ -257,6 +257,24 @@ export default function Maintenance() {
     }));
   };
 
+  const handleStatusChange = (taskId: string, newStatus: MaintenanceStatus) => {
+    setTasks(prev => prev.map(task => {
+      if (task.id !== taskId) return task;
+      return {
+        ...task,
+        status: newStatus,
+        completedDate: newStatus === 'completed' ? new Date() : task.completedDate,
+        actualDuration: newStatus === 'completed' ? task.estimatedDuration : task.actualDuration,
+      };
+    }));
+    // Update selected task
+    if (selectedTask?.id === taskId) {
+      setSelectedTask(prev => prev ? { ...prev, status: newStatus, completedDate: newStatus === 'completed' ? new Date() : prev.completedDate } : null);
+    }
+    // Update stats
+    setStats(prev => prev ? generateStats(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t)) : null);
+  };
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -478,6 +496,7 @@ export default function Maintenance() {
             <TaskDetail
               task={selectedTask}
               onChecklistToggle={handleChecklistToggle}
+              onStatusChange={handleStatusChange}
               formatDate={formatDate}
               formatDuration={formatDuration}
             />
@@ -521,9 +540,10 @@ function StatCard({ label, value, icon: Icon, color, highlight }: {
 }
 
 // Task Detail Component
-function TaskDetail({ task, onChecklistToggle, formatDate, formatDuration }: {
+function TaskDetail({ task, onChecklistToggle, onStatusChange, formatDate, formatDuration }: {
   task: MaintenanceTask;
   onChecklistToggle: (taskId: string, itemId: string) => void;
+  onStatusChange: (taskId: string, status: MaintenanceStatus) => void;
   formatDate: (date: Date) => string;
   formatDuration: (minutes: number) => string;
 }) {
@@ -613,16 +633,33 @@ function TaskDetail({ task, onChecklistToggle, formatDate, formatDuration }: {
       {/* Actions */}
       <div className="flex gap-3 pt-4 border-t border-border">
         {task.status === 'scheduled' && (
-          <button className="flex-1 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors">
+          <button
+            onClick={() => onStatusChange(task.id, 'in_progress')}
+            className="flex-1 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
             Iniciar Tarefa
           </button>
         )}
         {task.status === 'in_progress' && (
-          <button className="flex-1 px-4 py-2 bg-success-500 hover:bg-success-600 text-white rounded-lg text-sm font-medium transition-colors">
+          <button
+            onClick={() => onStatusChange(task.id, 'completed')}
+            className="flex-1 px-4 py-2 bg-success-500 hover:bg-success-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
             Concluir Tarefa
           </button>
         )}
-        <button className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-surface-hover text-sm font-medium transition-colors">
+        {task.status === 'overdue' && (
+          <button
+            onClick={() => onStatusChange(task.id, 'in_progress')}
+            className="flex-1 px-4 py-2 bg-warning-500 hover:bg-warning-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            Retomar Tarefa
+          </button>
+        )}
+        <button
+          onClick={() => alert('Funcionalidade de edicao sera implementada em breve')}
+          className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-surface-hover text-sm font-medium transition-colors"
+        >
           Editar
         </button>
       </div>

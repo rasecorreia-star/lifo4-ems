@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   MapPin,
@@ -16,6 +16,7 @@ import {
   RefreshCw,
   ExternalLink,
   Activity,
+  Info,
 } from 'lucide-react';
 import {
   BarChart,
@@ -49,10 +50,85 @@ interface Site {
   temperature: number;
 }
 
+// Componente de Tooltip com informações detalhadas
+interface InfoTooltipProps {
+  title: string;
+  description: string;
+  calculation: string;
+  importance: string;
+}
+
+function InfoTooltip({ title, description, calculation, importance }: InfoTooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const iconRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: Math.min(rect.left, window.innerWidth - 300),
+      });
+    }
+    setIsVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsVisible(false);
+  };
+
+  return (
+    <>
+      <div
+        ref={iconRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="cursor-help"
+      >
+        <Info className="w-3.5 h-3.5 text-white/70 hover:text-white transition-colors" />
+      </div>
+      {isVisible && (
+        <div
+          className="fixed z-[9999] w-72 p-3 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl"
+          style={{ top: position.top, left: position.left }}
+          onMouseEnter={() => setIsVisible(true)}
+          onMouseLeave={handleMouseLeave}
+        >
+          <h4 className="font-semibold text-white text-sm mb-2">{title}</h4>
+          <div className="space-y-2 text-xs">
+            <div>
+              <span className="text-emerald-400 font-medium">O que mostra:</span>
+              <p className="text-gray-300 mt-0.5">{description}</p>
+            </div>
+            <div>
+              <span className="text-blue-400 font-medium">Como é calculado:</span>
+              <p className="text-gray-300 mt-0.5">{calculation}</p>
+            </div>
+            <div>
+              <span className="text-amber-400 font-medium">Por que é importante:</span>
+              <p className="text-gray-300 mt-0.5">{importance}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function MultiSiteDashboard() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'capacity' | 'soc' | 'alerts'>('name');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Função para gerar variação nos dados simulando atualização em tempo real
+  const generateVariation = (base: number, percent: number = 5) => {
+    const variation = base * (percent / 100);
+    return Math.round(base + (Math.random() - 0.5) * 2 * variation);
+  };
 
   const sites: Site[] = useMemo(() => [
     {
@@ -62,14 +138,14 @@ export default function MultiSiteDashboard() {
       state: 'PI',
       coordinates: { lat: -5.0892, lng: -42.8016 },
       capacity: 5000,
-      currentPower: 1250,
-      soc: 72,
+      currentPower: generateVariation(1250, 10),
+      soc: Math.min(100, Math.max(0, generateVariation(72, 3))),
       status: 'online',
       alerts: 0,
-      todayEnergy: 4500,
-      todaySavings: 3150,
-      efficiency: 94.2,
-      temperature: 28,
+      todayEnergy: generateVariation(4500, 2),
+      todaySavings: generateVariation(3150, 2),
+      efficiency: Math.min(100, generateVariation(942, 1) / 10),
+      temperature: generateVariation(28, 5),
     },
     {
       id: '2',
@@ -78,14 +154,14 @@ export default function MultiSiteDashboard() {
       state: 'PI',
       coordinates: { lat: -2.9055, lng: -41.7769 },
       capacity: 2000,
-      currentPower: -500,
-      soc: 45,
+      currentPower: generateVariation(-500, 15),
+      soc: Math.min(100, Math.max(0, generateVariation(45, 5))),
       status: 'online',
       alerts: 0,
-      todayEnergy: 1800,
-      todaySavings: 1260,
-      efficiency: 92.8,
-      temperature: 31,
+      todayEnergy: generateVariation(1800, 2),
+      todaySavings: generateVariation(1260, 2),
+      efficiency: Math.min(100, generateVariation(928, 1) / 10),
+      temperature: generateVariation(31, 5),
     },
     {
       id: '3',
@@ -95,13 +171,13 @@ export default function MultiSiteDashboard() {
       coordinates: { lat: -6.7670, lng: -43.0222 },
       capacity: 1000,
       currentPower: 0,
-      soc: 85,
+      soc: Math.min(100, Math.max(0, generateVariation(85, 2))),
       status: 'maintenance',
       alerts: 1,
       todayEnergy: 0,
       todaySavings: 0,
       efficiency: 0,
-      temperature: 25,
+      temperature: generateVariation(25, 3),
     },
     {
       id: '4',
@@ -110,14 +186,14 @@ export default function MultiSiteDashboard() {
       state: 'PI',
       coordinates: { lat: -7.0769, lng: -41.4669 },
       capacity: 3000,
-      currentPower: 2100,
-      soc: 38,
+      currentPower: generateVariation(2100, 8),
+      soc: Math.min(100, Math.max(0, generateVariation(38, 5))),
       status: 'warning',
       alerts: 2,
-      todayEnergy: 3200,
-      todaySavings: 2240,
-      efficiency: 91.5,
-      temperature: 35,
+      todayEnergy: generateVariation(3200, 2),
+      todaySavings: generateVariation(2240, 2),
+      efficiency: Math.min(100, generateVariation(915, 1) / 10),
+      temperature: generateVariation(35, 5),
     },
     {
       id: '5',
@@ -126,14 +202,14 @@ export default function MultiSiteDashboard() {
       state: 'PI',
       coordinates: { lat: -4.2728, lng: -41.7768 },
       capacity: 1500,
-      currentPower: 750,
-      soc: 62,
+      currentPower: generateVariation(750, 10),
+      soc: Math.min(100, Math.max(0, generateVariation(62, 4))),
       status: 'online',
       alerts: 0,
-      todayEnergy: 1350,
-      todaySavings: 945,
-      efficiency: 93.7,
-      temperature: 29,
+      todayEnergy: generateVariation(1350, 2),
+      todaySavings: generateVariation(945, 2),
+      efficiency: Math.min(100, generateVariation(937, 1) / 10),
+      temperature: generateVariation(29, 5),
     },
     {
       id: '6',
@@ -142,16 +218,26 @@ export default function MultiSiteDashboard() {
       state: 'PI',
       coordinates: { lat: -7.0244, lng: -42.1311 },
       capacity: 2500,
-      currentPower: 1800,
-      soc: 55,
+      currentPower: generateVariation(1800, 10),
+      soc: Math.min(100, Math.max(0, generateVariation(55, 4))),
       status: 'online',
       alerts: 0,
-      todayEnergy: 2250,
-      todaySavings: 1575,
-      efficiency: 94.0,
-      temperature: 30,
+      todayEnergy: generateVariation(2250, 2),
+      todaySavings: generateVariation(1575, 2),
+      efficiency: Math.min(100, generateVariation(940, 1) / 10),
+      temperature: generateVariation(30, 5),
     },
-  ], []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [refreshKey]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simula chamada à API
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setRefreshKey(prev => prev + 1);
+    setLastUpdate(new Date());
+    setIsRefreshing(false);
+  };
 
   const filteredSites = useMemo(() => {
     let result = sites;
@@ -220,12 +306,20 @@ export default function MultiSiteDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Multi-Site Dashboard</h1>
-          <p className="text-foreground-muted">{sites.length} sistemas em {new Set(sites.map(s => s.state)).size} estados</p>
+          <p className="text-foreground-muted">
+            {sites.length} sistemas em {new Set(sites.map(s => s.state)).size} estados
+            <span className="mx-2">•</span>
+            <span className="text-xs">Atualizado: {lastUpdate.toLocaleTimeString('pt-BR')}</span>
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors">
-            <RefreshCw className="w-4 h-4" />
-            Atualizar
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-3 py-2 bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
           <div className="flex items-center bg-surface border border-border rounded-lg">
             <button
@@ -244,66 +338,150 @@ export default function MultiSiteDashboard() {
         </div>
       </div>
 
-      {/* Aggregated Stats */}
+      {/* Aggregated Stats - Cards 3D */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Battery className="w-4 h-4 text-primary" />
-            <span className="text-xs text-foreground-muted">Capacidade Total</span>
+        {/* Card Capacidade Total */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-b from-blue-500 via-blue-600 to-blue-800 border-2 border-blue-300/50 shadow-lg shadow-blue-500/20 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Battery className="w-4 h-4 text-white" />
+                <span className="text-xs text-blue-100">Capacidade Total</span>
+              </div>
+              <InfoTooltip
+                title="Capacidade Total"
+                description="Soma da capacidade máxima de armazenamento de todos os sistemas BESS conectados."
+                calculation="Σ (capacidade de cada site) = Teresina (5MW) + Parnaíba (2MW) + Floriano (1MW) + Picos (3MW) + Piripiri (1.5MW) + Oeiras (2.5MW)"
+                importance="Indica o potencial total de armazenamento de energia disponível para arbitragem, backup e estabilização da rede."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">{(aggregatedStats.totalCapacity / 1000).toFixed(1)} MW</p>
           </div>
-          <p className="text-xl font-bold text-foreground">{(aggregatedStats.totalCapacity / 1000).toFixed(1)} MW</p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className={`w-4 h-4 ${aggregatedStats.currentPower >= 0 ? 'text-success-500' : 'text-primary'}`} />
-            <span className="text-xs text-foreground-muted">Potencia Atual</span>
+        {/* Card Potência Atual */}
+        <div className={`relative rounded-xl p-4 bg-gradient-to-b ${aggregatedStats.currentPower >= 0 ? 'from-emerald-500 via-emerald-600 to-emerald-800 border-emerald-300/50 shadow-emerald-500/20' : 'from-violet-500 via-violet-600 to-violet-800 border-violet-300/50 shadow-violet-500/20'} border-2 shadow-lg overflow-hidden`}>
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-white" />
+                <span className="text-xs text-white/80">Potência Atual</span>
+              </div>
+              <InfoTooltip
+                title="Potência Atual"
+                description="Fluxo de potência instantâneo de todos os sistemas. Positivo = descarga (fornecendo energia), Negativo = carga (armazenando)."
+                calculation="Σ (potência atual de cada site) - valores em tempo real dos inversores PCS de cada instalação."
+                importance="Mostra se a frota está fornecendo ou absorvendo energia da rede neste momento. Crítico para balanceamento e resposta à demanda."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">
+              {aggregatedStats.currentPower >= 0 ? '+' : ''}{(aggregatedStats.currentPower / 1000).toFixed(2)} MW
+            </p>
           </div>
-          <p className={`text-xl font-bold ${aggregatedStats.currentPower >= 0 ? 'text-success-500' : 'text-primary'}`}>
-            {aggregatedStats.currentPower >= 0 ? '+' : ''}{(aggregatedStats.currentPower / 1000).toFixed(2)} MW
-          </p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-primary" />
-            <span className="text-xs text-foreground-muted">SOC Medio</span>
+        {/* Card SOC Médio */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-b from-cyan-500 via-cyan-600 to-cyan-800 border-2 border-cyan-300/50 shadow-lg shadow-cyan-500/20 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-white" />
+                <span className="text-xs text-cyan-100">SOC Médio</span>
+              </div>
+              <InfoTooltip
+                title="State of Charge Médio"
+                description="Média do nível de carga de todas as baterias. Indica quanto da capacidade total está disponível para uso."
+                calculation="(Σ SOC de cada site) / número de sites = média ponderada do estado de carga."
+                importance="SOC muito baixo (<20%) limita capacidade de descarga. SOC muito alto (>90%) limita capacidade de carga. Ideal: 30-70%."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">{aggregatedStats.avgSoc.toFixed(0)}%</p>
           </div>
-          <p className="text-xl font-bold text-foreground">{aggregatedStats.avgSoc.toFixed(0)}%</p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-success-500" />
-            <span className="text-xs text-foreground-muted">Energia Hoje</span>
+        {/* Card Energia Hoje */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-b from-green-500 via-green-600 to-green-800 border-2 border-green-300/50 shadow-lg shadow-green-500/20 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-white" />
+                <span className="text-xs text-green-100">Energia Hoje</span>
+              </div>
+              <InfoTooltip
+                title="Energia Movimentada Hoje"
+                description="Total de energia que passou pelos sistemas (carga + descarga) desde 00:00h de hoje."
+                calculation="Σ (energia movimentada por cada site hoje) - medido pelos medidores de energia em cada instalação."
+                importance="Indica a utilização dos ativos. Maior throughput = mais ciclos = mais receita de arbitragem e serviços ancilares."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">{(aggregatedStats.totalEnergy / 1000).toFixed(1)} MWh</p>
           </div>
-          <p className="text-xl font-bold text-foreground">{(aggregatedStats.totalEnergy / 1000).toFixed(1)} MWh</p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-4 h-4 text-success-500" />
-            <span className="text-xs text-foreground-muted">Economia Hoje</span>
+        {/* Card Economia Hoje */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-b from-amber-500 via-amber-600 to-amber-800 border-2 border-amber-300/50 shadow-lg shadow-amber-500/20 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-white" />
+                <span className="text-xs text-amber-100">Economia Hoje</span>
+              </div>
+              <InfoTooltip
+                title="Economia Financeira Hoje"
+                description="Valor economizado através de arbitragem tarifária (carregar no horário barato, descarregar no caro) e redução de demanda de pico."
+                calculation="Σ (economia de cada site) = (energia descarga × tarifa ponta) - (energia carga × tarifa fora-ponta) + redução demanda contratada."
+                importance="KPI principal de retorno financeiro. Mostra o valor gerado pelo sistema em reais, justificando o investimento no BESS."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">R$ {(aggregatedStats.totalSavings).toLocaleString('pt-BR')}</p>
           </div>
-          <p className="text-xl font-bold text-success-500">R$ {(aggregatedStats.totalSavings).toLocaleString('pt-BR')}</p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-4 h-4 text-success-500" />
-            <span className="text-xs text-foreground-muted">Sites Online</span>
+        {/* Card Sites Online */}
+        <div className="relative rounded-xl p-4 bg-gradient-to-b from-teal-500 via-teal-600 to-teal-800 border-2 border-teal-300/50 shadow-lg shadow-teal-500/20 overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-white" />
+                <span className="text-xs text-teal-100">Sites Online</span>
+              </div>
+              <InfoTooltip
+                title="Sites Online"
+                description="Quantidade de instalações BESS operando normalmente vs total de sites na frota."
+                calculation="Contagem de sites com status 'online' / total de sites cadastrados."
+                importance="Disponibilidade da frota. 100% = todos operacionais. Abaixo disso indica manutenção, falhas ou comunicação perdida."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">{aggregatedStats.onlineSites}/{sites.length}</p>
           </div>
-          <p className="text-xl font-bold text-foreground">{aggregatedStats.onlineSites}/{sites.length}</p>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className={`w-4 h-4 ${aggregatedStats.totalAlerts > 0 ? 'text-warning-500' : 'text-success-500'}`} />
-            <span className="text-xs text-foreground-muted">Alertas</span>
+        {/* Card Alertas */}
+        <div className={`relative rounded-xl p-4 bg-gradient-to-b ${aggregatedStats.totalAlerts > 0 ? 'from-orange-500 via-orange-600 to-orange-800 border-orange-300/50 shadow-orange-500/20' : 'from-emerald-500 via-emerald-600 to-emerald-800 border-emerald-300/50 shadow-emerald-500/20'} border-2 shadow-lg overflow-hidden`}>
+          <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-white" />
+                <span className="text-xs text-white/80">Alertas</span>
+              </div>
+              <InfoTooltip
+                title="Alertas Ativos"
+                description="Número total de alertas não resolvidos em toda a frota, incluindo alarmes de temperatura, SOC, comunicação e equipamentos."
+                calculation="Σ (alertas ativos de cada site) - consolidado de todos os sistemas de monitoramento."
+                importance="Zero alertas = operação saudável. Alertas precisam de atenção para evitar degradação de performance ou falhas."
+              />
+            </div>
+            <p className="text-xl font-bold text-white drop-shadow-md">
+              {aggregatedStats.totalAlerts}
+            </p>
           </div>
-          <p className={`text-xl font-bold ${aggregatedStats.totalAlerts > 0 ? 'text-warning-500' : 'text-success-500'}`}>
-            {aggregatedStats.totalAlerts}
-          </p>
         </div>
       </div>
 

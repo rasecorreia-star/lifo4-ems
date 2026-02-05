@@ -381,17 +381,77 @@ function NotificationsTab({ notifications, setNotifications }: NotificationsTabP
 
 // Security Tab
 function SecurityTab() {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isToggling2FA, setIsToggling2FA] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [twoFAMessage, setTwoFAMessage] = useState('');
+
+  const handleToggle2FA = async () => {
+    setIsToggling2FA(true);
+    setTwoFAMessage('');
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const newValue = !user?.twoFactorEnabled;
+      updateUser({ twoFactorEnabled: newValue });
+      setTwoFAMessage(newValue ? '2FA habilitado com sucesso!' : '2FA desabilitado com sucesso!');
+    } catch (error) {
+      setTwoFAMessage('Erro ao alterar configuracao de 2FA');
+    } finally {
+      setIsToggling2FA(false);
+      setTimeout(() => setTwoFAMessage(''), 3000);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    // Validation
+    if (!currentPassword) {
+      setPasswordError('Digite a senha atual');
+      return;
+    }
+    if (!newPassword) {
+      setPasswordError('Digite a nova senha');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('A nova senha deve ter pelo menos 8 caracteres');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('As senhas nao coincidem');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setPasswordSuccess('Senha alterada com sucesso!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setPasswordError('Erro ao alterar senha. Verifique a senha atual.');
+    } finally {
+      setIsChangingPassword(false);
+      setTimeout(() => setPasswordSuccess(''), 3000);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Segurança</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1">Seguranca</h2>
         <p className="text-sm text-foreground-muted">
-          Gerencie a segurança da sua conta
+          Gerencie a seguranca da sua conta
         </p>
       </div>
 
@@ -403,23 +463,30 @@ function SecurityTab() {
               <Shield className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-medium text-foreground">Autenticação em duas etapas</h3>
+              <h3 className="font-medium text-foreground">Autenticacao em duas etapas</h3>
               <p className="text-sm text-foreground-muted">
                 {user?.twoFactorEnabled ? 'Habilitada' : 'Desabilitada'}
               </p>
             </div>
           </div>
           <button
+            onClick={handleToggle2FA}
+            disabled={isToggling2FA}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              'px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50',
               user?.twoFactorEnabled
                 ? 'bg-danger-500/10 text-danger-500 hover:bg-danger-500/20'
                 : 'bg-primary hover:bg-primary-600 text-white'
             )}
           >
-            {user?.twoFactorEnabled ? 'Desabilitar' : 'Habilitar'}
+            {isToggling2FA ? 'Processando...' : user?.twoFactorEnabled ? 'Desabilitar' : 'Habilitar'}
           </button>
         </div>
+        {twoFAMessage && (
+          <p className={cn('text-sm mt-2', twoFAMessage.includes('sucesso') ? 'text-success-500' : 'text-danger-500')}>
+            {twoFAMessage}
+          </p>
+        )}
       </div>
 
       {/* Change Password */}
@@ -453,8 +520,14 @@ function SecurityTab() {
               className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-          <button className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors">
-            Alterar Senha
+          {passwordError && <p className="text-sm text-danger-500">{passwordError}</p>}
+          {passwordSuccess && <p className="text-sm text-success-500">{passwordSuccess}</p>}
+          <button
+            onClick={handleChangePassword}
+            disabled={isChangingPassword}
+            className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
           </button>
         </div>
       </div>

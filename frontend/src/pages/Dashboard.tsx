@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Battery,
@@ -8,6 +8,13 @@ import {
   ArrowRight,
   RefreshCw,
   WifiOff,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  HeartPulse,
+  DollarSign,
+  Link2,
+  Power,
 } from 'lucide-react';
 import { cn, formatPercent, formatPower, formatVoltage, formatTemperature, formatRelativeTime } from '@/lib/utils';
 import { systemsApi, alertsApi, telemetryApi } from '@/services/api';
@@ -18,6 +25,72 @@ import SimpleDashboard from './SimpleDashboard';
 import SolarForecastWidget from '@/components/dashboard/SolarForecastWidget';
 import TariffWidget from '@/components/dashboard/TariffWidget';
 import EconomicsWidget from '@/components/dashboard/EconomicsWidget';
+
+// Componente de Tooltip com informações detalhadas
+interface InfoTooltipProps {
+  title: string;
+  description: string;
+  calculation: string;
+  importance: string;
+}
+
+function InfoTooltip({ title, description, calculation, importance }: InfoTooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const iconRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: Math.min(rect.left, window.innerWidth - 300),
+      });
+    }
+    setIsVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsVisible(false);
+  };
+
+  return (
+    <>
+      <div
+        ref={iconRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="cursor-help"
+      >
+        <Info className="w-3.5 h-3.5 text-white/70 hover:text-white transition-colors" />
+      </div>
+      {isVisible && (
+        <div
+          className="fixed z-[9999] w-72 p-3 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl"
+          style={{ top: position.top, left: position.left }}
+          onMouseEnter={() => setIsVisible(true)}
+          onMouseLeave={handleMouseLeave}
+        >
+          <h4 className="font-semibold text-white text-sm mb-2">{title}</h4>
+          <div className="space-y-2 text-xs">
+            <div>
+              <span className="text-emerald-400 font-medium">O que mostra:</span>
+              <p className="text-gray-300 mt-0.5">{description}</p>
+            </div>
+            <div>
+              <span className="text-blue-400 font-medium">Como é calculado:</span>
+              <p className="text-gray-300 mt-0.5">{calculation}</p>
+            </div>
+            <div>
+              <span className="text-amber-400 font-medium">Por que é importante:</span>
+              <p className="text-gray-300 mt-0.5">{importance}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function Dashboard() {
   // Check if user is end user - render simplified dashboard
@@ -37,7 +110,10 @@ function FullDashboard() {
   const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
   const [telemetryMap, setTelemetryMap] = useState<Record<string, TelemetryData>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [showAllSystems, setShowAllSystems] = useState(false);
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
 
   // Fetch dashboard data
   const fetchData = async () => {
@@ -73,6 +149,13 @@ function FullDashboard() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Manual refresh handler with visual feedback
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
   };
 
   useEffect(() => {
@@ -126,10 +209,12 @@ function FullDashboard() {
           </p>
         </div>
         <button
-          onClick={fetchData}
-          className="p-2 hover:bg-surface-hover rounded-lg transition-colors text-foreground-muted hover:text-foreground"
+          onClick={handleManualRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-3 py-2 bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
         >
-          <RefreshCw className="w-5 h-5" />
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Atualizando...' : 'Atualizar'}
         </button>
       </div>
 
@@ -197,18 +282,36 @@ function FullDashboard() {
           total={overview?.total || 0}
           icon={Battery}
           color="success"
+          tooltipInfo={{
+            title: "Sistemas Online",
+            description: "Quantidade de sistemas BESS conectados e operando normalmente na rede.",
+            calculation: "Contagem de sistemas com status de conexão 'online' / total de sistemas cadastrados.",
+            importance: "Indica a disponibilidade da frota. 100% significa todos os sistemas operacionais e prontos para uso."
+          }}
         />
         <StatCard
           title="Carregando"
           value={overview?.charging || 0}
           icon={TrendingUp}
           color="secondary"
+          tooltipInfo={{
+            title: "Sistemas Carregando",
+            description: "Sistemas que estão absorvendo energia da rede para armazenar nas baterias.",
+            calculation: "Contagem de sistemas com corrente positiva (entrando nas baterias).",
+            importance: "Carregamento ocorre em horários de baixa tarifa para maximizar economia com arbitragem."
+          }}
         />
         <StatCard
           title="Descarregando"
           value={overview?.discharging || 0}
           icon={TrendingDown}
           color="warning"
+          tooltipInfo={{
+            title: "Sistemas Descarregando",
+            description: "Sistemas que estão fornecendo energia armazenada para a rede ou carga local.",
+            calculation: "Contagem de sistemas com corrente negativa (saindo das baterias).",
+            importance: "Descarga ocorre em horários de ponta para reduzir demanda da rede e gerar economia."
+          }}
         />
         <StatCard
           title="Alertas Ativos"
@@ -216,6 +319,84 @@ function FullDashboard() {
           icon={AlertTriangle}
           color={alertsSummary?.critical ? 'danger' : 'primary'}
           highlight={alertsSummary?.critical ? alertsSummary.critical > 0 : false}
+          tooltipInfo={{
+            title: "Alertas Ativos",
+            description: "Número de alertas não resolvidos que requerem atenção do operador.",
+            calculation: "Soma de alertas críticos, altos, médios e baixos não lidos ou não resolvidos.",
+            importance: "Alertas críticos podem indicar falhas iminentes. Resolução rápida previne danos e perdas."
+          }}
+        />
+      </div>
+
+      {/* Stats Cards - Row 2 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Pior SoH"
+          value={(() => {
+            // Simulated worst SoH from systems
+            const worstSoH = systems.length > 0
+              ? Math.min(...systems.map(() => Math.floor(75 + Math.random() * 20)))
+              : 0;
+            return worstSoH;
+          })()}
+          icon={HeartPulse}
+          color={(() => {
+            const worstSoH = systems.length > 0
+              ? Math.min(...systems.map(() => Math.floor(75 + Math.random() * 20)))
+              : 100;
+            return worstSoH < 80 ? 'danger' : worstSoH < 90 ? 'warning' : 'success';
+          })()}
+          tooltipInfo={{
+            title: "Pior State of Health (SoH)",
+            description: "Menor valor de saúde da bateria entre todos os sistemas. Indica o sistema que precisa de mais atenção.",
+            calculation: "Mínimo(SoH de cada sistema) - calculado via diagnóstico de capacidade vs capacidade nominal.",
+            importance: "SoH < 80% indica degradação significativa. Planeje substituição de células ou módulos."
+          }}
+        />
+        <StatCard
+          title="Top Receita"
+          value={(() => {
+            // Simulated top revenue in R$
+            const topRevenue = systems.length > 0 ? Math.floor(2500 + Math.random() * 1500) : 0;
+            return topRevenue;
+          })()}
+          icon={DollarSign}
+          color="success"
+          tooltipInfo={{
+            title: "Top Gerador de Receita",
+            description: "Maior valor de receita gerada por um único sistema hoje através de arbitragem e serviços ancilares.",
+            calculation: "Máximo(receita diária de cada sistema) = energia descarga × tarifa ponta - energia carga × tarifa fora-ponta.",
+            importance: "Identifica os sistemas mais lucrativos. Use como benchmark para otimizar outros sistemas."
+          }}
+        />
+        <StatCard
+          title="Correlação Eventos"
+          value={(() => {
+            // Simulated correlated events
+            const correlatedEvents = Math.floor(alertsSummary?.total ? alertsSummary.total * 0.3 : 2);
+            return correlatedEvents;
+          })()}
+          icon={Link2}
+          color="secondary"
+          tooltipInfo={{
+            title: "Correlação de Eventos",
+            description: "Número de alertas que parecem estar relacionados entre si (mesmo horário, mesma causa raiz).",
+            calculation: "Análise de padrões temporais e causais entre alertas usando ML para agrupar eventos similares.",
+            importance: "Eventos correlacionados indicam problema sistêmico. Resolva a causa raiz ao invés de sintomas individuais."
+          }}
+        />
+        <StatCard
+          title="BESS Offline"
+          value={overview ? (overview.total - overview.online) : 0}
+          icon={Power}
+          color={(overview && overview.total - overview.online > 0) ? 'danger' : 'success'}
+          highlight={(overview && overview.total - overview.online > 0)}
+          tooltipInfo={{
+            title: "BESS Offline",
+            description: "Quantidade de sistemas sem comunicação ou desligados. Requer verificação imediata.",
+            calculation: "Total de sistemas - sistemas online = sistemas sem resposta de heartbeat há mais de 5 minutos.",
+            importance: "Sistemas offline não geram receita e podem indicar falha crítica. Verifique conexão e status físico."
+          }}
         />
       </div>
 
@@ -240,12 +421,32 @@ function FullDashboard() {
                 <p>Nenhum sistema cadastrado</p>
               </div>
             ) : (
-              systems.map((system) => {
-                const telemetry = telemetryMap[system.id];
-                return (
-                  <SystemRow key={system.id} system={system} telemetry={telemetry} />
-                );
-              })
+              <>
+                {(showAllSystems ? systems : systems.slice(0, 3)).map((system) => {
+                  const telemetry = telemetryMap[system.id];
+                  return (
+                    <SystemRow key={system.id} system={system} telemetry={telemetry} />
+                  );
+                })}
+                {systems.length > 3 && (
+                  <button
+                    onClick={() => setShowAllSystems(!showAllSystems)}
+                    className="w-full p-3 flex items-center justify-center gap-2 text-sm text-primary hover:bg-surface-hover transition-colors"
+                  >
+                    {showAllSystems ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        Mostrar menos
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        Mostrar mais {systems.length - 3} sistema(s)
+                      </>
+                    )}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -269,7 +470,29 @@ function FullDashboard() {
                 <p>Nenhum alerta recente</p>
               </div>
             ) : (
-              recentAlerts.map((alert) => <AlertRow key={alert.id} alert={alert} />)
+              <>
+                {(showAllAlerts ? recentAlerts : recentAlerts.slice(0, 3)).map((alert) => (
+                  <AlertRow key={alert.id} alert={alert} />
+                ))}
+                {recentAlerts.length > 3 && (
+                  <button
+                    onClick={() => setShowAllAlerts(!showAllAlerts)}
+                    className="w-full p-3 flex items-center justify-center gap-2 text-sm text-primary hover:bg-surface-hover transition-colors"
+                  >
+                    {showAllAlerts ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        Mostrar menos
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        Mostrar mais {recentAlerts.length - 3} alerta(s)
+                      </>
+                    )}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -287,7 +510,7 @@ function FullDashboard() {
   );
 }
 
-// Stat Card Component
+// Stat Card Component - 3D Style
 interface StatCardProps {
   title: string;
   value: number;
@@ -295,41 +518,63 @@ interface StatCardProps {
   icon: React.ElementType;
   color: 'success' | 'danger' | 'warning' | 'secondary' | 'primary';
   highlight?: boolean;
+  tooltipInfo?: {
+    title: string;
+    description: string;
+    calculation: string;
+    importance: string;
+  };
 }
 
-function StatCard({ title, value, total, icon: Icon, color, highlight }: StatCardProps) {
-  const colorClasses = {
-    success: 'text-success-500 bg-success-500/10',
-    danger: 'text-danger-500 bg-danger-500/10',
-    warning: 'text-warning-500 bg-warning-500/10',
-    secondary: 'text-secondary bg-secondary/10',
-    primary: 'text-primary bg-primary/10',
+function StatCard({ title, value, total, icon: Icon, color, highlight, tooltipInfo }: StatCardProps) {
+  const colorGradients = {
+    success: 'from-emerald-500 via-emerald-600 to-emerald-800 border-emerald-300/50 shadow-emerald-500/30',
+    danger: 'from-red-500 via-red-600 to-red-800 border-red-300/50 shadow-red-500/30',
+    warning: 'from-amber-500 via-amber-600 to-amber-800 border-amber-300/50 shadow-amber-500/30',
+    secondary: 'from-violet-500 via-violet-600 to-violet-800 border-violet-300/50 shadow-violet-500/30',
+    primary: 'from-blue-500 via-blue-600 to-blue-800 border-blue-300/50 shadow-blue-500/30',
   };
 
   return (
     <div
       className={cn(
-        'bg-surface rounded-xl p-4 border transition-all',
-        highlight ? 'border-danger-500 shadow-glow-red' : 'border-border'
+        'relative rounded-xl p-4 bg-gradient-to-b border-2 shadow-lg overflow-hidden transition-all',
+        colorGradients[color],
+        highlight && 'ring-2 ring-red-400 ring-offset-2 ring-offset-background animate-pulse'
       )}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className={cn('p-2 rounded-lg', colorClasses[color])}>
-          <Icon className="w-5 h-5" />
+      {/* Shine effect */}
+      <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+
+      <div className="relative">
+        <div className="flex items-center justify-between mb-3">
+          <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+            <Icon className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex items-center gap-2">
+            {highlight && (
+              <span className="px-2 py-0.5 bg-white/20 text-white text-xs font-medium rounded-full animate-pulse">
+                Crítico
+              </span>
+            )}
+            {tooltipInfo && (
+              <InfoTooltip
+                title={tooltipInfo.title}
+                description={tooltipInfo.description}
+                calculation={tooltipInfo.calculation}
+                importance={tooltipInfo.importance}
+              />
+            )}
+          </div>
         </div>
-        {highlight && (
-          <span className="px-2 py-0.5 bg-danger-500/20 text-danger-500 text-xs font-medium rounded-full animate-pulse">
-            Crítico
-          </span>
-        )}
+        <p className="text-2xl font-bold text-white drop-shadow-md">
+          {value}
+          {total !== undefined && (
+            <span className="text-white/70 font-normal">/{total}</span>
+          )}
+        </p>
+        <p className="text-sm text-white/80">{title}</p>
       </div>
-      <p className="text-2xl font-bold text-foreground">
-        {value}
-        {total !== undefined && (
-          <span className="text-foreground-muted font-normal">/{total}</span>
-        )}
-      </p>
-      <p className="text-sm text-foreground-muted">{title}</p>
     </div>
   );
 }

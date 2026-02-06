@@ -155,13 +155,7 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <span className="font-bold text-lg text-foreground">Lifo4</span>
-            <span className="text-primary font-semibold ml-1">EMS</span>
-          </div>
+          <img src="/logo.png" alt="Lifo4 EMS" className="h-12 w-auto" />
         </div>
         {mobile && (
           <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg">

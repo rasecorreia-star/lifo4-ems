@@ -34,7 +34,20 @@ export default function MainLayout() {
   }, [accessToken]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Background Logo with 30% opacity */}
+      <div
+        className="fixed inset-0 pointer-events-none flex items-center justify-center z-0"
+        style={{ opacity: 0.3 }}
+      >
+        <img
+          src="/logo.png"
+          alt=""
+          className="w-96 h-96 object-contain"
+          style={{ filter: 'grayscale(50%)' }}
+        />
+      </div>
+
       {/* Desktop Sidebar */}
       {!isMobile && (
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />

@@ -23,13 +23,7 @@ export default function AuthLayout() {
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center backdrop-blur">
-              <Zap className="w-10 h-10 text-primary" />
-            </div>
-            <div>
-              <span className="text-4xl font-bold text-white">Lifo4</span>
-              <span className="text-4xl font-semibold text-primary ml-2">EMS</span>
-            </div>
+            <img src="/logo.png" alt="Lifo4 EMS" className="h-24 w-auto" />
           </div>
 
           <h1 className="text-3xl font-bold text-white text-center mb-4">
@@ -69,13 +63,7 @@ export default function AuthLayout() {
       <div className="flex-1 flex flex-col justify-center items-center p-8">
         {/* Mobile logo */}
         <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Zap className="w-7 h-7 text-primary" />
-          </div>
-          <div>
-            <span className="text-2xl font-bold text-foreground">Lifo4</span>
-            <span className="text-2xl font-semibold text-primary ml-1">EMS</span>
-          </div>
+          <img src="/logo.png" alt="Lifo4 EMS" className="h-16 w-auto" />
         </div>
 
         <Outlet />

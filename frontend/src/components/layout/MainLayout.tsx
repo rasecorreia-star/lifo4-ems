@@ -39,7 +39,7 @@ export default function MainLayout() {
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
-          opacity: 0.2,
+          opacity: 0.13,
           backgroundImage: 'url(/logo.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',

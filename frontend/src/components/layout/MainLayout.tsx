@@ -38,15 +38,15 @@ export default function MainLayout() {
       {/* Background Logo with 30% opacity - full screen */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
-        style={{ opacity: 0.3 }}
-      >
-        <img
-          src="/logo.png"
-          alt=""
-          className="w-full h-full object-contain"
-          style={{ filter: 'grayscale(50%)' }}
-        />
-      </div>
+        style={{
+          opacity: 0.3,
+          backgroundImage: 'url(/logo.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'grayscale(50%)'
+        }}
+      />
 
       {/* Desktop Sidebar */}
       {!isMobile && (

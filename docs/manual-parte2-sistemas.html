@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Lifo4 EMS - Parte II: Detalhes do Sistema e Controle</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.7; color: #1a1a2e; background: #fff; font-size: 10pt; }
+    .content { padding: 40px 50px; }
+    .part-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 60px 50px; margin: -40px -50px 40px -50px; text-align: center; }
+    .part-header h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.7; margin-bottom: 10px; }
+    .part-header h1 { font-size: 36px; font-weight: 700; }
+    .menu-section { page-break-before: always; margin-bottom: 50px; }
+    .menu-header { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 5px solid #10b981; padding: 25px 30px; margin-bottom: 30px; }
+    .menu-header h2 { font-size: 24px; color: #0f172a; margin-bottom: 5px; }
+    .menu-header .path { font-size: 12px; color: #10b981; font-family: monospace; background: #10b98120; padding: 3px 10px; border-radius: 4px; }
+    .menu-header p { color: #64748b; font-size: 13px; margin-top: 10px; }
+    h3 { font-size: 18px; color: #0f172a; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #10b981; }
+    h4 { font-size: 14px; color: #1e3a5f; margin: 20px 0 10px 0; }
+    h4::before { content: "▸ "; color: #10b981; }
+    p { margin-bottom: 12px; text-align: justify; }
+    ul, ol { margin: 12px 0 12px 25px; }
+    li { margin-bottom: 6px; }
+    .card-detail { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 15px 0; }
+    .card-detail h4 { margin-top: 0; color: #0f172a; font-size: 15px; }
+    .field-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10px; }
+    .field-table th, .field-table td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+    .field-table th { background: #0f172a; color: white; font-weight: 600; }
+    .field-table tr:nth-child(even) { background: #f8fafc; }
+    .field-table .field-name { font-weight: 600; color: #1e3a5f; }
+    .importance { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 20px; border-radius: 10px; margin: 20px 0; }
+    .importance h5 { color: white; margin: 0 0 8px 0; font-size: 12px; }
+    .importance p { margin: 0; font-size: 11px; }
+    .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+    .warning h5 { color: #b45309; margin: 0 0 5px 0; }
+    .info { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+    .info h5 { color: #1d4ed8; margin: 0 0 5px 0; }
+    .tab-section { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; margin: 20px 0; overflow: hidden; }
+    .tab-header { background: #1e3a5f; color: white; padding: 12px 20px; font-weight: 600; font-size: 13px; }
+    .tab-content { padding: 20px; }
+    .action-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+    .action-item { background: #f1f5f9; padding: 12px 15px; border-radius: 8px; font-size: 11px; }
+    .action-item strong { color: #10b981; }
+    .command-box { background: #1e293b; color: #e2e8f0; padding: 15px 20px; border-radius: 8px; font-family: monospace; margin: 15px 0; font-size: 11px; }
+    .command-box .cmd { color: #10b981; }
+    .command-box .param { color: #f59e0b; }
+    .command-box .value { color: #3b82f6; }
+    footer { margin-top: 60px; padding: 40px 50px; background: #0f172a; color: white; text-align: center; }
+    @media print { .menu-section { page-break-before: always; } }
+  </style>
+</head>
+<body>
+
+<div class="content">
+
+<div class="part-header">
+  <h2>Parte II - Continuação</h2>
+  <h1>Detalhes do Sistema e Painel de Controle</h1>
+</div>
+
+<!-- ========== 5. DETALHES DO SISTEMA ========== -->
+<div class="menu-section" id="sistema-detalhe">
+  <div class="menu-header">
+    <h2>🔍 Detalhes do Sistema BESS</h2>
+    <span class="path">/systems/:systemId</span>
+    <p>Página completa com todas as informações de um sistema BESS específico, incluindo status em tempo real, histórico, configurações e diagnósticos.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Esta é a página mais completa para um sistema individual. Aqui você encontra TUDO sobre o sistema:
+    desde informações básicas de cadastro até gráficos detalhados de cada célula da bateria.
+    É a página de referência para qualquer investigação ou análise aprofundada.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Quando um alerta é disparado ou quando você precisa entender o comportamento de um sistema específico,
+      esta página fornece todas as informações necessárias em um único lugar. É aqui que você encontra
+      a tensão de cada célula individual, o histórico de temperatura, os ciclos realizados e qualquer
+      outro detalhe necessário para diagnóstico e tomada de decisão.
+    </p>
+  </div>
+
+  <h3>Abas Disponíveis</h3>
+
+  <!-- ABA: VISÃO GERAL -->
+  <div class="tab-section">
+    <div class="tab-header">📊 Aba: Visão Geral</div>
+    <div class="tab-content">
+      <p>Primeira aba com resumo completo do sistema:</p>
+
+      <h4>Card: Informações Básicas</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">ID do Sistema</td>
+          <td>Identificador único no banco de dados</td>
+          <td>Referência para suporte técnico, API e documentação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Nome</td>
+          <td>Nome amigável configurável</td>
+          <td>Identificação fácil para operadores.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Número de Série</td>
+          <td>S/N do equipamento físico</td>
+          <td>Necessário para garantia, suporte do fabricante.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Fabricante</td>
+          <td>Nome do fabricante do sistema</td>
+          <td>Contexto para troubleshooting e peças de reposição.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Modelo</td>
+          <td>Modelo específico do sistema</td>
+          <td>Cada modelo tem características e limitações específicas.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Data de Instalação</td>
+          <td>Quando o sistema foi instalado</td>
+          <td>Calcula idade, período de garantia, degradação esperada.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Endereço</td>
+          <td>Localização física completa</td>
+          <td>Para despacho de técnicos, contexto geográfico.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Coordenadas GPS</td>
+          <td>Latitude e longitude</td>
+          <td>Localização precisa para navegação e mapa.</td>
+        </tr>
+      </table>
+
+      <h4>Card: Status em Tempo Real</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>O que mostra</th><th>Faixa Normal</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Estado Operacional</td>
+          <td>Carregando / Descarregando / Standby / Erro / Manutenção</td>
+          <td>-</td>
+          <td>O que o sistema está fazendo agora.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOC (State of Charge)</td>
+          <td>Percentual de carga atual</td>
+          <td>20% - 80%</td>
+          <td>Quanto de energia está disponível. Operar fora da faixa acelera degradação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOH (State of Health)</td>
+          <td>Saúde da bateria</td>
+          <td>80% - 100%</td>
+          <td>Capacidade atual vs original. Abaixo de 80% considera-se fim de vida útil.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Potência</td>
+          <td>kW instantâneo (+ descarga, - carga)</td>
+          <td>Dentro do rated power</td>
+          <td>Taxa atual de carga/descarga.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão DC</td>
+          <td>Tensão do barramento DC</td>
+          <td>Varia por sistema (ex: 600-800V)</td>
+          <td>Tensão fora da faixa indica problema nas células ou conexões.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Corrente DC</td>
+          <td>Corrente do sistema</td>
+          <td>Dentro do rated current</td>
+          <td>Corrente alta = mais stress nas células.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Temperatura Máxima</td>
+          <td>Maior temperatura entre todas as células</td>
+          <td>20°C - 35°C</td>
+          <td>CRÍTICO: Acima de 45°C requer atenção, acima de 55°C é emergência.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Temperatura Mínima</td>
+          <td>Menor temperatura entre todas as células</td>
+          <td>15°C - 35°C</td>
+          <td>Abaixo de 0°C não deve carregar (risco de lithium plating).</td>
+        </tr>
+        <tr>
+          <td class="field-name">Delta Temperatura</td>
+          <td>Diferença entre max e min</td>
+          <td>&lt; 5°C</td>
+          <td>Delta alto indica problema de refrigeração ou célula com problema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Última Atualização</td>
+          <td>Timestamp do último dado recebido</td>
+          <td>&lt; 30 segundos</td>
+          <td>Dados muito antigos indicam problema de comunicação.</td>
+        </tr>
+      </table>
+
+      <h4>Card: Especificações Técnicas</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Capacidade de Potência</td>
+          <td>kW nominal do sistema</td>
+          <td>Limite de potência que pode ser operado continuamente.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Capacidade de Energia</td>
+          <td>kWh nominal do sistema</td>
+          <td>Quantidade total de energia que pode armazenar.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Química das Células</td>
+          <td>LFP, NMC, NCA, etc.</td>
+          <td>Cada química tem características de segurança, vida útil e performance diferentes.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Número de Módulos</td>
+          <td>Quantidade de módulos/racks</td>
+          <td>Estrutura física do sistema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Células por Módulo</td>
+          <td>Configuração de células</td>
+          <td>Necessário para diagnóstico de células individuais.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão Nominal</td>
+          <td>Tensão de operação normal</td>
+          <td>Referência para análise de desvios.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão Mínima/Máxima</td>
+          <td>Limites de tensão de operação</td>
+          <td>Sistema desliga se tensão sair desta faixa.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Corrente Máxima</td>
+          <td>Limite de corrente</td>
+          <td>Exceder causa aquecimento e degradação acelerada.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Eficiência Round-Trip</td>
+          <td>% de eficiência (típico 85-92%)</td>
+          <td>Quanto de energia é perdido em cada ciclo carga-descarga.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Ciclos Nominais</td>
+          <td>Ciclos garantidos pelo fabricante</td>
+          <td>Base para calcular degradação e vida útil esperada.</td>
+        </tr>
+      </table>
+
+      <h4>Card: Estatísticas de Uso</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Ciclos Totais</td>
+          <td>Número de ciclos completos realizados</td>
+          <td>Indica desgaste acumulado. Compare com ciclos nominais para estimar vida restante.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Ciclos Equivalentes</td>
+          <td>Ciclos calculados considerando profundidade</td>
+          <td>Mais preciso que ciclos totais pois considera ciclos parciais.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Energia Total Processada</td>
+          <td>MWh carregados + descarregados</td>
+          <td>Volume total de energia que passou pelo sistema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Horas de Operação</td>
+          <td>Tempo total em operação (não standby)</td>
+          <td>Tempo que o sistema esteve efetivamente trabalhando.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Disponibilidade</td>
+          <td>% do tempo que o sistema esteve disponível</td>
+          <td>Meta típica > 98%. Baixa disponibilidade indica problemas.</td>
+        </tr>
+        <tr>
+          <td class="field-name">MTBF</td>
+          <td>Mean Time Between Failures</td>
+          <td>Indica confiabilidade do sistema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">MTTR</td>
+          <td>Mean Time To Repair</td>
+          <td>Indica eficiência da manutenção.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA: CÉLULAS -->
+  <div class="tab-section">
+    <div class="tab-header">🔬 Aba: Células / Módulos</div>
+    <div class="tab-content">
+      <p>Visualização detalhada de cada célula individual da bateria:</p>
+
+      <div class="importance">
+        <h5>🎯 Por que monitorar células individualmente?</h5>
+        <p>
+          Uma única célula problemática pode comprometer todo o sistema. Monitorar individualmente permite
+          identificar células com tensão anormal, temperatura elevada ou degradação acelerada ANTES que
+          causem problemas maiores. Isso é essencial para prevenção de thermal runaway.
+        </p>
+      </div>
+
+      <h4>Mapa de Calor: Tensão das Células</h4>
+      <table class="field-table">
+        <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Grid de Células</td>
+          <td>Cada célula representada por um quadrado</td>
+          <td>Visualização rápida de centenas de células.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Cor Verde</td>
+          <td>Tensão normal (3.2V - 3.4V para LFP)</td>
+          <td>Célula saudável operando normalmente.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Cor Amarela</td>
+          <td>Tensão levemente fora do normal</td>
+          <td>Atenção: pode indicar início de problema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Cor Vermelha</td>
+          <td>Tensão significativamente anormal</td>
+          <td>CRÍTICO: célula com problema, investigar imediatamente.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tooltip</td>
+          <td>Valor exato ao passar o mouse</td>
+          <td>Leitura precisa de qualquer célula.</td>
+        </tr>
+      </table>
+
+      <h4>Mapa de Calor: Temperatura das Células</h4>
+      <table class="field-table">
+        <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Escala de Cor</td>
+          <td>Azul (frio) → Verde (normal) → Amarelo → Vermelho (quente)</td>
+          <td>Identificação visual instantânea de pontos quentes.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Hot Spots</td>
+          <td>Células mais quentes que vizinhas</td>
+          <td>Hot spots podem indicar célula defeituosa ou problema de refrigeração localizado.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Gradiente</td>
+          <td>Padrão de variação de temperatura</td>
+          <td>Gradiente uniforme = OK. Pontos isolados quentes = problema.</td>
+        </tr>
+      </table>
+
+      <h4>Tabela Detalhada de Células</h4>
+      <table class="field-table">
+        <tr><th>Coluna</th><th>O que mostra</th><th>Faixa Normal (LFP)</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">ID Célula</td>
+          <td>Identificador único (ex: M1-C12)</td>
+          <td>-</td>
+          <td>Localização exata para manutenção.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão</td>
+          <td>Tensão atual em Volts</td>
+          <td>2.5V - 3.65V</td>
+          <td>Fora da faixa = célula com problema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Temperatura</td>
+          <td>Temperatura em °C</td>
+          <td>15°C - 40°C</td>
+          <td>Acima de 45°C é preocupante.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Resistência Interna</td>
+          <td>mOhm</td>
+          <td>Varia por célula, mas deve ser estável</td>
+          <td>Aumento indica degradação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOC Estimado</td>
+          <td>% estimado da célula</td>
+          <td>-</td>
+          <td>Desbalanceamento entre células.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Status Balanceamento</td>
+          <td>Balanceando / OK</td>
+          <td>-</td>
+          <td>Se uma célula está sempre balanceando, pode ter problema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Alertas</td>
+          <td>Ícones de alerta se houver</td>
+          <td>Nenhum</td>
+          <td>Indicação visual de problemas.</td>
+        </tr>
+      </table>
+
+      <div class="warning">
+        <h5>⚠️ Sinais de Alerta em Células</h5>
+        <p><strong>Tensão muito diferente das vizinhas:</strong> Pode indicar célula defeituosa ou conexão ruim.</p>
+        <p><strong>Temperatura muito acima das vizinhas:</strong> Risco de thermal runaway, investigar IMEDIATAMENTE.</p>
+        <p><strong>Resistência interna crescente:</strong> Célula degradando mais rápido que o esperado.</p>
+        <p><strong>Sempre em balanceamento:</strong> Célula pode estar com capacidade reduzida.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: HISTÓRICO -->
+  <div class="tab-section">
+    <div class="tab-header">📈 Aba: Histórico</div>
+    <div class="tab-content">
+      <p>Gráficos históricos de todas as métricas do sistema:</p>
+
+      <h4>Gráfico: SOC ao Longo do Tempo</h4>
+      <table class="field-table">
+        <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Linha de SOC</td>
+          <td>Variação do estado de carga</td>
+          <td>Visualizar ciclos de carga/descarga.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Linhas de Limite</td>
+          <td>SOC mínimo e máximo configurados</td>
+          <td>Verificar se o sistema está respeitando os limites.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Padrão de Operação</td>
+          <td>Forma dos ciclos</td>
+          <td>Ciclos regulares = operação normal. Irregularidades = investigar.</td>
+        </tr>
+      </table>
+
+      <h4>Gráfico: Potência ao Longo do Tempo</h4>
+      <table class="field-table">
+        <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Área Positiva</td>
+          <td>Potência de descarga</td>
+          <td>Quando o sistema forneceu energia.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Área Negativa</td>
+          <td>Potência de carga</td>
+          <td>Quando o sistema consumiu energia.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Picos</td>
+          <td>Momentos de potência máxima</td>
+          <td>Verificar se atingiu limites, correlacionar com eventos.</td>
+        </tr>
+      </table>
+
+      <h4>Gráfico: Temperatura ao Longo do Tempo</h4>
+      <table class="field-table">
+        <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Linha Máxima</td>
+          <td>Temperatura da célula mais quente</td>
+          <td>Principal indicador de segurança térmica.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Linha Mínima</td>
+          <td>Temperatura da célula mais fria</td>
+          <td>Evitar operação abaixo de 0°C.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Linha Média</td>
+          <td>Temperatura média do sistema</td>
+          <td>Tendência geral.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Faixa Sombreada</td>
+          <td>Spread entre min e max</td>
+          <td>Spread crescente indica problema de refrigeração.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Linhas de Threshold</td>
+          <td>Limites de alerta e crítico</td>
+          <td>Visualizar quando o sistema entrou em zona de risco.</td>
+        </tr>
+      </table>
+
+      <h4>Controles do Histórico</h4>
+      <table class="field-table">
+        <tr><th>Controle</th><th>Opções</th><th>Uso</th></tr>
+        <tr>
+          <td class="field-name">Período</td>
+          <td>1h, 6h, 24h, 7d, 30d, Personalizado</td>
+          <td>Diferentes horizontes de análise.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Resolução</td>
+          <td>1min, 5min, 15min, 1h, 1d</td>
+          <td>Maior resolução = mais detalhe, mais dados.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Métricas</td>
+          <td>Checkboxes para cada métrica</td>
+          <td>Escolher o que visualizar no gráfico.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Exportar</td>
+          <td>CSV, Excel, PNG</td>
+          <td>Baixar dados para análise externa ou relatórios.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Comparar</td>
+          <td>Sobrepor período anterior</td>
+          <td>Comparar comportamento atual vs histórico.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA: ALERTAS -->
+  <div class="tab-section">
+    <div class="tab-header">🚨 Aba: Alertas</div>
+    <div class="tab-content">
+      <p>Histórico de alertas e eventos deste sistema específico:</p>
+
+      <h4>Lista de Alertas</h4>
+      <table class="field-table">
+        <tr><th>Coluna</th><th>O que mostra</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Timestamp</td>
+          <td>Data/hora do alerta</td>
+          <td>Quando o evento ocorreu.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Severidade</td>
+          <td>Crítico / Alto / Médio / Baixo</td>
+          <td>Priorização de atenção.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tipo</td>
+          <td>Categoria do alerta</td>
+          <td>Agrupamento por tipo de problema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Descrição</td>
+          <td>Texto descritivo do alerta</td>
+          <td>Detalhes do que aconteceu.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Valores</td>
+          <td>Valores que dispararam o alerta</td>
+          <td>Contexto numérico do evento.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Status</td>
+          <td>Ativo / Reconhecido / Resolvido</td>
+          <td>Estado atual do alerta.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Duração</td>
+          <td>Quanto tempo o alerta durou</td>
+          <td>Alertas longos são mais preocupantes.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Ações</td>
+          <td>Botões de ação</td>
+          <td>Reconhecer, investigar, resolver.</td>
+        </tr>
+      </table>
+
+      <h4>Tipos Comuns de Alertas BESS</h4>
+      <table class="field-table">
+        <tr><th>Tipo</th><th>Causa Comum</th><th>Ação Recomendada</th></tr>
+        <tr>
+          <td class="field-name">Temperatura Alta</td>
+          <td>Refrigeração insuficiente, corrente alta, célula defeituosa</td>
+          <td>Reduzir potência, verificar refrigeração, inspecionar células.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão Célula Baixa</td>
+          <td>Célula degradada, desbalanceamento extremo</td>
+          <td>Parar operação, balancear, possível substituição de célula.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão Célula Alta</td>
+          <td>Sobrecarga, falha no BMS, célula com capacidade reduzida</td>
+          <td>Parar carga, verificar configuração BMS.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Corrente Excessiva</td>
+          <td>Demanda além do especificado</td>
+          <td>Limitar potência, verificar aplicação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Comunicação Perdida</td>
+          <td>Problema de rede, falha no gateway</td>
+          <td>Verificar conectividade, reiniciar equipamentos de comunicação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOC Crítico</td>
+          <td>Descarga excessiva sem recarga</td>
+          <td>Iniciar carga ou verificar por que não está carregando.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Desbalanceamento</td>
+          <td>Células com capacidades diferentes</td>
+          <td>Executar ciclo de balanceamento, monitorar células problemáticas.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Isolamento</td>
+          <td>Perda de isolamento elétrico</td>
+          <td>PARAR imediatamente, inspeção técnica obrigatória.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 6. PAINEL DE CONTROLE ========== -->
+<div class="menu-section" id="painel-controle">
+  <div class="menu-header">
+    <h2>🎮 Painel de Controle</h2>
+    <span class="path">/systems/:systemId/control</span>
+    <p>Interface para operação manual do sistema BESS, com comandos de carga/descarga, configuração de modos e monitoramento em tempo real.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Painel de Controle é onde você efetivamente OPERA o sistema BESS. Daqui você pode iniciar cargas,
+    descargas, alterar modos de operação e responder a eventos. É a interface de "cockpit" do operador.
+  </p>
+
+  <div class="warning">
+    <h5>⚠️ ATENÇÃO: Área de Operação Crítica</h5>
+    <p>
+      Comandos executados neste painel afetam diretamente o equipamento físico. Operações incorretas podem
+      causar danos ao sistema, perda de garantia ou até riscos de segurança. Certifique-se de ter autorização
+      e treinamento adequado antes de operar.
+    </p>
+  </div>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      A capacidade de controlar remotamente um sistema BESS é o que diferencia um sistema "monitorado" de um
+      sistema "gerenciado". Com controle remoto, você pode responder a oportunidades de mercado (iniciar descarga
+      quando preço está alto), reagir a emergências (parar sistema com temperatura elevada) e otimizar operação
+      sem precisar enviar técnico ao local.
+    </p>
+  </div>
+
+  <h3>Seção: Status em Tempo Real</h3>
+  <p>Painel superior mostra o estado atual do sistema:</p>
+
+  <div class="card-detail">
+    <h4>Indicadores de Status</h4>
+    <table class="field-table">
+      <tr><th>Indicador</th><th>O que mostra</th><th>Atualização</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Estado Atual</td>
+        <td>CHARGING / DISCHARGING / STANDBY / ERROR</td>
+        <td>Tempo real</td>
+        <td>Confirmar que comando foi executado.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC</td>
+        <td>Percentual com barra visual grande</td>
+        <td>A cada 2s</td>
+        <td>Decisão de quando parar carga/descarga.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Potência</td>
+        <td>kW com indicador visual de direção</td>
+        <td>Tempo real</td>
+        <td>Confirmar potência sendo executada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura</td>
+        <td>°C com indicador de cor</td>
+        <td>A cada 5s</td>
+        <td>Monitorar segurança térmica durante operação.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tensão DC</td>
+        <td>Volts do barramento</td>
+        <td>Tempo real</td>
+        <td>Verificar se tensão está na faixa esperada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Corrente DC</td>
+        <td>Amperes</td>
+        <td>Tempo real</td>
+        <td>Verificar se corrente está dentro do limite.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Seção: Comandos de Operação</h3>
+
+  <div class="card-detail control">
+    <h4>Comando: Iniciar Carga</h4>
+    <table class="field-table">
+      <tr><th>Campo</th><th>Descrição</th><th>Faixa</th><th>Dica</th></tr>
+      <tr>
+        <td class="field-name">Potência de Carga</td>
+        <td>kW desejado para carregamento</td>
+        <td>0 até potência nominal</td>
+        <td>Comece com 50% do nominal se não tiver certeza.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Alvo</td>
+        <td>Parar carga quando atingir este SOC</td>
+        <td>SOC atual até 100%</td>
+        <td>Evite 100% para preservar vida útil. 80-90% é ideal.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Duração Máxima</td>
+        <td>Tempo limite para a operação</td>
+        <td>Opcional</td>
+        <td>Útil para agendar fim da carga.</td>
+      </tr>
+    </table>
+
+    <div class="command-box">
+      <span class="cmd">CHARGE</span> <span class="param">power=</span><span class="value">100kW</span> <span class="param">target_soc=</span><span class="value">85%</span> <span class="param">max_duration=</span><span class="value">2h</span>
+    </div>
+
+    <p><strong>Quando usar:</strong> Quando energia está barata (madrugada, horário fora de ponta), quando há excesso de geração solar/eólica, quando precisa preparar para evento de descarga.</p>
+  </div>
+
+  <div class="card-detail control">
+    <h4>Comando: Iniciar Descarga</h4>
+    <table class="field-table">
+      <tr><th>Campo</th><th>Descrição</th><th>Faixa</th><th>Dica</th></tr>
+      <tr>
+        <td class="field-name">Potência de Descarga</td>
+        <td>kW desejado para descarga</td>
+        <td>0 até potência nominal</td>
+        <td>Considere demanda da carga conectada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Mínimo</td>
+        <td>Parar descarga quando atingir este SOC</td>
+        <td>10% até SOC atual</td>
+        <td>Evite abaixo de 20% para preservar vida útil.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Duração Máxima</td>
+        <td>Tempo limite para a operação</td>
+        <td>Opcional</td>
+        <td>Útil para eventos de peak shaving programados.</td>
+      </tr>
+    </table>
+
+    <div class="command-box">
+      <span class="cmd">DISCHARGE</span> <span class="param">power=</span><span class="value">150kW</span> <span class="param">min_soc=</span><span class="value">20%</span> <span class="param">max_duration=</span><span class="value">4h</span>
+    </div>
+
+    <p><strong>Quando usar:</strong> Durante horário de ponta (energia cara), para peak shaving quando demanda está alta, em resposta a sinal de demand response, para venda de energia no mercado.</p>
+  </div>
+
+  <div class="card-detail control">
+    <h4>Comando: Parar / Standby</h4>
+    <p>Interrompe qualquer operação em andamento e coloca o sistema em modo de espera.</p>
+
+    <div class="command-box">
+      <span class="cmd">STOP</span>
+    </div>
+
+    <p><strong>Quando usar:</strong> Quando detectar anomalia, quando precisar de pausa para manutenção, quando a estratégia de operação mudou.</p>
+  </div>
+
+  <div class="card-detail control" style="background: #fef2f2; border-color: #fecaca;">
+    <h4 style="color: #dc2626;">Comando: Parada de Emergência</h4>
+    <p>Desliga o sistema imediatamente, abrindo contactores e interrompendo toda operação.</p>
+
+    <div class="command-box" style="background: #7f1d1d;">
+      <span style="color: #fca5a5;">EMERGENCY_STOP</span>
+    </div>
+
+    <div class="warning">
+      <h5>⚠️ USE APENAS EM EMERGÊNCIAS REAIS</h5>
+      <p>
+        Este comando desliga o sistema abruptamente. Use apenas quando:
+        <br>• Detectar fumaça ou cheiro de queimado
+        <br>• Temperatura subindo rapidamente (>1°C/min)
+        <br>• Alarme de isolamento
+        <br>• Qualquer situação que represente risco iminente
+      </p>
+    </div>
+  </div>
+
+  <h3>Seção: Modos de Operação</h3>
+
+  <div class="card-detail config">
+    <h4>Seletor de Modo</h4>
+    <table class="field-table">
+      <tr><th>Modo</th><th>Descrição</th><th>Quando usar</th></tr>
+      <tr>
+        <td class="field-name">Manual</td>
+        <td>Operador controla diretamente via comandos</td>
+        <td>Testes, situações específicas, troubleshooting.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Automático</td>
+        <td>Sistema segue regras pré-configuradas</td>
+        <td>Operação normal do dia-a-dia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Peak Shaving</td>
+        <td>Descarrega automaticamente quando demanda ultrapassa limite</td>
+        <td>Reduzir conta de demanda contratada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Arbitragem</td>
+        <td>Carrega quando energia barata, descarrega quando cara</td>
+        <td>Maximizar ganho financeiro com diferença de tarifa.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Backup</td>
+        <td>Mantém SOC alto para emergências</td>
+        <td>Quando confiabilidade é prioridade sobre economia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Grid Services</td>
+        <td>Responde a sinais do operador da rede</td>
+        <td>Participação em mercados de serviços ancilares.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Self-Consumption</td>
+        <td>Maximiza uso de geração local (solar)</td>
+        <td>Sistemas com geração fotovoltaica associada.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Seção: Agendamento</h3>
+
+  <div class="card-detail">
+    <h4>Agenda de Operações</h4>
+    <p>Programe operações para executar automaticamente:</p>
+    <table class="field-table">
+      <tr><th>Campo</th><th>Descrição</th><th>Exemplo</th></tr>
+      <tr>
+        <td class="field-name">Hora Início</td>
+        <td>Quando a operação deve começar</td>
+        <td>23:00 (início da carga noturna)</td>
+      </tr>
+      <tr>
+        <td class="field-name">Hora Fim</td>
+        <td>Quando a operação deve terminar</td>
+        <td>06:00 (fim da carga noturna)</td>
+      </tr>
+      <tr>
+        <td class="field-name">Operação</td>
+        <td>Carga, Descarga ou Standby</td>
+        <td>Carga a 80kW</td>
+      </tr>
+      <tr>
+        <td class="field-name">Dias da Semana</td>
+        <td>Em quais dias executar</td>
+        <td>Segunda a Sexta</td>
+      </tr>
+      <tr>
+        <td class="field-name">Repetir</td>
+        <td>Se deve repetir automaticamente</td>
+        <td>Sim, toda semana</td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <h5>💡 Dica de Agendamento</h5>
+      <p>
+        Configure a carga para horário fora de ponta (tipicamente 23h-06h) e descarga para horário de ponta
+        (18h-21h). Isso maximiza economia com diferença de tarifa mesmo sem intervenção manual.
+      </p>
+    </div>
+  </div>
+
+  <h3>Seção: Limites e Proteções</h3>
+
+  <div class="card-detail config">
+    <h4>Configuração de Limites Operacionais</h4>
+    <table class="field-table">
+      <tr><th>Parâmetro</th><th>Descrição</th><th>Padrão</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">SOC Mínimo</td>
+        <td>Sistema para descarga ao atingir</td>
+        <td>10-20%</td>
+        <td>Protege células contra descarga profunda.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Máximo</td>
+        <td>Sistema para carga ao atingir</td>
+        <td>90-100%</td>
+        <td>Protege células contra sobrecarga.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Máxima</td>
+        <td>Reduz potência ou para ao atingir</td>
+        <td>45-50°C</td>
+        <td>Previne thermal runaway.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Mínima</td>
+        <td>Não carrega abaixo desta temperatura</td>
+        <td>0-5°C</td>
+        <td>Previne lithium plating (dano irreversível).</td>
+      </tr>
+      <tr>
+        <td class="field-name">Potência Máxima</td>
+        <td>Limite de potência mesmo se solicitado mais</td>
+        <td>100% do nominal</td>
+        <td>Protege sistema contra sobrecarga.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Corrente Máxima</td>
+        <td>Limite de corrente</td>
+        <td>Especificação do fabricante</td>
+        <td>Protege células e conexões.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Log de Operações</h3>
+
+  <p>Todas as operações são registradas com:</p>
+  <ul>
+    <li><strong>Timestamp:</strong> Data/hora exata do comando</li>
+    <li><strong>Usuário:</strong> Quem executou o comando</li>
+    <li><strong>Comando:</strong> O que foi solicitado</li>
+    <li><strong>Resultado:</strong> Sucesso ou erro</li>
+    <li><strong>Parâmetros:</strong> Valores utilizados</li>
+  </ul>
+
+  <div class="info">
+    <h5>💡 Rastreabilidade</h5>
+    <p>
+      O log de operações é fundamental para auditoria e troubleshooting. Se algo der errado, você pode
+      verificar exatamente o que foi feito e quando. Também é útil para análise de performance e
+      identificação de padrões operacionais.
+    </p>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <p><strong>Lifo4 EMS</strong> - Manual Completo</p>
+  <p>Parte II: Detalhes do Sistema e Painel de Controle</p>
+  <p>Continue na Parte III para Câmeras e Microgrids</p>
+</footer>
+
+</body>
+</html>

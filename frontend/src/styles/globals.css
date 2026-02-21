@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 160 84% 39%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border-hover;
+  }
+}
+
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-surface rounded-lg border border-border p-4;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-200 hover:border-primary/50 hover:shadow-glow-green;
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-online {
+    @apply bg-success-500 animate-pulse-slow;
+  }
+
+  .status-offline {
+    @apply bg-foreground-subtle;
+  }
+
+  .status-error {
+    @apply bg-danger-500 animate-pulse;
+  }
+
+  .status-warning {
+    @apply bg-warning-500;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary/20 text-primary;
+  }
+
+  .badge-secondary {
+    @apply badge bg-secondary/20 text-secondary;
+  }
+
+  .badge-success {
+    @apply badge bg-success-500/20 text-success-500;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-500/20 text-warning-500;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger-500/20 text-danger-500;
+  }
+
+  /* Metric card */
+  .metric-card {
+    @apply card flex flex-col gap-2;
+  }
+
+  .metric-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .metric-label {
+    @apply text-sm text-foreground-muted;
+  }
+
+  /* Cell grid */
+  .cell-grid {
+    @apply grid grid-cols-4 gap-2;
+  }
+
+  .cell-item {
+    @apply p-2 rounded-md text-center text-sm font-mono transition-all;
+  }
+
+  .cell-normal {
+    @apply bg-success-500/20 text-success-500 border border-success-500/30;
+  }
+
+  .cell-attention {
+    @apply bg-warning-500/20 text-warning-500 border border-warning-500/30;
+  }
+
+  .cell-critical {
+    @apply bg-danger-500/20 text-danger-500 border border-danger-500/30 animate-pulse;
+  }
+
+  /* Form inputs */
+  .input-base {
+    @apply w-full rounded-md border border-border bg-background px-3 py-2 text-sm
+           placeholder:text-foreground-subtle
+           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium
+           transition-colors focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90
+           active:bg-primary/80 px-4 py-2;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/90
+           active:bg-secondary/80 px-4 py-2;
+  }
+
+  .btn-outline {
+    @apply btn border border-border bg-transparent hover:bg-surface
+           active:bg-surface-hover px-4 py-2;
+  }
+
+  .btn-ghost {
+    @apply btn hover:bg-surface active:bg-surface-hover px-4 py-2;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger-500 text-white hover:bg-danger-600
+           active:bg-danger-700 px-4 py-2;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-icon {
+    @apply p-2;
+  }
+}
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  background: #1a1a2e !important;
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1e1e2f;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.leaflet-popup-tip {
+  background: #1e1e2f;
+}
+
+.leaflet-popup-content {
+  margin: 8px;
+}
+
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+@keyframes pulse-marker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.leaflet-tile-pane {
+  filter: brightness(0.7) saturate(0.8);
+}
+
+/* Fix z-index issues */
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2 !important;
+}
+
+@layer utilities {
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  /* Hide scrollbar */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animation utilities */
+  .animate-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .slide-in-left {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md;
+  }
+}

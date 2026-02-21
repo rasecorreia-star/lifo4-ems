@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BESS Mock Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      padding: 15px 20px;
+      border-bottom: 2px solid #e94560;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 20px; }
+    .header .stats { display: flex; gap: 30px; }
+    .header .stat-item { text-align: center; }
+    .header .stat-value { font-size: 20px; font-weight: bold; }
+    .header .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
+
+    /* Main Layout - 2/3 + 1/3 */
+    .main-container {
+      display: flex;
+      height: calc(100vh - 70px);
+    }
+
+    /* Left Panel - 2/3 - Device Cards */
+    .left-panel {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .left-panel h2 {
+      font-size: 16px;
+      color: #e94560;
+      margin-bottom: 15px;
+    }
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .device-card {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .device-card:hover { background: #1e2d4a; transform: translateY(-2px); }
+    .device-card.selected { border-color: #e94560; background: #1e2d4a; }
+    .device-card.offline { opacity: 0.5; }
+    .device-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .device-name { font-weight: bold; font-size: 13px; }
+    .device-site { font-size: 10px; color: #888; margin-top: 2px; }
+    .device-status { padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
+    .device-status.online { background: #4ade80; color: #000; }
+    .device-status.offline { background: #666; color: #fff; }
+    .device-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .device-metric { background: #0f3460; padding: 8px 4px; border-radius: 6px; text-align: center; }
+    .device-metric-value { font-size: 14px; font-weight: bold; }
+    .device-metric-label { font-size: 8px; color: #888; text-transform: uppercase; }
+    .device-metric-value.charging { color: #4ade80; }
+    .device-metric-value.discharging { color: #f87171; }
+    .device-metric-value.warning { color: #fbbf24; }
+
+    /* Mode Indicator Badge */
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .mode-badge.charging {
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      color: #000;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #22c55e, inset 0 0 10px rgba(255,255,255,0.3);
+      animation: glow-green 1s ease-in-out infinite;
+    }
+    .mode-badge.discharging {
+      background: linear-gradient(90deg, #dc2626, #b91c1c);
+      color: #fff;
+      border-radius: 0;
+      clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+      box-shadow: 0 0 15px #ef4444;
+      animation: blink-red 0.5s ease-in-out infinite;
+    }
+    .mode-badge.normal {
+      background: #374151;
+      color: #9ca3af;
+      border-radius: 8px;
+      border: 1px dashed #6b7280;
+      animation: none;
+    }
+    .mode-icon {
+      font-size: 16px;
+    }
+    @keyframes glow-green {
+      0%, 100% { box-shadow: 0 0 10px #22c55e; }
+      50% { box-shadow: 0 0 25px #22c55e, 0 0 35px #22c55e; }
+    }
+    @keyframes blink-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Resize Handle */
+    .resize-handle {
+      width: 6px;
+      background: #0f3460;
+      cursor: col-resize;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .resize-handle:hover,
+    .resize-handle.dragging {
+      background: #e94560;
+    }
+    .resize-handle::after {
+      content: '⋮';
+      color: #666;
+      font-size: 14px;
+    }
+    .resize-handle:hover::after,
+    .resize-handle.dragging::after {
+      color: #fff;
+    }
+
+    /* Right Panel - 1/3 - Controls */
+    .right-panel {
+      background: #16213e;
+      padding: 20px;
+      overflow-y: auto;
+      min-width: 280px;
+      max-width: 600px;
+      width: 380px;
+    }
+    .right-panel h2 {
+      font-size: 16px;
+      color: #e94560;
+      margin-bottom: 5px;
+    }
+    .right-panel .subtitle {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .no-selection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+      text-align: center;
+    }
+    .no-selection .icon { font-size: 48px; margin-bottom: 15px; }
+
+    /* Control Sections */
+    .control-section {
+      background: #0f3460;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .control-section h3 {
+      font-size: 12px;
+      color: #e94560;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .control-row {
+      margin-bottom: 15px;
+    }
+    .control-row:last-child { margin-bottom: 0; }
+    .control-label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 6px;
+      display: block;
+    }
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: #e94560;
+    }
+    .range-values {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 10px;
+      color: #666;
+    }
+    .range-values .current {
+      font-size: 16px;
+      font-weight: bold;
+      color: #4ade80;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .btn:hover { transform: scale(1.02); }
+    .btn.active { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+    .btn-online { background: #4ade80; color: #000; }
+    .btn-offline { background: #666; color: #fff; }
+    .btn-online.active { background: #22c55e; }
+    .btn-offline.active { background: #ef4444; }
+    select {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #16213e;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-action {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .btn-warning { background: #fbbf24; color: #000; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+
+    /* Status Display */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .status-item {
+      background: #16213e;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .status-item .value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .status-item .label {
+      font-size: 9px;
+      color: #888;
+      text-transform: uppercase;
+    }
+    .status-item .value.positive { color: #4ade80; }
+    .status-item .value.negative { color: #f87171; }
+
+    /* EMS Link */
+    .ems-link {
+      display: block;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .ems-link:hover { opacity: 0.9; }
+
+    /* Alarm Grid */
+    .alarm-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .alarm-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 6px 8px;
+      background: #16213e;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .alarm-item:hover { background: #1e2d4a; }
+    .alarm-item input[type="checkbox"] {
+      accent-color: #ef4444;
+      cursor: pointer;
+    }
+    .alarm-item input[type="checkbox"]:checked + span,
+    .alarm-item:has(input:checked) {
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>🔋 BESS Mock Simulator</h1>
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-value" id="totalDevices">9</div>
+        <div class="stat-label">Dispositivos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="onlineDevices" style="color:#4ade80">0</div>
+        <div class="stat-label">Online</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="totalPower">0 kW</div>
+        <div class="stat-label">Potência</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="avgSoc">0%</div>
+        <div class="stat-label">SOC Médio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Left Panel - Device Cards (2/3) -->
+    <div class="left-panel" id="leftPanel">
+      <h2>📦 Dispositivos BESS</h2>
+      <div class="devices-grid" id="devicesGrid"></div>
+    </div>
+
+    <!-- Resize Handle -->
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <!-- Right Panel - Controls (1/3) -->
+    <div class="right-panel" id="rightPanel">
+      <div id="noSelection" class="no-selection">
+        <div class="icon">👈</div>
+        <div>Selecione um BESS<br>para configurar</div>
+      </div>
+
+      <div id="controlPanel" style="display:none;">
+        <h2 id="selectedName">-</h2>
+        <div class="subtitle" id="selectedInfo">-</div>
+
+        <!-- Status Atual -->
+        <div class="control-section">
+          <h3>📊 Status Atual</h3>
+          <div class="status-grid">
+            <div class="status-item">
+              <div class="value" id="currentSoc">85%</div>
+              <div class="label">SOC</div>
+            </div>
+            <div class="status-item">
+              <div class="value" id="currentPower">0W</div>
+              <div class="label">Potência</div>
+            </div>
+            <div class="status-item">
+              <div class="value" id="currentVoltage">0V</div>
+              <div class="label">Tensão</div>
+            </div>
+            <div class="status-item">
+              <div class="value" id="currentTemp">0°C</div>
+              <div class="label">Temperatura</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controle SOC -->
+        <div class="control-section">
+          <h3>🔋 Ajustar SOC</h3>
+          <div class="control-row">
+            <input type="range" id="socSlider" min="0" max="100" value="85" oninput="updatePreview('socPreview', this.value + '%')" onchange="setSoc(this.value)">
+            <div class="range-values">
+              <span>0%</span>
+              <span class="current" id="socPreview">85%</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controle Corrente/Potência -->
+        <div class="control-section">
+          <h3>⚡ Ajustar Corrente</h3>
+          <div class="control-row">
+            <input type="range" id="currentSlider" min="-100" max="100" value="0" oninput="updatePreview('currentPreview', this.value + 'A')" onchange="setCurrent(this.value)">
+            <div class="range-values">
+              <span>-100A</span>
+              <span class="current" id="currentPreview">0A</span>
+              <span>+100A</span>
+            </div>
+            <div style="font-size:10px;color:#888;margin-top:4px;">Negativo = descarga, Positivo = carga</div>
+          </div>
+        </div>
+
+        <!-- Controle Temperatura -->
+        <div class="control-section">
+          <h3>🌡️ Ajustar Temperatura</h3>
+          <div class="control-row">
+            <input type="range" id="tempSlider" min="0" max="70" value="28" oninput="updatePreview('tempPreview', this.value + '°C')" onchange="setTemperature(this.value)">
+            <div class="range-values">
+              <span>0°C</span>
+              <span class="current" id="tempPreview">28°C</span>
+              <span>70°C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controle Tensão das Células -->
+        <div class="control-section">
+          <h3>🔌 Ajustar Tensão das Células</h3>
+          <div class="control-row">
+            <input type="range" id="voltageSlider" min="2.5" max="3.65" value="3.2" step="0.01" oninput="updatePreview('voltagePreview', this.value + 'V')" onchange="setVoltage(this.value)">
+            <div class="range-values">
+              <span>2.5V</span>
+              <span class="current" id="voltagePreview">3.2V</span>
+              <span>3.65V</span>
+            </div>
+            <div style="font-size:10px;color:#888;margin-top:4px;">Tensão por célula (16 células)</div>
+          </div>
+        </div>
+
+        <!-- Controle Online/Offline -->
+        <div class="control-section">
+          <h3>📡 Conexão</h3>
+          <div class="btn-group">
+            <button id="btnOnline" class="btn btn-online active" onclick="setOnline(true)">🟢 Online</button>
+            <button id="btnOffline" class="btn btn-offline" onclick="setOnline(false)">🔴 Offline</button>
+          </div>
+        </div>
+
+        <!-- Simular Alarmes -->
+        <div class="control-section">
+          <h3>🚨 Simular Alarmes</h3>
+          <div class="alarm-grid">
+            <label class="alarm-item"><input type="checkbox" id="alarm_overvoltage" onchange="toggleAlarm('overvoltage', this.checked)"> Sobretensão</label>
+            <label class="alarm-item"><input type="checkbox" id="alarm_undervoltage" onchange="toggleAlarm('undervoltage', this.checked)"> Subtensão</label>
+            <label class="alarm-item"><input type="checkbox" id="alarm_overcurrent" onchange="toggleAlarm('overcurrent', this.checked)"> Sobrecorrente</label>
+            <label class="alarm-item"><input type="checkbox" id="alarm_overtemp" onchange="toggleAlarm('overtemp', this.checked)"> Sobretemperatura</label>
+            <label class="alarm-item"><input type="checkbox" id="alarm_undertemp" onchange="toggleAlarm('undertemp', this.checked)"> Subtemperatura</label>
+            <label class="alarm-item"><input type="checkbox" id="alarm_cellImbalance" onchange="toggleAlarm('cellImbalance', this.checked)"> Desbalanceamento</label>
+          </div>
+          <button class="btn-action btn-warning" onclick="resetAlarms()" style="margin-top:10px;">🔄 Reset Todos Alarmes</button>
+        </div>
+
+        <!-- Cenários -->
+        <div class="control-section">
+          <h3>🎬 Cenário de Simulação</h3>
+          <select id="scenarioSelect" onchange="setScenario(this.value)">
+            <option value="normal">Normal / Standby</option>
+            <option value="solar-charging">☀️ Carga Solar</option>
+            <option value="discharging">🔋 Descarga</option>
+            <option value="grid-charging">⚡ Carga pela Rede</option>
+            <option value="low-battery">⚠️ Bateria Baixa</option>
+            <option value="high-temp">🌡️ Temperatura Alta</option>
+            <option value="grid-failure">❌ Falha de Rede</option>
+            <option value="zero-import">🎯 Zero Import</option>
+          </select>
+          <button class="btn-action btn-primary" onclick="applyToAll()">Aplicar a TODOS</button>
+        </div>
+
+        <!-- Link EMS -->
+        <a href="http://localhost:5174/systems" target="_blank" class="ems-link">
+          🖥️ Abrir EMS Principal →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let devices = [];
+    let selectedDeviceId = null;
+
+    // Fetch all devices
+    async function fetchDevices() {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices`);
+        const { data } = await res.json();
+        devices = data;
+        renderDevicesGrid();
+        updateHeaderStats();
+        if (selectedDeviceId) {
+          updateControlPanel();
+        }
+      } catch (e) {
+        console.error('Failed to fetch devices:', e);
+      }
+    }
+
+    // Render devices grid
+    function renderDevicesGrid() {
+      const container = document.getElementById('devicesGrid');
+      container.innerHTML = devices.map(d => {
+        const powerClass = d.power > 10 ? 'charging' : d.power < -10 ? 'discharging' : '';
+        const socClass = d.soc < 20 ? 'warning' : '';
+        return `
+          <div class="device-card ${d.online ? '' : 'offline'} ${selectedDeviceId === d.id ? 'selected' : ''}"
+               onclick="selectDevice('${d.id}')">
+            <div class="device-header">
+              <div>
+                <div class="device-name">${d.name}</div>
+                <div class="device-site">${d.site} - ${d.capacity}Ah</div>
+              </div>
+              <span class="device-status ${d.online ? 'online' : 'offline'}">${d.online ? 'Online' : 'Offline'}</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric">
+                <div class="device-metric-value ${socClass}">${d.soc.toFixed(0)}%</div>
+                <div class="device-metric-label">SOC</div>
+              </div>
+              <div class="device-metric">
+                <div class="device-metric-value ${powerClass}">${Math.abs(d.power).toFixed(0)}W</div>
+                <div class="device-metric-label">${d.power > 5 ? 'Carga' : d.power < -5 ? 'Desc.' : 'Idle'}</div>
+              </div>
+              <div class="device-metric">
+                <div class="device-metric-value">${d.scenario.substring(0,6)}</div>
+                <div class="device-metric-label">Cenário</div>
+              </div>
+            </div>
+            <div class="mode-badge ${d.scenario === 'discharging' ? 'discharging' : d.scenario.includes('charg') ? 'charging' : 'normal'}">
+              <span class="mode-icon">${d.scenario === 'discharging' ? '🔻' : d.scenario.includes('charg') ? '🔺' : '⏹️'}</span>
+              ${d.scenario === 'discharging' ? 'DESCARREGANDO' : d.scenario.includes('charg') ? 'CARREGANDO' : 'IDLE'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Update header stats
+    function updateHeaderStats() {
+      const online = devices.filter(d => d.online).length;
+      const totalPower = devices.reduce((sum, d) => sum + (d.online ? d.power : 0), 0);
+      const avgSoc = devices.filter(d => d.online).reduce((sum, d) => sum + d.soc, 0) / (online || 1);
+
+      document.getElementById('totalDevices').textContent = devices.length;
+      document.getElementById('onlineDevices').textContent = online;
+      document.getElementById('totalPower').textContent = `${(totalPower/1000).toFixed(1)} kW`;
+      document.getElementById('avgSoc').textContent = `${avgSoc.toFixed(0)}%`;
+    }
+
+    // Select device
+    function selectDevice(deviceId) {
+      selectedDeviceId = deviceId;
+      renderDevicesGrid();
+      document.getElementById('noSelection').style.display = 'none';
+      document.getElementById('controlPanel').style.display = 'block';
+      updateControlPanel();
+    }
+
+    // Update control panel with selected device data
+    async function updateControlPanel() {
+      if (!selectedDeviceId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${selectedDeviceId}`);
+        const { data } = await res.json();
+
+        document.getElementById('selectedName').textContent = data.config.name;
+        document.getElementById('selectedInfo').textContent = `${data.config.site} | ${data.config.capacity}Ah | ID: ${data.id}`;
+
+        // Status
+        document.getElementById('currentSoc').textContent = `${data.bms.soc.toFixed(0)}%`;
+        document.getElementById('currentSoc').className = `value ${data.bms.soc < 20 ? 'negative' : 'positive'}`;
+
+        const power = data.bms.voltage * data.bms.current;
+        document.getElementById('currentPower').textContent = `${Math.abs(power).toFixed(0)}W`;
+        document.getElementById('currentPower').className = `value ${power > 0 ? 'positive' : power < 0 ? 'negative' : ''}`;
+
+        document.getElementById('currentVoltage').textContent = `${data.bms.voltage.toFixed(1)}V`;
+        const avgTemp = data.bms.temperatures.reduce((sum, t) => sum + t.value, 0) / data.bms.temperatures.length;
+        document.getElementById('currentTemp').textContent = `${avgTemp.toFixed(1)}°C`;
+
+        // SOC Slider
+        document.getElementById('socSlider').value = data.bms.soc;
+        document.getElementById('socPreview').textContent = `${data.bms.soc.toFixed(0)}%`;
+
+        // Current Slider
+        document.getElementById('currentSlider').value = data.bms.current;
+        document.getElementById('currentPreview').textContent = `${data.bms.current.toFixed(0)}A`;
+
+        // Temperature Slider
+        document.getElementById('tempSlider').value = avgTemp;
+        document.getElementById('tempPreview').textContent = `${avgTemp.toFixed(0)}°C`;
+
+        // Voltage Slider (average cell voltage)
+        const avgCellV = data.bms.voltage / 16;
+        document.getElementById('voltageSlider').value = avgCellV.toFixed(2);
+        document.getElementById('voltagePreview').textContent = `${avgCellV.toFixed(2)}V`;
+
+        // Online buttons
+        document.getElementById('btnOnline').classList.toggle('active', data.online);
+        document.getElementById('btnOffline').classList.toggle('active', !data.online);
+
+        // Scenario select
+        document.getElementById('scenarioSelect').value = data.scenario;
+
+        // Alarm checkboxes
+        const alarms = data.bms.alarms || {};
+        document.getElementById('alarm_overvoltage').checked = alarms.overvoltage || false;
+        document.getElementById('alarm_undervoltage').checked = alarms.undervoltage || false;
+        document.getElementById('alarm_overcurrent').checked = alarms.overcurrent || false;
+        document.getElementById('alarm_overtemp').checked = alarms.overtemp || false;
+        document.getElementById('alarm_undertemp').checked = alarms.undertemp || false;
+        document.getElementById('alarm_cellImbalance').checked = alarms.cellImbalance || false;
+
+      } catch (e) {
+        console.error('Failed to fetch device detail:', e);
+      }
+    }
+
+    // Generic preview updater
+    function updatePreview(elementId, value) {
+      document.getElementById(elementId).textContent = value;
+    }
+
+    // Set SOC
+    async function setSoc(value) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/soc`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ soc: parseFloat(value) })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set SOC:', e);
+      }
+    }
+
+    // Set Online/Offline
+    async function setOnline(online) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/online`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ online })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set online status:', e);
+      }
+    }
+
+    // Set Scenario
+    async function setScenario(scenario) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/scenario`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set scenario:', e);
+      }
+    }
+
+    // Apply to all
+    async function applyToAll() {
+      const scenario = document.getElementById('scenarioSelect').value;
+      try {
+        await fetch(`${API_BASE}/api/scenario/all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to apply to all:', e);
+      }
+    }
+
+    // Set Current
+    async function setCurrent(value) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/current`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current: parseFloat(value) })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set current:', e);
+      }
+    }
+
+    // Set Temperature
+    async function setTemperature(value) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/temperature`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ temperature: parseFloat(value) })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set temperature:', e);
+      }
+    }
+
+    // Set Cell Voltage
+    async function setVoltage(value) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/voltage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cellVoltage: parseFloat(value) })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to set voltage:', e);
+      }
+    }
+
+    // Toggle Alarm
+    async function toggleAlarm(alarm, active) {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/alarm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alarm, active })
+        });
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to toggle alarm:', e);
+      }
+    }
+
+    // Reset All Alarms
+    async function resetAlarms() {
+      if (!selectedDeviceId) return;
+      try {
+        await fetch(`${API_BASE}/api/devices/${selectedDeviceId}/reset-alarms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        // Uncheck all alarm checkboxes
+        document.querySelectorAll('[id^="alarm_"]').forEach(el => el.checked = false);
+        fetchDevices();
+      } catch (e) {
+        console.error('Failed to reset alarms:', e);
+      }
+    }
+
+    // Initial load
+    fetchDevices();
+
+    // Auto-refresh every 2 seconds
+    setInterval(fetchDevices, 2000);
+
+    // ===== RESIZE FUNCTIONALITY =====
+    const resizeHandle = document.getElementById('resizeHandle');
+    const rightPanel = document.getElementById('rightPanel');
+    const mainContainer = document.querySelector('.main-container');
+    let isResizing = false;
+    let startX, startWidth;
+
+    // Load saved width from localStorage
+    const savedWidth = localStorage.getItem('rightPanelWidth');
+    if (savedWidth) {
+      rightPanel.style.width = savedWidth + 'px';
+    }
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startWidth = rightPanel.offsetWidth;
+      resizeHandle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+
+      const diff = startX - e.clientX;
+      let newWidth = startWidth + diff;
+
+      // Enforce min/max limits
+      newWidth = Math.max(280, Math.min(600, newWidth));
+
+      rightPanel.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        resizeHandle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        // Save width to localStorage
+        localStorage.setItem('rightPanelWidth', rightPanel.offsetWidth);
+      }
+    });
+
+    // Touch support for mobile
+    resizeHandle.addEventListener('touchstart', (e) => {
+      isResizing = true;
+      startX = e.touches[0].clientX;
+      startWidth = rightPanel.offsetWidth;
+      resizeHandle.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isResizing) return;
+      const diff = startX - e.touches[0].clientX;
+      let newWidth = startWidth + diff;
+      newWidth = Math.max(280, Math.min(600, newWidth));
+      rightPanel.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('touchend', () => {
+      if (isResizing) {
+        isResizing = false;
+        resizeHandle.classList.remove('dragging');
+        localStorage.setItem('rightPanelWidth', rightPanel.offsetWidth);
+      }
+    });
+  </script>
+</body>
+</html>

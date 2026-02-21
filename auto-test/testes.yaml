@@ -1,0 +1,232 @@
+# EMS BESS - Testes Automatizados
+# Execute com: node auto-test/tester.js
+# Para testar em produção: TEST_URL=http://76.13.164.252:8081 node auto-test/tester.js
+
+testes:
+  - nome: "Dashboard carrega corretamente"
+    passos:
+      - acao: "navegar"
+        url: "/"
+      - acao: "esperar"
+        tempo: 2000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Dashboard"
+      - acao: "verificar"
+        tipo: "elemento_existe"
+        seletor: "body"
+      - acao: "screenshot"
+        nome: "dashboard"
+
+  - nome: "Lista de sistemas carrega"
+    passos:
+      - acao: "navegar"
+        url: "/systems"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Sistemas"
+      - acao: "screenshot"
+        nome: "sistemas-lista"
+
+  - nome: "Botão Novo Sistema abre modal"
+    passos:
+      - acao: "navegar"
+        url: "/systems"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "clicar"
+        seletor: "button"
+        texto: "Novo Sistema"
+      - acao: "esperar"
+        tempo: 1000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Adicionar Novo"
+      - acao: "screenshot"
+        nome: "modal-novo-sistema"
+
+  - nome: "Detalhe do sistema carrega"
+    passos:
+      - acao: "navegar"
+        url: "/systems/bess-001"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Teresina"
+      - acao: "screenshot"
+        nome: "sistema-detalhe"
+
+  - nome: "Aba Controle funciona"
+    passos:
+      - acao: "navegar"
+        url: "/systems/bess-001"
+      - acao: "esperar"
+        tempo: 2000
+      - acao: "clicar"
+        texto: "Controle"
+      - acao: "esperar"
+        tempo: 1000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Iniciar"
+      - acao: "screenshot"
+        nome: "sistema-controle"
+
+  - nome: "Menu Alertas carrega"
+    passos:
+      - acao: "navegar"
+        url: "/alerts"
+      - acao: "esperar"
+        tempo: 2000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Alertas"
+      - acao: "screenshot"
+        nome: "alertas"
+
+  - nome: "Menu Relatórios carrega"
+    passos:
+      - acao: "navegar"
+        url: "/reports"
+      - acao: "esperar"
+        tempo: 2000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Relatorios"
+      - acao: "screenshot"
+        nome: "relatorios"
+
+  - nome: "Menu Configurações carrega"
+    passos:
+      - acao: "navegar"
+        url: "/settings"
+      - acao: "esperar"
+        tempo: 2000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Configuracoes"
+      - acao: "screenshot"
+        nome: "configuracoes"
+
+  - nome: "Mapa de sistemas carrega"
+    passos:
+      - acao: "navegar"
+        url: "/systems/map"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "elemento_existe"
+        seletor: "body"
+      - acao: "screenshot"
+        nome: "mapa-sistemas"
+
+  - nome: "Barras de SOC estão visíveis"
+    passos:
+      - acao: "navegar"
+        url: "/systems"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "SOC"
+      - acao: "screenshot"
+        nome: "soc-barras"
+
+  - nome: "Carregadores EV carrega"
+    passos:
+      - acao: "navegar"
+        url: "/ev-chargers"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Carregadores EV"
+      - acao: "screenshot"
+        nome: "ev-chargers"
+
+  - nome: "Digital Twin carrega"
+    passos:
+      - acao: "navegar"
+        url: "/digital-twin"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Digital Twin"
+      - acao: "screenshot"
+        nome: "digital-twin"
+
+  - nome: "Multi-Site Dashboard carrega"
+    passos:
+      - acao: "navegar"
+        url: "/multi-site"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Multi-Site"
+      - acao: "screenshot"
+        nome: "multi-site"
+
+  - nome: "Gamificacao carrega"
+    passos:
+      - acao: "navegar"
+        url: "/gamification"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Gamifica"
+      - acao: "screenshot"
+        nome: "gamificacao"
+
+  - nome: "Cameras carrega"
+    passos:
+      - acao: "navegar"
+        url: "/cameras"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Camera"
+      - acao: "screenshot"
+        nome: "cameras"
+
+  - nome: "Microgrids carrega"
+    passos:
+      - acao: "navegar"
+        url: "/microgrids"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Microgrid"
+      - acao: "screenshot"
+        nome: "microgrids"
+
+  - nome: "Trading Dashboard carrega"
+    passos:
+      - acao: "navegar"
+        url: "/trading"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Trading"
+      - acao: "screenshot"
+        nome: "trading"
+
+  - nome: "Assistente Virtual carrega"
+    passos:
+      - acao: "navegar"
+        url: "/assistant"
+      - acao: "esperar"
+        tempo: 3000
+      - acao: "verificar"
+        tipo: "texto_visivel"
+        texto: "Assistente"
+      - acao: "screenshot"
+        nome: "assistente"

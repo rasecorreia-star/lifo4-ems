@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Lifo4 EMS - Parte III: Câmeras e Microgrids</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.7; color: #1a1a2e; background: #fff; font-size: 10pt; }
+    .content { padding: 40px 50px; }
+    .part-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 60px 50px; margin: -40px -50px 40px -50px; text-align: center; }
+    .part-header h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.7; margin-bottom: 10px; }
+    .part-header h1 { font-size: 36px; font-weight: 700; }
+    .menu-section { page-break-before: always; margin-bottom: 50px; }
+    .menu-header { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 5px solid #10b981; padding: 25px 30px; margin-bottom: 30px; }
+    .menu-header h2 { font-size: 24px; color: #0f172a; margin-bottom: 5px; }
+    .menu-header .path { font-size: 12px; color: #10b981; font-family: monospace; background: #10b98120; padding: 3px 10px; border-radius: 4px; }
+    .menu-header p { color: #64748b; font-size: 13px; margin-top: 10px; }
+    h3 { font-size: 18px; color: #0f172a; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #10b981; }
+    h4 { font-size: 14px; color: #1e3a5f; margin: 20px 0 10px 0; }
+    h4::before { content: "▸ "; color: #10b981; }
+    p { margin-bottom: 12px; text-align: justify; }
+    ul, ol { margin: 12px 0 12px 25px; }
+    li { margin-bottom: 6px; }
+    .card-detail { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 15px 0; }
+    .card-detail h4 { margin-top: 0; color: #0f172a; font-size: 15px; }
+    .card-detail.thermal { border-left: 4px solid #f97316; }
+    .card-detail.power { border-left: 4px solid #10b981; }
+    .card-detail.grid { border-left: 4px solid #3b82f6; }
+    .field-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10px; }
+    .field-table th, .field-table td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+    .field-table th { background: #0f172a; color: white; font-weight: 600; }
+    .field-table tr:nth-child(even) { background: #f8fafc; }
+    .field-table .field-name { font-weight: 600; color: #1e3a5f; }
+    .importance { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 20px; border-radius: 10px; margin: 20px 0; }
+    .importance h5 { color: white; margin: 0 0 8px 0; font-size: 12px; }
+    .importance p { margin: 0; font-size: 11px; }
+    .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+    .warning h5 { color: #b45309; margin: 0 0 5px 0; }
+    .danger { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+    .danger h5 { color: #dc2626; margin: 0 0 5px 0; }
+    .info { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+    .info h5 { color: #1d4ed8; margin: 0 0 5px 0; }
+    .tab-section { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; margin: 20px 0; overflow: hidden; }
+    .tab-header { background: #1e3a5f; color: white; padding: 12px 20px; font-weight: 600; font-size: 13px; }
+    .tab-content { padding: 20px; }
+    .temp-scale { display: flex; margin: 15px 0; border-radius: 8px; overflow: hidden; }
+    .temp-scale div { flex: 1; padding: 10px; text-align: center; font-size: 10px; font-weight: 600; }
+    .temp-normal { background: #22c55e; color: white; }
+    .temp-attention { background: #eab308; color: white; }
+    .temp-warning { background: #f97316; color: white; }
+    .temp-critical { background: #ef4444; color: white; }
+    .mode-indicator { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin: 5px; }
+    .mode-connected { background: #dcfce7; color: #166534; }
+    .mode-islanded { background: #dbeafe; color: #1e40af; }
+    .mode-blackstart { background: #fef3c7; color: #92400e; }
+    .mode-transition { background: #f3e8ff; color: #7c3aed; }
+    footer { margin-top: 60px; padding: 40px 50px; background: #0f172a; color: white; text-align: center; }
+    @media print { .menu-section { page-break-before: always; } }
+  </style>
+</head>
+<body>
+
+<div class="content">
+
+<div class="part-header">
+  <h2>Parte III</h2>
+  <h1>Câmeras de Segurança e Microgrids</h1>
+</div>
+
+<!-- ========== 7. CÂMERAS ========== -->
+<div class="menu-section" id="cameras">
+  <div class="menu-header">
+    <h2>📷 Câmeras de Segurança</h2>
+    <span class="path">/cameras</span>
+    <p>Sistema completo de gerenciamento de câmeras de vigilância e monitoramento térmico para instalações BESS, com suporte a visualização ao vivo, gravação e detecção inteligente.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Câmeras integra vigilância de segurança tradicional com monitoramento térmico especializado
+    para sistemas BESS. Isso é fundamental porque baterias de lítio podem apresentar problemas térmicos que
+    são detectáveis por câmeras infravermelhas antes que sensores de temperatura do BMS registrem a anomalia.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que Câmeras são ESSENCIAIS para BESS?</h5>
+    <p>
+      <strong>Segurança Física:</strong> Sistemas BESS são ativos de alto valor, sujeitos a vandalismo e roubo.<br>
+      <strong>Detecção de Thermal Runaway:</strong> Câmeras térmicas detectam pontos quentes em segundos, muito antes que o problema se torne crítico.<br>
+      <strong>Documentação:</strong> Vídeos são evidência para seguros, garantias e investigação de incidentes.<br>
+      <strong>Monitoramento Remoto:</strong> Verificar visualmente o estado do site sem enviar técnico ao local.
+    </p>
+  </div>
+
+  <h3>Tipos de Câmeras Suportadas</h3>
+
+  <table class="field-table">
+    <tr>
+      <th>Tipo</th>
+      <th>Descrição</th>
+      <th>Uso em BESS</th>
+      <th>Modelos Recomendados</th>
+    </tr>
+    <tr>
+      <td class="field-name">Standard (IP)</td>
+      <td>Câmeras IP fixas de vigilância geral</td>
+      <td>Perímetro, entradas, áreas externas</td>
+      <td>Hikvision DS-2CD2xx, Dahua IPC-HFW</td>
+    </tr>
+    <tr>
+      <td class="field-name">PTZ</td>
+      <td>Câmeras com Pan-Tilt-Zoom, controle remoto de direção</td>
+      <td>Áreas amplas, rastreamento de movimento</td>
+      <td>Hikvision DS-2DE4425IW, Dahua SD6AL</td>
+    </tr>
+    <tr>
+      <td class="field-name">Dome</td>
+      <td>Câmeras em formato de domo, discretas e resistentes</td>
+      <td>Salas técnicas, áreas internas</td>
+      <td>Hikvision DS-2CD2185, Axis P3245</td>
+    </tr>
+    <tr>
+      <td class="field-name">Térmica</td>
+      <td>Câmeras com sensor infravermelho para detecção de calor</td>
+      <td>Interior de containers BESS, racks de bateria</td>
+      <td>FLIR A500f, A700f, Hikvision DS-2TD</td>
+    </tr>
+  </table>
+
+  <h3>Cards de Estatísticas</h3>
+
+  <div class="card-detail">
+    <h4>Barra de Estatísticas Superior</h4>
+    <table class="field-table">
+      <tr><th>Card</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Total</td>
+        <td>Número total de câmeras cadastradas</td>
+        <td>Visão geral do sistema de vigilância.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Online</td>
+        <td>Câmeras conectadas e transmitindo</td>
+        <td>Câmeras offline são pontos cegos de segurança.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Offline</td>
+        <td>Câmeras sem comunicação</td>
+        <td>Requer investigação - pode ser problema de rede ou hardware.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Gravando</td>
+        <td>Câmeras com gravação ativa</td>
+        <td>Sem gravação, não há registro para investigação posterior.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Térmicas</td>
+        <td>Quantidade de câmeras térmicas ativas</td>
+        <td>Cobertura de monitoramento térmico.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Com IA</td>
+        <td>Câmeras com detecção inteligente habilitada</td>
+        <td>Detecção automática de eventos (movimento, intrusão).</td>
+      </tr>
+      <tr>
+        <td class="field-name">Alertas</td>
+        <td>Câmeras com alertas ativos</td>
+        <td>Indica eventos que precisam de atenção.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Banner de Alertas Térmicos</h3>
+
+  <div class="card-detail thermal">
+    <h4>Painel de Alertas de Temperatura</h4>
+    <p>Quando há alertas térmicos ativos, um banner proeminente aparece no topo:</p>
+    <table class="field-table">
+      <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Ícone de Fogo Pulsante</td>
+        <td>Indica alerta térmico ativo</td>
+        <td>Chama atenção visual imediata para situação crítica.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador de Alertas</td>
+        <td>Número de alertas não reconhecidos</td>
+        <td>Quantifica a severidade da situação.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Lista de Alertas</td>
+        <td>Nome da câmera, temperatura, timestamp</td>
+        <td>Detalhes de cada alerta para ação direcionada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Botão "Ver Detalhes"</td>
+        <td>Link para página de monitoramento térmico</td>
+        <td>Acesso rápido para investigação completa.</td>
+      </tr>
+    </table>
+
+    <div class="danger">
+      <h5>🔥 ATENÇÃO: Alertas Térmicos são PRIORITÁRIOS</h5>
+      <p>
+        Um alerta térmico em sistema BESS pode indicar início de thermal runaway. Esta é uma das poucas
+        situações que justifica interromper qualquer outra atividade e investigar imediatamente.
+        Cada minuto conta para prevenir um incidente grave.
+      </p>
+    </div>
+  </div>
+
+  <h3>Lista de Câmeras</h3>
+
+  <h4>Visualização em Grid (Cards)</h4>
+  <p>Cada câmera é exibida como um card com:</p>
+
+  <table class="field-table">
+    <tr><th>Elemento do Card</th><th>O que mostra</th><th>Por que é importante</th></tr>
+    <tr>
+      <td class="field-name">Preview/Thumbnail</td>
+      <td>Imagem estática ou GIF do último frame</td>
+      <td>Verificação visual rápida do que a câmera está vendo.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Badge Status</td>
+      <td>"Online" ou "Offline" no canto superior</td>
+      <td>Estado de conectividade da câmera.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Badge REC</td>
+      <td>Indicador vermelho pulsante se gravando</td>
+      <td>Confirma que as imagens estão sendo registradas.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Badge Tipo</td>
+      <td>"Térmica", "PTZ" se aplicável</td>
+      <td>Identifica câmeras especiais.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Ícones de Features</td>
+      <td>PTZ, Áudio, Talkback, Detecção</td>
+      <td>Funcionalidades disponíveis nesta câmera.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Overlay Térmico</td>
+      <td>Min/Média/Max temperatura (câmeras térmicas)</td>
+      <td>Leitura de temperatura sem abrir detalhes.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Nome</td>
+      <td>Nome configurado da câmera</td>
+      <td>Identificação para operadores.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Localização</td>
+      <td>Onde a câmera está instalada</td>
+      <td>Contexto físico.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Modelo</td>
+      <td>Fabricante e modelo</td>
+      <td>Referência técnica.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Último Movimento</td>
+      <td>Timestamp da última detecção</td>
+      <td>Indica atividade na área monitorada.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Menu de Ações (⋮)</td>
+      <td>Editar, Apagar, Configurar</td>
+      <td>Gerenciamento da câmera.</td>
+    </tr>
+  </table>
+
+  <h4>Filtros Disponíveis</h4>
+
+  <table class="field-table">
+    <tr><th>Filtro</th><th>Opções</th><th>Uso</th></tr>
+    <tr>
+      <td class="field-name">Status</td>
+      <td>Todos, Online, Offline, Gravando, Com Alertas</td>
+      <td>Focar em câmeras específicas.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Tipo</td>
+      <td>Todos, Standard, Térmica, PTZ, Dome</td>
+      <td>Filtrar por tipo de câmera.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Busca</td>
+      <td>Texto livre</td>
+      <td>Encontrar câmera por nome ou localização.</td>
+    </tr>
+  </table>
+
+  <h3>Modos de Visualização</h3>
+
+  <table class="field-table">
+    <tr><th>Modo</th><th>Descrição</th><th>Quando usar</th></tr>
+    <tr>
+      <td class="field-name">Grid</td>
+      <td>Cards com preview de cada câmera</td>
+      <td>Visão geral, gerenciamento de câmeras.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Lista</td>
+      <td>Formato tabular com mais detalhes</td>
+      <td>Comparação de especificações, busca avançada.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Multiview</td>
+      <td>Múltiplas câmeras ao vivo simultaneamente</td>
+      <td>Monitoramento ativo, sala de controle.</td>
+    </tr>
+  </table>
+
+  <h4>Multiview - Layouts</h4>
+  <table class="field-table">
+    <tr><th>Layout</th><th>Câmeras</th><th>Uso Ideal</th></tr>
+    <tr>
+      <td class="field-name">2x2</td>
+      <td>4 câmeras</td>
+      <td>Foco em câmeras principais, tela pequena.</td>
+    </tr>
+    <tr>
+      <td class="field-name">3x3</td>
+      <td>9 câmeras</td>
+      <td>Site médio, monitor full HD.</td>
+    </tr>
+    <tr>
+      <td class="field-name">4x4</td>
+      <td>16 câmeras</td>
+      <td>Site grande, monitor 4K ou videowall.</td>
+    </tr>
+  </table>
+
+  <h3>Gerenciamento de Câmeras</h3>
+
+  <div class="card-detail">
+    <h4>Adicionar Nova Câmera</h4>
+    <p>Campos do formulário de cadastro:</p>
+    <table class="field-table">
+      <tr><th>Campo</th><th>Descrição</th><th>Obrigatório</th><th>Dica</th></tr>
+      <tr>
+        <td class="field-name">Nome</td>
+        <td>Nome identificador da câmera</td>
+        <td>Sim</td>
+        <td>Use nomes descritivos: "BESS-01 Interior", "Entrada Principal".</td>
+      </tr>
+      <tr>
+        <td class="field-name">Localização</td>
+        <td>Descrição de onde está instalada</td>
+        <td>Sim</td>
+        <td>Seja específico: "Container BESS 1 - Rack A".</td>
+      </tr>
+      <tr>
+        <td class="field-name">Endereço IP</td>
+        <td>IP da câmera na rede</td>
+        <td>Sim</td>
+        <td>Verifique se o IP é acessível da rede do servidor.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Fabricante</td>
+        <td>Marca da câmera</td>
+        <td>Não</td>
+        <td>Ajuda no troubleshooting.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Modelo</td>
+        <td>Modelo específico</td>
+        <td>Não</td>
+        <td>Referência para configurações específicas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tipo</td>
+        <td>Standard, Térmica, PTZ, Dome</td>
+        <td>Sim</td>
+        <td>Define funcionalidades disponíveis.</td>
+      </tr>
+      <tr>
+        <td class="field-name">URL do Stream</td>
+        <td>RTSP URL para acesso ao vídeo</td>
+        <td>Não</td>
+        <td>Formato típico: rtsp://IP:554/stream1</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Editar Câmera</h4>
+    <p>Acesse pelo menu de 3 pontinhos (⋮) > Editar. Permite modificar todos os campos do cadastro.</p>
+  </div>
+
+  <div class="card-detail" style="border-left: 4px solid #ef4444;">
+    <h4>Apagar Câmera</h4>
+    <p>Acesse pelo menu de 3 pontinhos (⋮) > Apagar. Requer confirmação antes de remover.</p>
+    <div class="warning">
+      <h5>⚠️ Cuidado ao Apagar</h5>
+      <p>Apagar uma câmera remove também o histórico de alertas associados. Se precisar apenas desativar temporariamente, considere colocar em modo manutenção em vez de apagar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 8. MONITORAMENTO TÉRMICO ========== -->
+<div class="menu-section" id="cameras-termicas">
+  <div class="menu-header">
+    <h2>🌡️ Monitoramento Térmico</h2>
+    <span class="path">/cameras/thermal</span>
+    <p>Página dedicada ao monitoramento de temperatura através de câmeras térmicas infravermelhas, essencial para detecção precoce de thermal runaway em sistemas BESS.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Esta é uma das páginas mais CRÍTICAS para segurança de sistemas BESS. Câmeras térmicas conseguem
+    detectar elevações de temperatura em células de bateria segundos após o início de uma anomalia,
+    muito antes que sensores de contato do BMS detectem a mudança. Isso pode ser a diferença entre
+    um alerta preventivo e um incêndio.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que Monitoramento Térmico é CRÍTICO para BESS?</h5>
+    <p>
+      <strong>Thermal runaway</strong> é uma reação em cadeia onde o calor gerado pela bateria causa mais calor,
+      podendo resultar em incêndio ou explosão. Uma vez iniciado, é quase impossível parar. A ÚNICA forma
+      de prevenir é detectar o início da elevação de temperatura e agir ANTES que a reação se torne
+      auto-sustentada. Câmeras térmicas são a primeira linha de defesa.
+    </p>
+  </div>
+
+  <h3>Escala de Temperatura</h3>
+
+  <div class="temp-scale">
+    <div class="temp-normal">&lt; 35°C<br>Normal</div>
+    <div class="temp-attention">35-45°C<br>Atenção</div>
+    <div class="temp-warning">45-55°C<br>Alerta</div>
+    <div class="temp-critical">&gt; 55°C<br>CRÍTICO</div>
+  </div>
+
+  <table class="field-table">
+    <tr><th>Faixa</th><th>Significado</th><th>Ação Recomendada</th></tr>
+    <tr>
+      <td class="field-name" style="color: #22c55e;">Normal (&lt;35°C)</td>
+      <td>Temperatura dentro da faixa ideal de operação</td>
+      <td>Operação normal, nenhuma ação necessária.</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #eab308;">Atenção (35-45°C)</td>
+      <td>Temperatura elevada mas ainda aceitável</td>
+      <td>Monitorar mais frequentemente. Verificar se refrigeração está funcionando.</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #f97316;">Alerta (45-55°C)</td>
+      <td>Temperatura preocupante, risco aumentado</td>
+      <td>Reduzir potência de operação. Investigar causa. Preparar para possível desligamento.</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #ef4444;">CRÍTICO (&gt;55°C)</td>
+      <td>Risco iminente de thermal runaway</td>
+      <td>PARAR OPERAÇÃO IMEDIATAMENTE. Acionar protocolo de emergência. Evacuar área se necessário.</td>
+    </tr>
+  </table>
+
+  <h3>Cards de Câmeras Térmicas</h3>
+
+  <div class="card-detail thermal">
+    <h4>Card Individual de Câmera Térmica</h4>
+    <table class="field-table">
+      <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Imagem Térmica</td>
+        <td>Visualização em cores falsas da distribuição de temperatura</td>
+        <td>Identificação visual de hot spots.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Mínima</td>
+        <td>Ponto mais frio na imagem (°C)</td>
+        <td>Referência para calcular delta.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Média</td>
+        <td>Média de toda a imagem (°C)</td>
+        <td>Tendência geral da área monitorada.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Máxima</td>
+        <td>Ponto mais quente na imagem (°C)</td>
+        <td>VALOR MAIS IMPORTANTE - indica o pior caso.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Delta</td>
+        <td>Diferença entre max e min</td>
+        <td>Delta alto (>10°C) indica problema localizado.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tendência</td>
+        <td>Seta indicando se temperatura está subindo ou descendo</td>
+        <td>Temperatura subindo rapidamente é mais preocupante que valor absoluto.</td>
+      </tr>
+      <tr>
+        <td class="field-name">BESS Associado</td>
+        <td>Nome do sistema BESS que esta câmera monitora</td>
+        <td>Correlação com dados do BMS.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador de Alertas</td>
+        <td>Número de alertas ativos desta câmera</td>
+        <td>Indica severidade da situação.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Gráfico de Histórico de Temperatura</h3>
+
+  <div class="card-detail">
+    <h4>Gráfico de Área: Temperatura ao Longo do Tempo</h4>
+    <table class="field-table">
+      <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Linha de Temperatura Máxima</td>
+        <td>Evolução da temperatura máxima</td>
+        <td>Principal indicador de segurança.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Área Sombreada</td>
+        <td>Faixa entre min e max</td>
+        <td>Mostra variabilidade - área larga indica desuniformidade.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Linha de Threshold (45°C)</td>
+        <td>Limite de alerta configurado</td>
+        <td>Referência visual para identificar cruzamentos.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Linha de Threshold (55°C)</td>
+        <td>Limite crítico</td>
+        <td>Nunca deve ser ultrapassado.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Marcadores de Eventos</td>
+        <td>Pontos onde alertas foram disparados</td>
+        <td>Correlacionar com outras variáveis.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Período Selecionável</td>
+        <td>1h, 6h, 24h, 7d</td>
+        <td>Análise de diferentes horizontes.</td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <h5>💡 Como Interpretar o Gráfico</h5>
+      <p>
+        <strong>Temperatura estável:</strong> Sistema saudável.<br>
+        <strong>Subida gradual:</strong> Pode indicar degradação de refrigeração ou aumento de carga.<br>
+        <strong>Subida rápida (>1°C/min):</strong> ALERTA - pode indicar início de problema térmico.<br>
+        <strong>Picos isolados:</strong> Podem ser eventos de alta potência, verificar correlação com operação.
+      </p>
+    </div>
+  </div>
+
+  <h3>Zonas Térmicas</h3>
+
+  <div class="card-detail">
+    <h4>Gerenciamento de Zonas de Monitoramento</h4>
+    <p>
+      Zonas térmicas permitem monitorar áreas específicas da imagem com thresholds diferentes.
+      Por exemplo, a área dos inversores pode ter threshold diferente da área das baterias.
+    </p>
+    <table class="field-table">
+      <tr><th>Campo</th><th>Descrição</th><th>Uso</th></tr>
+      <tr>
+        <td class="field-name">Nome da Zona</td>
+        <td>Identificador da área (ex: "Rack A")</td>
+        <td>Identificação nos alertas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Área (polígono)</td>
+        <td>Região desenhada na imagem</td>
+        <td>Define exatamente qual área monitorar.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Threshold de Alerta</td>
+        <td>Temperatura que dispara alerta</td>
+        <td>Personalizar por zona conforme necessidade.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Threshold Crítico</td>
+        <td>Temperatura que dispara alarme crítico</td>
+        <td>Pode acionar desligamento automático.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ação Automática</td>
+        <td>O que fazer quando threshold é atingido</td>
+        <td>Pode parar sistema automaticamente.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Lista de Alertas Térmicos</h3>
+
+  <div class="card-detail">
+    <h4>Tabela de Alertas</h4>
+    <table class="field-table">
+      <tr><th>Coluna</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Timestamp</td>
+        <td>Data/hora do alerta</td>
+        <td>Quando o evento ocorreu.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Câmera</td>
+        <td>Nome da câmera que detectou</td>
+        <td>Localização do problema.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Zona</td>
+        <td>Zona específica dentro da imagem</td>
+        <td>Identificação precisa.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura</td>
+        <td>Valor que disparou o alerta</td>
+        <td>Severidade do evento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Threshold</td>
+        <td>Limite que foi ultrapassado</td>
+        <td>Contexto do alerta.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Severidade</td>
+        <td>Warning ou Critical</td>
+        <td>Priorização.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Status</td>
+        <td>Ativo, Reconhecido, Resolvido</td>
+        <td>Rastreamento de resposta.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ação</td>
+        <td>Botão de Reconhecer</td>
+        <td>Indica que alguém está ciente e atuando.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="danger">
+    <h5>🔥 PROTOCOLO DE EMERGÊNCIA TÉRMICA</h5>
+    <p>
+      Se a temperatura ultrapassar 60°C ou estiver subindo mais de 2°C por minuto:<br>
+      1. <strong>PARE</strong> imediatamente a operação do sistema BESS associado<br>
+      2. <strong>VERIFIQUE</strong> a imagem térmica para localizar o hot spot<br>
+      3. <strong>NOTIFIQUE</strong> a equipe de segurança e manutenção<br>
+      4. <strong>PREPARE</strong> evacuação da área se temperatura continuar subindo<br>
+      5. <strong>ACIONE</strong> bombeiros se temperatura ultrapassar 80°C ou houver fumaça<br>
+      <br>
+      <strong>NUNCA</strong> tente combater um incêndio de bateria de lítio com água comum.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 9. MICROGRIDS ========== -->
+<div class="menu-section" id="microgrids">
+  <div class="menu-header">
+    <h2>⚡ Microgrids</h2>
+    <span class="path">/microgrids</span>
+    <p>Dashboard completo para gerenciamento de microrredes que integram geração renovável, armazenamento BESS, geradores backup e conexão com a rede elétrica principal.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Um microgrid é um sistema elétrico local que pode operar conectado à rede principal ou de forma
+    independente (ilhado). Integra múltiplas fontes de energia (solar, eólica, BESS, geradores) e
+    cargas, com controle inteligente para otimizar operação, custos e confiabilidade.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que Microgrids são importantes para BESS?</h5>
+    <p>
+      O BESS é frequentemente o componente central de um microgrid, fornecendo:<br>
+      <strong>Estabilização:</strong> Suaviza variações da geração solar/eólica.<br>
+      <strong>Backup:</strong> Fornece energia quando a rede cai.<br>
+      <strong>Grid-Forming:</strong> Estabelece tensão/frequência no modo ilhado.<br>
+      <strong>Otimização:</strong> Armazena energia barata, fornece quando cara.<br>
+      Sem o BESS, muitos microgrids não conseguiriam operar de forma estável.
+    </p>
+  </div>
+
+  <h3>Modos de Operação</h3>
+
+  <div style="margin: 20px 0;">
+    <span class="mode-indicator mode-connected">🔌 Conectado à Rede</span>
+    <span class="mode-indicator mode-islanded">🏝️ Ilhado</span>
+    <span class="mode-indicator mode-blackstart">⚡ Black Start</span>
+    <span class="mode-indicator mode-transition">🔄 Transição</span>
+  </div>
+
+  <table class="field-table">
+    <tr><th>Modo</th><th>Descrição</th><th>Quando Ocorre</th><th>Função do BESS</th></tr>
+    <tr>
+      <td class="field-name" style="color: #22c55e;">Conectado à Rede</td>
+      <td>Microgrid sincronizado com a rede elétrica principal</td>
+      <td>Operação normal, rede disponível e estável</td>
+      <td>Arbitragem, peak shaving, backup de reserva</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #3b82f6;">Ilhado</td>
+      <td>Microgrid operando independentemente da rede</td>
+      <td>Queda de energia na rede, manutenção programada</td>
+      <td>Grid-forming: estabelece tensão e frequência para todo o sistema</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #f97316;">Black Start</td>
+      <td>Processo de religamento após apagão total</td>
+      <td>Recuperação pós-blackout, quando tudo estava desligado</td>
+      <td>Fornece energia inicial para energizar o microgrid antes de conectar à rede</td>
+    </tr>
+    <tr>
+      <td class="field-name" style="color: #8b5cf6;">Transição</td>
+      <td>Mudando entre modos de operação</td>
+      <td>Durante sincronização ou desconexão da rede</td>
+      <td>Mantém estabilidade durante a mudança de modo</td>
+    </tr>
+  </table>
+
+  <h3>Banner de Status do Modo</h3>
+
+  <div class="card-detail grid">
+    <h4>Indicador de Modo de Operação</h4>
+    <table class="field-table">
+      <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Badge de Modo</td>
+        <td>Modo atual em destaque com cor</td>
+        <td>Identificação instantânea do estado do microgrid.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Indicador Grid-Forming</td>
+        <td>"GFM Ativo" quando inversor está formando rede</td>
+        <td>Confirma que BESS está controlando a rede no modo ilhado.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Botões de Modo</td>
+        <td>Opções para mudar de modo manualmente</td>
+        <td>Controle operacional do microgrid.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Status de Sincronização</td>
+        <td>Se está sincronizado com a rede</td>
+        <td>Necessário antes de reconectar à rede.</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <h5>⚠️ Mudança de Modo</h5>
+      <p>
+        Mudar entre modos (especialmente Conectado ↔ Ilhado) é uma operação crítica.
+        O sistema precisa sincronizar tensão, frequência e fase antes de conectar/desconectar.
+        Mudanças mal feitas podem causar danos aos equipamentos ou blackout.
+      </p>
+    </div>
+  </div>
+
+  <h3>Monitoramento de Frequência</h3>
+
+  <div class="card-detail power">
+    <h4>Indicador de Frequência em Tempo Real</h4>
+    <table class="field-table">
+      <tr><th>Elemento</th><th>O que mostra</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Valor de Frequência</td>
+        <td>Frequência atual em Hz (ex: 60.00 Hz)</td>
+        <td>Frequência estável indica sistema saudável.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Indicador Visual</td>
+        <td>Barra mostrando desvio da nominal</td>
+        <td>Visualização rápida de estabilidade.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Limites</td>
+        <td>Faixa normal (60 ± 0.05 Hz)</td>
+        <td>Desvios fora desta faixa indicam desbalanceamento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cor do Indicador</td>
+        <td>Verde = OK, Amarelo = atenção, Vermelho = crítico</td>
+        <td>Alerta visual para problemas de frequência.</td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <h5>💡 Por que Frequência é Importante?</h5>
+      <p>
+        A frequência da rede elétrica (60 Hz no Brasil) deve ser mantida constante. Desvios indicam
+        desbalanceamento entre geração e consumo:<br>
+        <strong>Frequência alta:</strong> Mais geração que consumo.<br>
+        <strong>Frequência baixa:</strong> Mais consumo que geração.<br>
+        Em modo ilhado, o BESS é responsável por manter a frequência estável absorvendo ou
+        fornecendo potência conforme necessário.
+      </p>
+    </div>
+  </div>
+
+  <h3>Cards de Fluxo de Potência</h3>
+
+  <div class="card-detail power">
+    <h4>Componentes do Microgrid</h4>
+    <table class="field-table">
+      <tr><th>Componente</th><th>O que mostra</th><th>Valores Típicos</th><th>Por que é importante</th></tr>
+      <tr>
+        <td class="field-name">Solar</td>
+        <td>Potência gerada pelos painéis fotovoltaicos</td>
+        <td>0 a potência de pico (só durante o dia)</td>
+        <td>Principal fonte de energia renovável.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Wind (Eólica)</td>
+        <td>Potência gerada por turbinas eólicas</td>
+        <td>Varia com velocidade do vento</td>
+        <td>Complementa solar, pode gerar à noite.</td>
+      </tr>
+      <tr>
+        <td class="field-name">BESS</td>
+        <td>Potência do sistema de baterias (+ descarga, - carga)</td>
+        <td>-100% a +100% da capacidade</td>
+        <td>Balancea geração e consumo, fornece estabilidade.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Generator</td>
+        <td>Potência do gerador diesel/gás de backup</td>
+        <td>0 quando desligado, potência nominal quando ligado</td>
+        <td>Backup para situações onde BESS não é suficiente.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Grid</td>
+        <td>Potência trocada com a rede (+ importando, - exportando)</td>
+        <td>Varia conforme contrato e disponibilidade</td>
+        <td>Conexão com a rede principal quando disponível.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Load</td>
+        <td>Potência consumida pelas cargas</td>
+        <td>Demanda atual do consumidor</td>
+        <td>O que precisa ser atendido pelo microgrid.</td>
+      </tr>
+    </table>
+
+    <p><strong>Equação de Balanço:</strong> Solar + Wind + BESS + Generator + Grid = Load</p>
+    <p>Em modo ilhado, Grid = 0 e os outros componentes precisam suprir toda a Load.</p>
+  </div>
+
+  <h3>Abas do Dashboard</h3>
+
+  <!-- ABA: OVERVIEW -->
+  <div class="tab-section">
+    <div class="tab-header">📊 Aba: Overview (Visão Geral)</div>
+    <div class="tab-content">
+      <p>Visão consolidada do microgrid com:</p>
+      <ul>
+        <li>Diagrama de fluxo de potência em tempo real</li>
+        <li>Status de cada componente</li>
+        <li>Indicadores de frequência e tensão</li>
+        <li>Alertas ativos</li>
+        <li>Gráfico de potência das últimas horas</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ABA: GRID SERVICES -->
+  <div class="tab-section">
+    <div class="tab-header">⚡ Aba: Grid Services (Serviços Ancilares)</div>
+    <div class="tab-content">
+      <p>Gerenciamento de serviços prestados à rede elétrica:</p>
+
+      <h4>FCR (Frequency Containment Reserve)</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Status</td>
+          <td>Ativo/Inativo</td>
+          <td>Se o sistema está participando do serviço.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Capacidade Reservada</td>
+          <td>kW reservados para FCR</td>
+          <td>Potência comprometida para regulação de frequência.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tempo de Resposta</td>
+          <td>Milissegundos</td>
+          <td>FCR requer resposta em menos de 1 segundo.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Receita Gerada</td>
+          <td>R$/hora ou R$/mês</td>
+          <td>Valor financeiro do serviço.</td>
+        </tr>
+      </table>
+
+      <h4>aFRR (Automatic Frequency Restoration Reserve)</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Status</td>
+          <td>Ativo/Inativo/Acionado</td>
+          <td>Se está participando e se foi acionado.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Sinal AGC</td>
+          <td>Setpoint recebido do operador</td>
+          <td>Potência solicitada pelo sistema central.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Desvio</td>
+          <td>Diferença entre solicitado e entregue</td>
+          <td>Performance no serviço (desvio alto = penalidade).</td>
+        </tr>
+      </table>
+
+      <h4>Controle de Tensão</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Modo de Controle</td>
+          <td>Fator de potência fixo / Tensão / Q(U)</td>
+          <td>Como o sistema está regulando tensão.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Potência Reativa</td>
+          <td>kVAr fornecido ou absorvido</td>
+          <td>Suporte de tensão à rede local.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Tensão no PCC</td>
+          <td>Tensão no ponto de conexão</td>
+          <td>Se está dentro dos limites aceitáveis.</td>
+        </tr>
+      </table>
+
+      <h4>Peak Shaving</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Limite de Demanda</td>
+          <td>kW máximo contratado</td>
+          <td>Acima deste valor há multa/custo adicional.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Demanda Atual</td>
+          <td>kW sendo demandado da rede</td>
+          <td>Monitorar para ativar descarga antes de ultrapassar.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Economia</td>
+          <td>R$ economizados no período</td>
+          <td>Valor gerado pelo serviço.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Picos Evitados</td>
+          <td>Número de eventos onde BESS evitou ultrapassagem</td>
+          <td>Efetividade do sistema.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA: FORECAST -->
+  <div class="tab-section">
+    <div class="tab-header">🌤️ Aba: Forecast (Previsão)</div>
+    <div class="tab-content">
+      <p>Previsão de geração renovável baseada em dados meteorológicos:</p>
+
+      <h4>Previsão Solar</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Irradiância Prevista</td>
+          <td>W/m² esperados nas próximas 24-48h</td>
+          <td>Base para estimar geração solar.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Geração Estimada</td>
+          <td>kWh esperados por período</td>
+          <td>Planejar operação do BESS.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Cobertura de Nuvens</td>
+          <td>Percentual de nebulosidade</td>
+          <td>Afeta diretamente geração solar.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Confiança</td>
+          <td>Nível de confiança da previsão</td>
+          <td>Previsões com baixa confiança requerem margem de segurança.</td>
+        </tr>
+      </table>
+
+      <h4>Previsão Eólica</h4>
+      <table class="field-table">
+        <tr><th>Campo</th><th>Descrição</th><th>Por que é importante</th></tr>
+        <tr>
+          <td class="field-name">Velocidade do Vento</td>
+          <td>m/s previsto por hora</td>
+          <td>Determina potência das turbinas.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Direção do Vento</td>
+          <td>Graus (0-360)</td>
+          <td>Afeta eficiência dependendo da orientação.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Geração Estimada</td>
+          <td>kWh esperados por período</td>
+          <td>Planejar operação.</td>
+        </tr>
+      </table>
+
+      <h4>Recomendações de Operação</h4>
+      <p>Com base na previsão, o sistema sugere:</p>
+      <ul>
+        <li>Quando carregar o BESS (períodos de alta geração renovável)</li>
+        <li>Quando descarregar (períodos de baixa geração)</li>
+        <li>Se precisa ligar o gerador de backup</li>
+        <li>Se pode exportar energia para a rede</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Status dos Componentes</h3>
+
+  <div class="card-detail">
+    <h4>Tabela de Status de Componentes</h4>
+    <table class="field-table">
+      <tr><th>Componente</th><th>Status</th><th>Potência</th><th>Disponibilidade</th><th>Alertas</th></tr>
+      <tr>
+        <td class="field-name">Inversor Solar</td>
+        <td>Online/Offline/Erro</td>
+        <td>kW atual / kWp nominal</td>
+        <td>% do dia que esteve operacional</td>
+        <td>Contador de alertas</td>
+      </tr>
+      <tr>
+        <td class="field-name">Turbina Eólica</td>
+        <td>Online/Offline/Freado/Erro</td>
+        <td>kW atual / kW nominal</td>
+        <td>% de uptime</td>
+        <td>Contador de alertas</td>
+      </tr>
+      <tr>
+        <td class="field-name">BESS</td>
+        <td>Charging/Discharging/Standby/Erro</td>
+        <td>kW atual, SOC %</td>
+        <td>% de disponibilidade</td>
+        <td>Contador de alertas</td>
+      </tr>
+      <tr>
+        <td class="field-name">Gerador</td>
+        <td>Off/Running/Cooldown/Erro</td>
+        <td>kW atual quando ligado</td>
+        <td>Horas de operação</td>
+        <td>Contador de alertas</td>
+      </tr>
+      <tr>
+        <td class="field-name">PCC (Conexão Rede)</td>
+        <td>Connected/Disconnected</td>
+        <td>kW importando/exportando</td>
+        <td>Qualidade da conexão</td>
+        <td>Eventos de desconexão</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <p><strong>Lifo4 EMS</strong> - Manual Completo</p>
+  <p>Parte III: Câmeras de Segurança e Microgrids</p>
+  <p>Continue nas próximas partes para Analytics, Trading, Manutenção e Administração</p>
+</footer>
+
+</body>
+</html>

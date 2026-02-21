@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual do Sistema Lifo4 EMS - Sistema de Gerenciamento de Energia</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1a1a2e;
+      background: #fff;
+      font-size: 11pt;
+    }
+
+    .cover {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      text-align: center;
+      page-break-after: always;
+    }
+
+    .cover-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin-bottom: 40px;
+      box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .cover h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .cover h1 span {
+      color: #10b981;
+    }
+
+    .cover h2 {
+      font-size: 24px;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+
+    .cover .subtitle {
+      font-size: 18px;
+      opacity: 0.7;
+      max-width: 600px;
+    }
+
+    .cover .version {
+      position: absolute;
+      bottom: 40px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    .toc {
+      padding: 60px;
+      page-break-after: always;
+    }
+
+    .toc h2 {
+      font-size: 28px;
+      color: #0f172a;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #10b981;
+    }
+
+    .toc ul {
+      list-style: none;
+    }
+
+    .toc li {
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .toc li a {
+      color: #1a1a2e;
+      text-decoration: none;
+    }
+
+    .toc li a:hover {
+      color: #10b981;
+    }
+
+    .toc .chapter {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .toc .section {
+      padding-left: 20px;
+      font-size: 12px;
+    }
+
+    .content {
+      padding: 40px 60px;
+    }
+
+    .chapter {
+      page-break-before: always;
+      margin-bottom: 40px;
+    }
+
+    .chapter:first-child {
+      page-break-before: avoid;
+    }
+
+    .chapter-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      padding: 40px;
+      margin: -40px -60px 40px -60px;
+    }
+
+    .chapter-number {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.7;
+      margin-bottom: 10px;
+    }
+
+    .chapter-title {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 20px;
+      color: #0f172a;
+      margin: 30px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #10b981;
+    }
+
+    h4 {
+      font-size: 16px;
+      color: #1e3a5f;
+      margin: 20px 0 10px 0;
+    }
+
+    p {
+      margin-bottom: 15px;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin: 15px 0 15px 30px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .feature-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .feature-box h4 {
+      color: #10b981;
+      margin-top: 0;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .highlight h4 {
+      color: white;
+      margin-top: 0;
+    }
+
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .warning-title {
+      font-weight: 600;
+      color: #b45309;
+      margin-bottom: 5px;
+    }
+
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .info-title {
+      font-weight: 600;
+      color: #1d4ed8;
+      margin-bottom: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 11px;
+    }
+
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #0f172a;
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .screenshot {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .screenshot-placeholder {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+      border: 2px dashed #3b82f6;
+      border-radius: 8px;
+      padding: 60px 40px;
+      color: #94a3b8;
+    }
+
+    .screenshot-label {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .icon-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .icon-item .icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .icon-item .label {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .step {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: #10b981;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h5 {
+      margin: 0 0 5px 0;
+      color: #0f172a;
+    }
+
+    .step-content p {
+      margin: 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .spec-item {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .spec-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .spec-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding: 30px 60px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    @media print {
+      .chapter {
+        page-break-before: always;
+      }
+
+      .cover {
+        height: 100vh;
+      }
+
+      body {
+        font-size: 10pt;
+      }
+
+      .chapter-header {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CAPA -->
+  <div class="cover">
+    <div class="cover-logo">&#9889;</div>
+    <h1>Lifo4 <span>EMS</span></h1>
+    <h2>Sistema de Gerenciamento de Energia</h2>
+    <p class="subtitle">
+      Manual Completo do Usuario - Guia de todas as funcionalidades do sistema de gerenciamento
+      de baterias e energia para sistemas BESS (Battery Energy Storage System)
+    </p>
+    <p class="version">Versao 1.0 | Fevereiro 2026</p>
+  </div>
+
+  <!-- INDICE -->
+  <div class="toc">
+    <h2>Indice</h2>
+    <ul>
+      <li class="chapter"><a href="#cap1">1. Introducao ao Sistema</a><span>4</span></li>
+      <li class="section"><a href="#cap1-1">1.1 O que e o Lifo4 EMS</a></li>
+      <li class="section"><a href="#cap1-2">1.2 Requisitos do Sistema</a></li>
+      <li class="section"><a href="#cap1-3">1.3 Primeiro Acesso</a></li>
+
+      <li class="chapter"><a href="#cap2">2. Dashboard Principal</a><span>8</span></li>
+      <li class="section"><a href="#cap2-1">2.1 Visao Geral</a></li>
+      <li class="section"><a href="#cap2-2">2.2 Metricas em Tempo Real</a></li>
+      <li class="section"><a href="#cap2-3">2.3 Graficos e Indicadores</a></li>
+
+      <li class="chapter"><a href="#cap3">3. Gerenciamento de Sistemas BESS</a><span>12</span></li>
+      <li class="section"><a href="#cap3-1">3.1 Lista de Sistemas</a></li>
+      <li class="section"><a href="#cap3-2">3.2 Detalhes do Sistema</a></li>
+      <li class="section"><a href="#cap3-3">3.3 Painel de Controle</a></li>
+      <li class="section"><a href="#cap3-4">3.4 Configuracoes BMS</a></li>
+
+      <li class="chapter"><a href="#cap4">4. Monitoramento de Cameras</a><span>18</span></li>
+      <li class="section"><a href="#cap4-1">4.1 Lista de Cameras</a></li>
+      <li class="section"><a href="#cap4-2">4.2 Cameras Termicas</a></li>
+      <li class="section"><a href="#cap4-3">4.3 Multiview</a></li>
+
+      <li class="chapter"><a href="#cap5">5. Microgrids</a><span>22</span></li>
+      <li class="section"><a href="#cap5-1">5.1 Dashboard de Microgrids</a></li>
+      <li class="section"><a href="#cap5-2">5.2 Modos de Operacao</a></li>
+      <li class="section"><a href="#cap5-3">5.3 Grid Services</a></li>
+
+      <li class="chapter"><a href="#cap6">6. Analytics e Otimizacao</a><span>28</span></li>
+      <li class="section"><a href="#cap6-1">6.1 Analytics</a></li>
+      <li class="section"><a href="#cap6-2">6.2 Saude da Bateria</a></li>
+      <li class="section"><a href="#cap6-3">6.3 Otimizacao de Energia</a></li>
+
+      <li class="chapter"><a href="#cap7">7. Trading e Mercado de Energia</a><span>32</span></li>
+      <li class="section"><a href="#cap7-1">7.1 Energy Trading</a></li>
+      <li class="section"><a href="#cap7-2">7.2 Trading com IA</a></li>
+      <li class="section"><a href="#cap7-3">7.3 Demand Response</a></li>
+
+      <li class="chapter"><a href="#cap8">8. Digital Twin e Simulacao</a><span>36</span></li>
+      <li class="section"><a href="#cap8-1">8.1 Digital Twin</a></li>
+      <li class="section"><a href="#cap8-2">8.2 Simulacao</a></li>
+
+      <li class="chapter"><a href="#cap9">9. Manutencao e Alertas</a><span>40</span></li>
+      <li class="section"><a href="#cap9-1">9.1 Sistema de Alertas</a></li>
+      <li class="section"><a href="#cap9-2">9.2 Manutencao Preventiva</a></li>
+      <li class="section"><a href="#cap9-3">9.3 Manutencao Preditiva com IA</a></li>
+
+      <li class="chapter"><a href="#cap10">10. Integracao e APIs</a><span>44</span></li>
+      <li class="section"><a href="#cap10-1">10.1 Integracao com Rede</a></li>
+      <li class="section"><a href="#cap10-2">10.2 VPP (Virtual Power Plant)</a></li>
+      <li class="section"><a href="#cap10-3">10.3 API Keys</a></li>
+
+      <li class="chapter"><a href="#cap11">11. Administracao</a><span>48</span></li>
+      <li class="section"><a href="#cap11-1">11.1 Usuarios e Permissoes</a></li>
+      <li class="section"><a href="#cap11-2">11.2 Configuracoes</a></li>
+      <li class="section"><a href="#cap11-3">11.3 Backup e Seguranca</a></li>
+    </ul>
+  </div>
+
+  <!-- CONTEUDO -->
+  <div class="content">
+
+    <!-- CAPITULO 1 -->
+    <div class="chapter" id="cap1">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 1</div>
+        <div class="chapter-title">Introducao ao Sistema</div>
+      </div>
+
+      <h3 id="cap1-1">1.1 O que e o Lifo4 EMS</h3>
+      <p>
+        O <strong>Lifo4 EMS</strong> (Energy Management System) e uma plataforma completa e moderna para
+        gerenciamento de sistemas de armazenamento de energia em baterias (BESS - Battery Energy Storage System).
+        Desenvolvido com tecnologias de ponta, o sistema oferece monitoramento em tempo real, controle avancado,
+        e inteligencia artificial para otimizacao de operacoes.
+      </p>
+
+      <div class="highlight">
+        <h4>Principais Beneficios</h4>
+        <ul>
+          <li><strong>Monitoramento 24/7:</strong> Acompanhe todos os parametros do seu sistema em tempo real</li>
+          <li><strong>Otimizacao com IA:</strong> Algoritmos inteligentes para maximizar eficiencia e lucro</li>
+          <li><strong>Seguranca Avancada:</strong> Deteccao de anomalias e prevencao de thermal runaway</li>
+          <li><strong>Integracao Total:</strong> Conecte-se a rede eletrica, mercados de energia e outros sistemas</li>
+        </ul>
+      </div>
+
+      <h4>Funcionalidades Principais</h4>
+      <div class="icon-grid">
+        <div class="icon-item">
+          <div class="icon">&#128267;</div>
+          <div class="label">Monitoramento BESS</div>
+        </div>
+        <div class="icon-item">
+          <div class="icon">&#128200;</div>
+          <div class="label">Analytics Avancado</div>
+        </div>
+        <div class="icon-item">
+          <div class="icon">&#129302;</div>
+          <div class="label">IA e Machine Learning</div>
+        </div>
+        <div class="icon-item">
+          <div class="icon">&#127777;</div>
+          <div class="label">Cameras Termicas</div>
+        </div>
+        <div class="icon-item">
+          <div class="icon">&#9889;</div>
+          <div class="label">Microgrids</div>
+        </div>
+        <div class="icon-item">
+          <div class="icon">&#128176;</div>
+          <div class="label">Energy Trading</div>
+        </div>
+      </div>
+
+      <h3 id="cap1-2">1.2 Requisitos do Sistema</h3>
+      <p>Para utilizar o Lifo4 EMS, certifique-se de que seu ambiente atende aos seguintes requisitos:</p>
+
+      <table>
+        <tr>
+          <th>Componente</th>
+          <th>Requisito Minimo</th>
+          <th>Recomendado</th>
+        </tr>
+        <tr>
+          <td>Navegador</td>
+          <td>Chrome 90+, Firefox 88+, Edge 90+</td>
+          <td>Chrome ou Edge (ultima versao)</td>
+        </tr>
+        <tr>
+          <td>Resolucao de Tela</td>
+          <td>1280 x 720</td>
+          <td>1920 x 1080 ou superior</td>
+        </tr>
+        <tr>
+          <td>Conexao Internet</td>
+          <td>5 Mbps</td>
+          <td>50 Mbps ou superior</td>
+        </tr>
+        <tr>
+          <td>Dispositivos</td>
+          <td>Desktop, Laptop</td>
+          <td>Desktop com monitor dedicado</td>
+        </tr>
+      </table>
+
+      <div class="info">
+        <div class="info-title">Compatibilidade Mobile</div>
+        <p>O sistema tambem funciona em tablets e smartphones, com interface responsiva adaptada para telas menores. Recomendamos o uso de tablets com tela de pelo menos 10 polegadas para melhor experiencia.</p>
+      </div>
+
+      <h3 id="cap1-3">1.3 Primeiro Acesso</h3>
+      <p>Para acessar o sistema pela primeira vez:</p>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h5>Acesse a URL do Sistema</h5>
+          <p>Abra seu navegador e digite o endereco fornecido pelo administrador (ex: http://seu-servidor:8081)</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h5>Faca Login</h5>
+          <p>Insira seu email e senha fornecidos. Na primeira vez, voce sera solicitado a alterar a senha.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h5>Configure seu Perfil</h5>
+          <p>Atualize suas informacoes de perfil e preferencias de notificacao.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h5>Explore o Dashboard</h5>
+          <p>Familiarize-se com o dashboard principal e navegue pelos menus para conhecer as funcionalidades.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPITULO 2 -->
+    <div class="chapter" id="cap2">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 2</div>
+        <div class="chapter-title">Dashboard Principal</div>
+      </div>
+
+      <h3 id="cap2-1">2.1 Visao Geral</h3>
+      <p>
+        O Dashboard Principal e a tela inicial do sistema, oferecendo uma visao consolidada de todos os
+        sistemas BESS sob seu gerenciamento. Aqui voce encontra metricas essenciais, alertas ativos e
+        indicadores de performance em tempo real.
+      </p>
+
+      <div class="screenshot">
+        <div class="screenshot-placeholder">
+          [Captura de Tela: Dashboard Principal]<br>
+          Mostrando cards de metricas, grafico de potencia e lista de sistemas
+        </div>
+        <div class="screenshot-label">Figura 2.1 - Dashboard Principal do Lifo4 EMS</div>
+      </div>
+
+      <h4>Elementos do Dashboard</h4>
+      <ul>
+        <li><strong>Cards de Metricas:</strong> Exibem valores agregados como potencia total, energia armazenada, SOC medio, etc.</li>
+        <li><strong>Grafico de Potencia:</strong> Mostra a potencia de carga/descarga ao longo do tempo</li>
+        <li><strong>Lista de Sistemas:</strong> Resumo rapido de todos os sistemas BESS</li>
+        <li><strong>Alertas Ativos:</strong> Notificacoes importantes que requerem atencao</li>
+        <li><strong>Mapa de Localizacao:</strong> Visualizacao geografica dos sistemas</li>
+      </ul>
+
+      <h3 id="cap2-2">2.2 Metricas em Tempo Real</h3>
+      <p>O dashboard exibe as seguintes metricas em tempo real, atualizadas a cada 2 segundos:</p>
+
+      <div class="specs-grid">
+        <div class="spec-item">
+          <div class="spec-label">Potencia Total</div>
+          <div class="spec-value">kW / MW</div>
+          <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Soma da potencia de todos os sistemas (positivo = descarga, negativo = carga)</p>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Energia Armazenada</div>
+          <div class="spec-value">kWh / MWh</div>
+          <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Capacidade total de energia disponivel em todos os sistemas</p>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">SOC Medio</div>
+          <div class="spec-value">%</div>
+          <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Estado de Carga medio ponderado de todos os sistemas</p>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">SOH Medio</div>
+          <div class="spec-value">%</div>
+          <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Estado de Saude medio das baterias</p>
+        </div>
+      </div>
+
+      <h3 id="cap2-3">2.3 Graficos e Indicadores</h3>
+
+      <h4>Grafico de Potencia</h4>
+      <p>
+        O grafico principal mostra a potencia ao longo do tempo. A area verde indica descarga (fornecendo
+        energia) e a area azul indica carga (consumindo energia). Voce pode ajustar o periodo visualizado
+        usando os botoes de intervalo (1h, 6h, 24h, 7d, 30d).
+      </p>
+
+      <h4>Indicador de Receita</h4>
+      <p>
+        Mostra a receita/economia gerada no periodo selecionado, calculada com base nas tarifas de energia
+        e nos ciclos de carga/descarga realizados.
+      </p>
+
+      <div class="feature-box">
+        <h4>Dica: Personalizacao</h4>
+        <p>Voce pode personalizar os cards exibidos no dashboard atraves do menu de Configuracoes > Preferencias > Dashboard. Arraste e solte os widgets para reorganizar o layout conforme sua preferencia.</p>
+      </div>
+    </div>
+
+    <!-- CAPITULO 3 -->
+    <div class="chapter" id="cap3">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 3</div>
+        <div class="chapter-title">Gerenciamento de Sistemas BESS</div>
+      </div>
+
+      <h3 id="cap3-1">3.1 Lista de Sistemas</h3>
+      <p>
+        A pagina de Sistemas (<strong>/systems</strong>) exibe todos os sistemas BESS cadastrados.
+        Cada sistema pode ser visualizado em formato de card ou lista, com informacoes resumidas
+        de status, SOC, potencia e alertas.
+      </p>
+
+      <h4>Filtros Disponiveis</h4>
+      <ul>
+        <li><strong>Status:</strong> Online, Offline, Em Manutencao, Com Alertas</li>
+        <li><strong>Localizacao:</strong> Filtre por cidade, estado ou regiao</li>
+        <li><strong>Capacidade:</strong> Filtre por faixa de capacidade (kWh)</li>
+        <li><strong>Busca:</strong> Pesquise por nome ou identificador</li>
+      </ul>
+
+      <h4>Acoes Rapidas</h4>
+      <p>Na lista de sistemas, voce pode executar acoes rapidas clicando no menu de tres pontos:</p>
+      <ul>
+        <li>Ver Detalhes</li>
+        <li>Abrir Painel de Controle</li>
+        <li>Iniciar/Parar Carga</li>
+        <li>Configurar Alertas</li>
+        <li>Exportar Dados</li>
+      </ul>
+
+      <h3 id="cap3-2">3.2 Detalhes do Sistema</h3>
+      <p>
+        Ao clicar em um sistema, voce acessa a pagina de detalhes (<strong>/systems/:id</strong>)
+        com informacoes completas sobre aquele sistema especifico.
+      </p>
+
+      <div class="screenshot">
+        <div class="screenshot-placeholder">
+          [Captura de Tela: Detalhes do Sistema]<br>
+          Mostrando informacoes detalhadas, graficos de celulas e controles
+        </div>
+        <div class="screenshot-label">Figura 3.1 - Pagina de Detalhes do Sistema BESS</div>
+      </div>
+
+      <h4>Informacoes Exibidas</h4>
+      <table>
+        <tr>
+          <th>Secao</th>
+          <th>Informacoes</th>
+        </tr>
+        <tr>
+          <td>Status Geral</td>
+          <td>Estado atual, SOC, SOH, Temperatura, Potencia</td>
+        </tr>
+        <tr>
+          <td>Especificacoes</td>
+          <td>Capacidade, Tensao, Corrente Maxima, Fabricante, Modelo</td>
+        </tr>
+        <tr>
+          <td>Celulas/Modulos</td>
+          <td>Visualizacao individual de cada celula com tensao e temperatura</td>
+        </tr>
+        <tr>
+          <td>Historico</td>
+          <td>Graficos de SOC, Potencia, Temperatura ao longo do tempo</td>
+        </tr>
+        <tr>
+          <td>Ciclos</td>
+          <td>Numero de ciclos, ciclos equivalentes, profundidade media</td>
+        </tr>
+        <tr>
+          <td>Alertas</td>
+          <td>Historico de alertas e eventos do sistema</td>
+        </tr>
+      </table>
+
+      <h3 id="cap3-3">3.3 Painel de Controle</h3>
+      <p>
+        O Painel de Controle (<strong>/systems/:id/control</strong>) permite operar o sistema BESS
+        manualmente ou configurar modos automaticos de operacao.
+      </p>
+
+      <div class="warning">
+        <div class="warning-title">Atencao</div>
+        <p>Operacoes manuais no Painel de Controle requerem permissoes de nivel Operador ou superior. Certifique-se de entender as implicacoes antes de alterar parametros do sistema.</p>
+      </div>
+
+      <h4>Modos de Operacao</h4>
+      <ul>
+        <li><strong>Automatico:</strong> O sistema opera baseado em regras pre-configuradas e otimizacao por IA</li>
+        <li><strong>Manual:</strong> Controle total sobre carga/descarga</li>
+        <li><strong>Peak Shaving:</strong> Reduz picos de demanda automaticamente</li>
+        <li><strong>Arbitragem:</strong> Compra energia barata e vende cara</li>
+        <li><strong>Backup:</strong> Mantem reserva para emergencias</li>
+        <li><strong>Grid Services:</strong> Participa de servicos ancilares</li>
+      </ul>
+
+      <h4>Comandos Disponiveis</h4>
+      <ul>
+        <li><strong>Iniciar Carga:</strong> Inicia carregamento com potencia especificada</li>
+        <li><strong>Iniciar Descarga:</strong> Inicia descarga com potencia especificada</li>
+        <li><strong>Parar:</strong> Interrompe operacao atual (standby)</li>
+        <li><strong>Definir SOC Alvo:</strong> Sistema carrega/descarrega ate atingir SOC desejado</li>
+        <li><strong>Emergencia:</strong> Desliga sistema imediatamente (use apenas em emergencias)</li>
+      </ul>
+
+      <h3 id="cap3-4">3.4 Configuracoes BMS</h3>
+      <p>
+        A pagina de Configuracoes BMS (<strong>/systems/:id/bms-config</strong>) permite ajustar
+        parametros do Sistema de Gerenciamento de Bateria.
+      </p>
+
+      <h4>Parametros Configuraveis</h4>
+      <table>
+        <tr>
+          <th>Parametro</th>
+          <th>Descricao</th>
+          <th>Faixa Tipica</th>
+        </tr>
+        <tr>
+          <td>SOC Minimo</td>
+          <td>Limite inferior de descarga</td>
+          <td>10-20%</td>
+        </tr>
+        <tr>
+          <td>SOC Maximo</td>
+          <td>Limite superior de carga</td>
+          <td>80-100%</td>
+        </tr>
+        <tr>
+          <td>Temperatura Maxima</td>
+          <td>Limite de temperatura das celulas</td>
+          <td>45-55C</td>
+        </tr>
+        <tr>
+          <td>Corrente Maxima Carga</td>
+          <td>Corrente limite durante carga</td>
+          <td>0.5-1C</td>
+        </tr>
+        <tr>
+          <td>Corrente Maxima Descarga</td>
+          <td>Corrente limite durante descarga</td>
+          <td>1-2C</td>
+        </tr>
+        <tr>
+          <td>Balanceamento</td>
+          <td>Ativar/desativar balanceamento de celulas</td>
+          <td>On/Off</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- CAPITULO 4 -->
+    <div class="chapter" id="cap4">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 4</div>
+        <div class="chapter-title">Monitoramento de Cameras</div>
+      </div>
+
+      <h3 id="cap4-1">4.1 Lista de Cameras</h3>
+      <p>
+        O modulo de Cameras (<strong>/cameras</strong>) permite gerenciar todas as cameras de seguranca
+        e monitoramento termico instaladas nos sites BESS. O sistema suporta cameras IP padrao,
+        cameras PTZ (Pan-Tilt-Zoom), cameras dome e cameras termicas.
+      </p>
+
+      <h4>Tipos de Cameras Suportadas</h4>
+      <table>
+        <tr>
+          <th>Tipo</th>
+          <th>Descricao</th>
+          <th>Uso Recomendado</th>
+        </tr>
+        <tr>
+          <td>Padrao</td>
+          <td>Cameras IP fixas de vigilancia</td>
+          <td>Monitoramento geral, perimetro</td>
+        </tr>
+        <tr>
+          <td>PTZ</td>
+          <td>Cameras com controle de movimento</td>
+          <td>Areas amplas, rastreamento</td>
+        </tr>
+        <tr>
+          <td>Dome</td>
+          <td>Cameras em domo, discretas</td>
+          <td>Areas internas, salas tecnicas</td>
+        </tr>
+        <tr>
+          <td>Termica</td>
+          <td>Cameras com sensor infravermelho</td>
+          <td>Monitoramento de temperatura BESS</td>
+        </tr>
+      </table>
+
+      <h4>Funcionalidades da Lista</h4>
+      <ul>
+        <li><strong>Visualizacao em Grid:</strong> Cards com preview de cada camera</li>
+        <li><strong>Visualizacao em Lista:</strong> Formato tabular com mais detalhes</li>
+        <li><strong>Multiview:</strong> Visualize multiplas cameras simultaneamente</li>
+        <li><strong>Filtros:</strong> Por status (online/offline), tipo, localizacao</li>
+        <li><strong>Busca:</strong> Encontre cameras por nome ou local</li>
+      </ul>
+
+      <h4>Gerenciamento de Cameras</h4>
+      <p>Para cada camera, voce pode:</p>
+      <ul>
+        <li><strong>Adicionar:</strong> Clique em "Nova Camera" e preencha os dados (IP, modelo, localizacao)</li>
+        <li><strong>Editar:</strong> Clique nos 3 pontinhos > Editar para modificar informacoes</li>
+        <li><strong>Apagar:</strong> Clique nos 3 pontinhos > Apagar para remover (requer confirmacao)</li>
+        <li><strong>Ver ao Vivo:</strong> Clique no card para abrir visualizacao em tempo real</li>
+      </ul>
+
+      <h3 id="cap4-2">4.2 Cameras Termicas</h3>
+      <p>
+        As cameras termicas sao essenciais para a seguranca de sistemas BESS, permitindo detectar
+        elevacoes de temperatura que podem indicar falhas ou risco de thermal runaway.
+      </p>
+
+      <div class="highlight">
+        <h4>Deteccao de Thermal Runaway</h4>
+        <p>
+          O Lifo4 EMS monitora continuamente as imagens termicas e alerta automaticamente quando
+          detecta temperaturas acima dos limites configurados. Isso permite acao rapida antes
+          que problemas se tornem criticos.
+        </p>
+      </div>
+
+      <h4>Pagina de Monitoramento Termico</h4>
+      <p>
+        Acesse <strong>/cameras/thermal</strong> para uma visao dedicada das cameras termicas com:
+      </p>
+      <ul>
+        <li><strong>Leituras em Tempo Real:</strong> Temperatura minima, maxima e media de cada camera</li>
+        <li><strong>Historico de Temperatura:</strong> Grafico mostrando variacao nas ultimas horas</li>
+        <li><strong>Zonas Termicas:</strong> Defina areas especificas para monitoramento (racks, inversores, etc.)</li>
+        <li><strong>Alertas:</strong> Lista de alertas termicos com opcao de reconhecimento</li>
+      </ul>
+
+      <h4>Limites de Temperatura</h4>
+      <table>
+        <tr>
+          <th>Nivel</th>
+          <th>Temperatura</th>
+          <th>Acao</th>
+        </tr>
+        <tr>
+          <td style="color: #22c55e;">Normal</td>
+          <td>&lt; 35C</td>
+          <td>Operacao normal</td>
+        </tr>
+        <tr>
+          <td style="color: #eab308;">Atencao</td>
+          <td>35C - 45C</td>
+          <td>Monitoramento intensificado</td>
+        </tr>
+        <tr>
+          <td style="color: #f97316;">Alerta</td>
+          <td>45C - 55C</td>
+          <td>Notificacao para operadores</td>
+        </tr>
+        <tr>
+          <td style="color: #ef4444;">Critico</td>
+          <td>&gt; 55C</td>
+          <td>Alarme + Acao automatica</td>
+        </tr>
+      </table>
+
+      <h3 id="cap4-3">4.3 Multiview</h3>
+      <p>
+        O modo Multiview permite visualizar varias cameras simultaneamente em uma unica tela.
+        E ideal para salas de controle e monitoramento centralizado.
+      </p>
+
+      <h4>Layouts Disponiveis</h4>
+      <ul>
+        <li><strong>2x2:</strong> 4 cameras em grade</li>
+        <li><strong>3x3:</strong> 9 cameras em grade</li>
+        <li><strong>4x4:</strong> 16 cameras em grade</li>
+      </ul>
+
+      <div class="feature-box">
+        <h4>Dica: Tela Cheia</h4>
+        <p>Para melhor experiencia no Multiview, pressione F11 para entrar em modo tela cheia no navegador. As cameras serao redimensionadas automaticamente.</p>
+      </div>
+    </div>
+
+    <!-- CAPITULO 5 -->
+    <div class="chapter" id="cap5">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 5</div>
+        <div class="chapter-title">Microgrids</div>
+      </div>
+
+      <h3 id="cap5-1">5.1 Dashboard de Microgrids</h3>
+      <p>
+        O modulo de Microgrids (<strong>/microgrids</strong>) oferece gerenciamento completo de
+        microrredes, permitindo operar sistemas que combinam geracao renovavel (solar, eolica),
+        armazenamento em baterias e conexao com a rede eletrica principal.
+      </p>
+
+      <div class="screenshot">
+        <div class="screenshot-placeholder">
+          [Captura de Tela: Dashboard de Microgrids]<br>
+          Mostrando fluxo de potencia, modo de operacao e componentes
+        </div>
+        <div class="screenshot-label">Figura 5.1 - Dashboard de Microgrids</div>
+      </div>
+
+      <h4>Componentes de um Microgrid</h4>
+      <ul>
+        <li><strong>Geracao Solar:</strong> Paineis fotovoltaicos e inversores</li>
+        <li><strong>Geracao Eolica:</strong> Turbinas eolicas (quando aplicavel)</li>
+        <li><strong>Armazenamento BESS:</strong> Sistemas de baterias integrados</li>
+        <li><strong>Gerador Backup:</strong> Geradores diesel ou gas natural</li>
+        <li><strong>Conexao Grid:</strong> Ponto de conexao com a rede eletrica</li>
+        <li><strong>Cargas:</strong> Consumidores conectados ao microgrid</li>
+      </ul>
+
+      <h3 id="cap5-2">5.2 Modos de Operacao</h3>
+      <p>O microgrid pode operar em diferentes modos, cada um adequado para diferentes situacoes:</p>
+
+      <table>
+        <tr>
+          <th>Modo</th>
+          <th>Descricao</th>
+          <th>Quando Usar</th>
+        </tr>
+        <tr>
+          <td style="color: #22c55e;"><strong>Conectado a Rede</strong></td>
+          <td>Microgrid sincronizado com a rede eletrica principal</td>
+          <td>Operacao normal, otimizacao economica</td>
+        </tr>
+        <tr>
+          <td style="color: #3b82f6;"><strong>Ilhado</strong></td>
+          <td>Microgrid operando independentemente da rede</td>
+          <td>Queda de energia, manutencao da rede</td>
+        </tr>
+        <tr>
+          <td style="color: #f97316;"><strong>Black Start</strong></td>
+          <td>Processo de religamento apos apagao</td>
+          <td>Recuperacao pos-blackout</td>
+        </tr>
+        <tr>
+          <td style="color: #8b5cf6;"><strong>Transicao</strong></td>
+          <td>Mudando entre modos de operacao</td>
+          <td>Automatico durante mudancas</td>
+        </tr>
+      </table>
+
+      <h4>Inversor Grid-Forming (GFM)</h4>
+      <p>
+        O sistema indica quando o inversor esta operando em modo Grid-Forming, essencial para
+        operacao ilhada. Neste modo, o inversor e responsavel por estabelecer a referencia de
+        tensao e frequencia para todo o microgrid.
+      </p>
+
+      <h4>Monitoramento de Frequencia</h4>
+      <p>
+        O dashboard exibe a frequencia do microgrid em tempo real com indicacao visual:
+      </p>
+      <ul>
+        <li><strong>60.00 Hz:</strong> Frequencia nominal (verde)</li>
+        <li><strong>59.95 - 60.05 Hz:</strong> Faixa normal de operacao (verde)</li>
+        <li><strong>Fora da faixa:</strong> Indica necessidade de ajuste (amarelo/vermelho)</li>
+      </ul>
+
+      <h3 id="cap5-3">5.3 Grid Services</h3>
+      <p>
+        O microgrid pode participar de servicos ancilares da rede, gerando receita adicional:
+      </p>
+
+      <div class="feature-box">
+        <h4>FCR (Frequency Containment Reserve)</h4>
+        <p>Reserva rapida para estabilizacao de frequencia. O sistema responde automaticamente a desvios de frequencia em milissegundos.</p>
+      </div>
+
+      <div class="feature-box">
+        <h4>aFRR (Automatic Frequency Restoration Reserve)</h4>
+        <p>Reserva automatica para restauracao de frequencia. Ativada por sinal do operador do sistema apos evento de frequencia.</p>
+      </div>
+
+      <div class="feature-box">
+        <h4>Controle de Tensao</h4>
+        <p>Fornecimento de potencia reativa para suporte de tensao na rede local.</p>
+      </div>
+
+      <div class="feature-box">
+        <h4>Peak Shaving</h4>
+        <p>Reducao de picos de demanda para diminuir custos com demanda contratada.</p>
+      </div>
+
+      <h4>Aba de Previsao</h4>
+      <p>
+        A aba "Previsao" no dashboard mostra a previsao de geracao renovavel baseada em dados meteorologicos:
+      </p>
+      <ul>
+        <li>Previsao de irradiacao solar para proximas 24-48 horas</li>
+        <li>Previsao de velocidade do vento (se aplicavel)</li>
+        <li>Estimativa de geracao em kWh</li>
+        <li>Recomendacoes de operacao baseadas na previsao</li>
+      </ul>
+    </div>
+
+    <!-- CAPITULO 6 -->
+    <div class="chapter" id="cap6">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 6</div>
+        <div class="chapter-title">Analytics e Otimizacao</div>
+      </div>
+
+      <h3 id="cap6-1">6.1 Analytics</h3>
+      <p>
+        O modulo de Analytics (<strong>/analytics</strong>) fornece analises detalhadas sobre a
+        performance dos sistemas BESS, incluindo metricas de eficiencia, ciclos, receita e tendencias.
+      </p>
+
+      <h4>Metricas Principais</h4>
+      <ul>
+        <li><strong>Eficiencia Round-Trip:</strong> Razao entre energia descarregada e carregada</li>
+        <li><strong>Fator de Capacidade:</strong> Utilizacao da capacidade instalada</li>
+        <li><strong>Ciclos Realizados:</strong> Numero de ciclos completos no periodo</li>
+        <li><strong>Energia Processada:</strong> Total de energia carregada/descarregada</li>
+        <li><strong>Receita Gerada:</strong> Ganhos com arbitragem e servicos</li>
+        <li><strong>Disponibilidade:</strong> Percentual de tempo operacional</li>
+      </ul>
+
+      <h4>Relatorios Disponives</h4>
+      <table>
+        <tr>
+          <th>Relatorio</th>
+          <th>Conteudo</th>
+          <th>Periodicidade</th>
+        </tr>
+        <tr>
+          <td>Performance Diaria</td>
+          <td>Resumo de operacoes do dia</td>
+          <td>Diario</td>
+        </tr>
+        <tr>
+          <td>Analise Semanal</td>
+          <td>Tendencias e comparativos</td>
+          <td>Semanal</td>
+        </tr>
+        <tr>
+          <td>Relatorio Mensal</td>
+          <td>KPIs, financeiro, manutencao</td>
+          <td>Mensal</td>
+        </tr>
+        <tr>
+          <td>Benchmarking</td>
+          <td>Comparacao entre sistemas</td>
+          <td>Sob demanda</td>
+        </tr>
+      </table>
+
+      <h3 id="cap6-2">6.2 Saude da Bateria</h3>
+      <p>
+        A pagina de Saude da Bateria (<strong>/battery-health</strong>) monitora a degradacao e
+        fornece estimativas de vida util restante dos sistemas BESS.
+      </p>
+
+      <h4>Indicadores Monitorados</h4>
+      <ul>
+        <li><strong>SOH (State of Health):</strong> Capacidade atual vs. capacidade nominal</li>
+        <li><strong>Resistencia Interna:</strong> Aumento indica degradacao</li>
+        <li><strong>Capacidade Efetiva:</strong> kWh reais disponiveis</li>
+        <li><strong>Ciclos Totais:</strong> Historico completo de ciclos</li>
+        <li><strong>Vida Util Estimada:</strong> Anos restantes de operacao</li>
+      </ul>
+
+      <div class="info">
+        <div class="info-title">Modelo PyBAMM</div>
+        <p>O Lifo4 EMS utiliza o framework PyBAMM para modelagem eletroquimica avancada das baterias, permitindo previsoes precisas de degradacao e otimizacao de ciclos para maximizar a vida util.</p>
+      </div>
+
+      <h3 id="cap6-3">6.3 Otimizacao de Energia</h3>
+      <p>
+        O modulo de Otimizacao (<strong>/optimization</strong>) utiliza algoritmos de IA para
+        determinar a melhor estrategia de operacao considerando precos de energia, previsao de
+        demanda e restricoes do sistema.
+      </p>
+
+      <h4>Fatores Considerados</h4>
+      <ul>
+        <li>Tarifas de energia (hora-hora)</li>
+        <li>Previsao de geracao solar/eolica</li>
+        <li>Previsao de demanda de carga</li>
+        <li>Custos de degradacao da bateria</li>
+        <li>Compromissos de servicos ancilares</li>
+        <li>Restricoes operacionais (SOC, temperatura)</li>
+      </ul>
+
+      <h4>Resultados da Otimizacao</h4>
+      <p>O sistema gera um plano de operacao para as proximas 24-48 horas incluindo:</p>
+      <ul>
+        <li>Perfil de carga/descarga otimo</li>
+        <li>Receita esperada</li>
+        <li>Consumo de ciclos estimado</li>
+        <li>Comparativo com estrategia atual</li>
+      </ul>
+    </div>
+
+    <!-- CAPITULO 7 -->
+    <div class="chapter" id="cap7">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 7</div>
+        <div class="chapter-title">Trading e Mercado de Energia</div>
+      </div>
+
+      <h3 id="cap7-1">7.1 Energy Trading</h3>
+      <p>
+        O modulo de Energy Trading (<strong>/trading</strong>) permite participar de mercados de
+        energia, realizando compra e venda de energia atraves dos sistemas BESS.
+      </p>
+
+      <h4>Mercados Suportados</h4>
+      <ul>
+        <li><strong>Mercado Spot:</strong> Negociacao para entrega imediata</li>
+        <li><strong>Day-Ahead:</strong> Leiloes para dia seguinte</li>
+        <li><strong>Intraday:</strong> Ajustes durante o dia</li>
+        <li><strong>Servicos Ancilares:</strong> Reservas e regulacao</li>
+        <li><strong>Bilateral:</strong> Contratos diretos com consumidores</li>
+      </ul>
+
+      <h4>Dashboard de Trading</h4>
+      <p>A interface apresenta:</p>
+      <ul>
+        <li>Precos atuais e historico</li>
+        <li>Posicoes abertas e fechadas</li>
+        <li>P&L (Profit and Loss) em tempo real</li>
+        <li>Grafico de precos com indicadores</li>
+        <li>Livro de ofertas</li>
+      </ul>
+
+      <h3 id="cap7-2">7.2 Trading com IA</h3>
+      <p>
+        O Trading Dashboard com IA (<strong>/trading-dashboard</strong>) utiliza algoritmos de
+        Deep Reinforcement Learning para executar estrategias automaticas de trading.
+      </p>
+
+      <div class="highlight">
+        <h4>Deep Reinforcement Learning</h4>
+        <p>
+          O modelo de IA foi treinado com anos de dados historicos de precos e aprende
+          continuamente com cada operacao. Ele considera multiplos fatores como precos,
+          volatilidade, horarios de pico e correlacoes para maximizar retornos.
+        </p>
+      </div>
+
+      <h4>Modos de Operacao</h4>
+      <ul>
+        <li><strong>Automatico:</strong> IA executa trades autonomamente</li>
+        <li><strong>Semi-automatico:</strong> IA sugere, operador aprova</li>
+        <li><strong>Manual:</strong> Apenas previsoes e analises</li>
+      </ul>
+
+      <h4>Gerenciamento de Risco</h4>
+      <ul>
+        <li>Limites de exposicao maxima</li>
+        <li>Stop-loss automatico</li>
+        <li>Diversificacao de estrategias</li>
+        <li>Alertas de volatilidade</li>
+      </ul>
+
+      <h3 id="cap7-3">7.3 Demand Response</h3>
+      <p>
+        O modulo de Demand Response (<strong>/demand-response</strong>) gerencia a participacao
+        em programas de resposta a demanda, onde o sistema reduz ou desloca carga em resposta
+        a sinais do operador da rede.
+      </p>
+
+      <h4>Tipos de Eventos</h4>
+      <table>
+        <tr>
+          <th>Tipo</th>
+          <th>Notificacao</th>
+          <th>Duracao Tipica</th>
+        </tr>
+        <tr>
+          <td>Economico</td>
+          <td>24h antecedencia</td>
+          <td>4-8 horas</td>
+        </tr>
+        <tr>
+          <td>Emergencia</td>
+          <td>30min - 2h</td>
+          <td>1-4 horas</td>
+        </tr>
+        <tr>
+          <td>Reserva</td>
+          <td>10-30 min</td>
+          <td>15min - 2h</td>
+        </tr>
+        <tr>
+          <td>Regulacao</td>
+          <td>Segundos</td>
+          <td>Continuo</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- CAPITULO 8 -->
+    <div class="chapter" id="cap8">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 8</div>
+        <div class="chapter-title">Digital Twin e Simulacao</div>
+      </div>
+
+      <h3 id="cap8-1">8.1 Digital Twin</h3>
+      <p>
+        O Digital Twin (<strong>/digital-twin</strong>) e uma replica virtual do sistema BESS
+        fisico, sincronizada em tempo real e capaz de simular comportamentos futuros.
+      </p>
+
+      <div class="screenshot">
+        <div class="screenshot-placeholder">
+          [Captura de Tela: Digital Twin]<br>
+          Visualizacao 3D do sistema com dados em tempo real
+        </div>
+        <div class="screenshot-label">Figura 8.1 - Interface do Digital Twin</div>
+      </div>
+
+      <h4>Funcionalidades</h4>
+      <ul>
+        <li><strong>Visualizacao 3D:</strong> Representacao visual do sistema fisico</li>
+        <li><strong>Dados em Tempo Real:</strong> Parametros sincronizados com equipamento real</li>
+        <li><strong>Simulacao What-If:</strong> Teste cenarios sem afetar sistema real</li>
+        <li><strong>Previsao:</strong> Estimativas de comportamento futuro</li>
+        <li><strong>Diagnostico:</strong> Identificacao de anomalias por comparacao</li>
+      </ul>
+
+      <h4>Modelo PyBAMM Integrado</h4>
+      <p>
+        O Digital Twin utiliza modelos eletroquimicos do PyBAMM para simular o comportamento
+        interno das celulas de bateria, incluindo:
+      </p>
+      <ul>
+        <li>Distribuicao de corrente nas celulas</li>
+        <li>Gradiantes de temperatura internos</li>
+        <li>Envelhecimento e degradacao</li>
+        <li>Comportamento em condicoes extremas</li>
+      </ul>
+
+      <h3 id="cap8-2">8.2 Simulacao</h3>
+      <p>
+        O modulo de Simulacao (<strong>/simulation</strong>) permite testar estrategias de
+        operacao e avaliar performance em diferentes cenarios.
+      </p>
+
+      <h4>Cenarios Pre-definidos</h4>
+      <ul>
+        <li><strong>Arbitragem Pura:</strong> Compra baixo, vende alto</li>
+        <li><strong>Peak Shaving:</strong> Reducao de picos de demanda</li>
+        <li><strong>Backup de Emergencia:</strong> Reserva para falhas de rede</li>
+        <li><strong>Integracao Solar:</strong> Otimizacao com geracao PV</li>
+        <li><strong>Servicos Ancilares:</strong> Participacao em regulacao</li>
+      </ul>
+
+      <h4>Parametros de Simulacao</h4>
+      <ul>
+        <li>Periodo de simulacao (dias, meses, anos)</li>
+        <li>Perfil de precos de energia</li>
+        <li>Perfil de carga do consumidor</li>
+        <li>Geracao renovavel disponivel</li>
+        <li>Parametros da bateria</li>
+        <li>Custos operacionais</li>
+      </ul>
+
+      <h4>Resultados</h4>
+      <p>Ao final da simulacao, o sistema apresenta:</p>
+      <ul>
+        <li>Receita/economia total</li>
+        <li>ROI (Return on Investment)</li>
+        <li>Payback estimado</li>
+        <li>Degradacao da bateria</li>
+        <li>Graficos de operacao</li>
+        <li>Comparativo entre estrategias</li>
+      </ul>
+    </div>
+
+    <!-- CAPITULO 9 -->
+    <div class="chapter" id="cap9">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 9</div>
+        <div class="chapter-title">Manutencao e Alertas</div>
+      </div>
+
+      <h3 id="cap9-1">9.1 Sistema de Alertas</h3>
+      <p>
+        O modulo de Alertas (<strong>/alerts</strong>) centraliza todas as notificacoes do sistema,
+        categorizadas por severidade e tipo.
+      </p>
+
+      <h4>Niveis de Severidade</h4>
+      <table>
+        <tr>
+          <th>Nivel</th>
+          <th>Cor</th>
+          <th>Exemplos</th>
+          <th>Acao</th>
+        </tr>
+        <tr>
+          <td>Info</td>
+          <td style="background: #dbeafe; color: #1d4ed8;">Azul</td>
+          <td>Inicio de carga, mudanca de modo</td>
+          <td>Informativo</td>
+        </tr>
+        <tr>
+          <td>Aviso</td>
+          <td style="background: #fef3c7; color: #b45309;">Amarelo</td>
+          <td>SOC baixo, temperatura elevada</td>
+          <td>Monitorar</td>
+        </tr>
+        <tr>
+          <td>Alerta</td>
+          <td style="background: #fed7aa; color: #c2410c;">Laranja</td>
+          <td>Limite ultrapassado, falha comunicacao</td>
+          <td>Investigar</td>
+        </tr>
+        <tr>
+          <td>Critico</td>
+          <td style="background: #fecaca; color: #dc2626;">Vermelho</td>
+          <td>Thermal runaway, falha sistema</td>
+          <td>Acao imediata</td>
+        </tr>
+      </table>
+
+      <h4>Configuracao de Alertas</h4>
+      <p>
+        Na pagina de Configuracao de Alarmes (<strong>/alarm-config</strong>), voce pode
+        personalizar os limites e acoes para cada tipo de alerta:
+      </p>
+      <ul>
+        <li>Definir thresholds personalizados</li>
+        <li>Configurar destinatarios de email/SMS</li>
+        <li>Definir acoes automaticas</li>
+        <li>Agendar periodos de silencio</li>
+      </ul>
+
+      <h3 id="cap9-2">9.2 Manutencao Preventiva</h3>
+      <p>
+        O modulo de Manutencao (<strong>/maintenance</strong>) gerencia o calendario de
+        manutencoes preventivas e historico de intervencoes.
+      </p>
+
+      <h4>Tipos de Manutencao</h4>
+      <ul>
+        <li><strong>Inspecao Visual:</strong> Verificacao de conexoes, corrosao, danos</li>
+        <li><strong>Limpeza:</strong> Filtros, ventilacao, paineis</li>
+        <li><strong>Testes:</strong> Isolamento, comunicacao, protecoes</li>
+        <li><strong>Calibracao:</strong> Sensores de temperatura, corrente, tensao</li>
+        <li><strong>Atualizacao:</strong> Firmware do BMS e outros componentes</li>
+      </ul>
+
+      <h4>Ordens de Servico</h4>
+      <p>
+        Na pagina de Ordens de Servico (<strong>/work-orders</strong>), voce pode:
+      </p>
+      <ul>
+        <li>Criar novas ordens de servico</li>
+        <li>Atribuir tecnicos responsaveis</li>
+        <li>Acompanhar status de execucao</li>
+        <li>Registrar pecas e materiais utilizados</li>
+        <li>Documentar com fotos e relatorios</li>
+      </ul>
+
+      <h3 id="cap9-3">9.3 Manutencao Preditiva com IA</h3>
+      <p>
+        O modulo de Manutencao Preditiva (<strong>/predictive</strong>) utiliza Machine Learning
+        para prever falhas antes que ocorram.
+      </p>
+
+      <div class="highlight">
+        <h4>Algoritmos Utilizados</h4>
+        <p>
+          O sistema analisa padroes em dados historicos de temperatura, tensao, corrente e
+          outros parametros para identificar sinais de degradacao e prever necessidade de
+          manutencao com antecedencia de dias ou semanas.
+        </p>
+      </div>
+
+      <h4>Indicadores Preditivos</h4>
+      <ul>
+        <li><strong>Probabilidade de Falha:</strong> % de chance de falha nos proximos 30 dias</li>
+        <li><strong>Componentes em Risco:</strong> Lista de itens com degradacao detectada</li>
+        <li><strong>Recomendacoes:</strong> Acoes sugeridas para prevenir falhas</li>
+        <li><strong>Impacto Estimado:</strong> Custo evitado com manutencao preventiva</li>
+      </ul>
+    </div>
+
+    <!-- CAPITULO 10 -->
+    <div class="chapter" id="cap10">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 10</div>
+        <div class="chapter-title">Integracao e APIs</div>
+      </div>
+
+      <h3 id="cap10-1">10.1 Integracao com Rede</h3>
+      <p>
+        O modulo de Integracao com Rede (<strong>/grid</strong>) gerencia a conexao do sistema
+        BESS com a rede eletrica e operadores do sistema.
+      </p>
+
+      <h4>Protocolos Suportados</h4>
+      <ul>
+        <li><strong>Modbus TCP/RTU:</strong> Comunicacao com inversores e medidores</li>
+        <li><strong>DNP3:</strong> Protocolo para automacao de subestacoes</li>
+        <li><strong>IEC 61850:</strong> Padrao para automacao de sistemas de potencia</li>
+        <li><strong>OCPP:</strong> Integracao com carregadores de veiculos eletricos</li>
+        <li><strong>SunSpec:</strong> Padrao para equipamentos solares</li>
+      </ul>
+
+      <h3 id="cap10-2">10.2 VPP (Virtual Power Plant)</h3>
+      <p>
+        O modulo VPP (<strong>/vpp</strong>) permite agregar multiplos sistemas BESS e
+        recursos distribuidos em uma unica usina virtual.
+      </p>
+
+      <h4>Funcionalidades VPP</h4>
+      <ul>
+        <li>Agregacao de capacidade de multiplos sites</li>
+        <li>Despacho otimizado entre recursos</li>
+        <li>Participacao em leiloes de energia como entidade unica</li>
+        <li>Balanceamento automatico entre sistemas</li>
+        <li>Relatorios consolidados</li>
+      </ul>
+
+      <h3 id="cap10-3">10.3 API Keys</h3>
+      <p>
+        O modulo de API Keys (<strong>/api-keys</strong>) gerencia chaves de acesso para
+        integracao com sistemas externos.
+      </p>
+
+      <h4>Gerenciamento de APIs</h4>
+      <ul>
+        <li>Criar novas chaves de API</li>
+        <li>Definir permissoes por chave</li>
+        <li>Monitorar uso e requisicoes</li>
+        <li>Revogar chaves comprometidas</li>
+        <li>Limitar taxa de requisicoes (rate limiting)</li>
+      </ul>
+
+      <div class="warning">
+        <div class="warning-title">Seguranca</div>
+        <p>Mantenha suas API Keys em seguranca. Nunca compartilhe chaves em codigo publico ou repositorios. Use variaveis de ambiente para armazenar credenciais.</p>
+      </div>
+    </div>
+
+    <!-- CAPITULO 11 -->
+    <div class="chapter" id="cap11">
+      <div class="chapter-header">
+        <div class="chapter-number">Capitulo 11</div>
+        <div class="chapter-title">Administracao do Sistema</div>
+      </div>
+
+      <h3 id="cap11-1">11.1 Usuarios e Permissoes</h3>
+      <p>
+        O modulo de Usuarios (<strong>/users</strong>) gerencia contas de acesso e niveis de
+        permissao no sistema.
+      </p>
+
+      <h4>Niveis de Acesso</h4>
+      <table>
+        <tr>
+          <th>Nivel</th>
+          <th>Permissoes</th>
+        </tr>
+        <tr>
+          <td><strong>Super Admin</strong></td>
+          <td>Acesso total, gerenciamento de usuarios, configuracoes globais</td>
+        </tr>
+        <tr>
+          <td><strong>Admin</strong></td>
+          <td>Gerenciamento de sistemas, usuarios do seu grupo, relatorios</td>
+        </tr>
+        <tr>
+          <td><strong>Manager</strong></td>
+          <td>Operacao de sistemas, visualizacao de relatorios, alertas</td>
+        </tr>
+        <tr>
+          <td><strong>Technician</strong></td>
+          <td>Manutencao, diagnosticos, operacoes basicas</td>
+        </tr>
+        <tr>
+          <td><strong>User</strong></td>
+          <td>Visualizacao apenas, relatorios do seu sistema</td>
+        </tr>
+      </table>
+
+      <h3 id="cap11-2">11.2 Configuracoes</h3>
+      <p>
+        A pagina de Configuracoes (<strong>/settings</strong>) permite personalizar diversos
+        aspectos do sistema.
+      </p>
+
+      <h4>Opcoes de Configuracao</h4>
+      <ul>
+        <li><strong>Perfil:</strong> Nome, email, foto, preferencias pessoais</li>
+        <li><strong>Notificacoes:</strong> Email, SMS, push, frequencia</li>
+        <li><strong>Interface:</strong> Tema (claro/escuro), idioma, unidades</li>
+        <li><strong>Seguranca:</strong> Senha, autenticacao 2FA, sessoes ativas</li>
+        <li><strong>Integracacoes:</strong> Conexoes com sistemas externos</li>
+      </ul>
+
+      <h3 id="cap11-3">11.3 Backup e Seguranca</h3>
+      <p>
+        O modulo de Backup (<strong>/backup</strong>) gerencia copias de seguranca dos dados
+        e configuracoes do sistema.
+      </p>
+
+      <h4>Politicas de Backup</h4>
+      <ul>
+        <li><strong>Automatico Diario:</strong> Backup incremental todas as noites</li>
+        <li><strong>Semanal:</strong> Backup completo aos domingos</li>
+        <li><strong>Mensal:</strong> Backup arquivado no primeiro dia do mes</li>
+        <li><strong>Manual:</strong> Backup sob demanda a qualquer momento</li>
+      </ul>
+
+      <h4>Seguranca Pos-Quantica</h4>
+      <p>
+        O Lifo4 EMS implementa criptografia pos-quantica para proteger dados contra futuros
+        computadores quanticos. Algoritmos utilizados:
+      </p>
+      <ul>
+        <li>CRYSTALS-Kyber para troca de chaves</li>
+        <li>CRYSTALS-Dilithium para assinaturas digitais</li>
+        <li>AES-256-GCM para criptografia de dados</li>
+      </ul>
+
+      <div class="info">
+        <div class="info-title">Auditoria</div>
+        <p>Todas as acoes no sistema sao registradas no Log de Auditoria (<strong>/audit</strong>), permitindo rastreabilidade completa de quem fez o que e quando.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p><strong>Lifo4 EMS</strong> - Sistema de Gerenciamento de Energia</p>
+    <p>Manual do Usuario - Versao 1.0 | Fevereiro 2026</p>
+    <p>&copy; 2026 Lifo4 Energia. Todos os direitos reservados.</p>
+  </footer>
+
+</body>
+</html>

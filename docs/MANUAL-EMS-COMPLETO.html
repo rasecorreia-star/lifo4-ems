@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Completo Lifo4 EMS - Guia Detalhado de Todas as Funcionalidades</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fff;
+      font-size: 11pt;
+    }
+
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      color: white;
+      text-align: center;
+      padding: 60px;
+      page-break-after: always;
+    }
+
+    .cover-logo {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      margin-bottom: 50px;
+      box-shadow: 0 30px 60px rgba(16, 185, 129, 0.4);
+    }
+
+    .cover h1 {
+      font-size: 56px;
+      margin-bottom: 15px;
+      font-weight: 800;
+    }
+
+    .cover h1 span { color: #10b981; }
+
+    .cover h2 {
+      font-size: 28px;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    .cover .subtitle {
+      font-size: 16px;
+      opacity: 0.8;
+      max-width: 700px;
+      margin-bottom: 60px;
+    }
+
+    .cover-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .cover-info-item {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .cover-info-item h4 {
+      font-size: 32px;
+      color: #10b981;
+    }
+
+    .cover-info-item p {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .cover .version {
+      margin-top: 60px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    /* Table of Contents */
+    .toc {
+      padding: 50px;
+      page-break-after: always;
+    }
+
+    .toc h2 {
+      font-size: 32px;
+      color: #0f172a;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 4px solid #10b981;
+    }
+
+    .toc-section {
+      margin-bottom: 25px;
+    }
+
+    .toc-section h3 {
+      font-size: 14px;
+      color: #10b981;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .toc ul { list-style: none; }
+
+    .toc li {
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .toc li a {
+      color: #1a1a2e;
+      text-decoration: none;
+    }
+
+    /* Content */
+    .content { padding: 40px 50px; }
+
+    .part-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      padding: 80px 50px;
+      margin: -40px -50px 40px -50px;
+      text-align: center;
+      page-break-before: always;
+    }
+
+    .part-header h2 {
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.7;
+      margin-bottom: 15px;
+    }
+
+    .part-header h1 {
+      font-size: 42px;
+      font-weight: 700;
+    }
+
+    .menu-section {
+      page-break-before: always;
+      margin-bottom: 50px;
+    }
+
+    .menu-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-left: 5px solid #10b981;
+      padding: 25px 30px;
+      margin-bottom: 30px;
+    }
+
+    .menu-header h2 {
+      font-size: 24px;
+      color: #0f172a;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .menu-header .path {
+      font-size: 12px;
+      color: #10b981;
+      font-family: monospace;
+      background: #10b98120;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .menu-header p {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    h3 {
+      font-size: 18px;
+      color: #0f172a;
+      margin: 30px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #10b981;
+    }
+
+    h4 {
+      font-size: 14px;
+      color: #1e3a5f;
+      margin: 20px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h4::before {
+      content: "▸";
+      color: #10b981;
+    }
+
+    h5 {
+      font-size: 12px;
+      color: #475569;
+      margin: 15px 0 8px 0;
+      font-weight: 600;
+    }
+
+    p { margin-bottom: 12px; text-align: justify; }
+
+    ul, ol { margin: 12px 0 12px 25px; }
+    li { margin-bottom: 6px; }
+
+    .screenshot {
+      margin: 25px 0;
+      text-align: center;
+    }
+
+    .screenshot img {
+      max-width: 100%;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .screenshot-caption {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    .card-detail {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .card-detail h4 {
+      margin-top: 0;
+      color: #0f172a;
+      font-size: 15px;
+    }
+
+    .card-detail h4::before { content: "📊 "; }
+
+    .card-detail.control h4::before { content: "🎮 "; }
+    .card-detail.alert h4::before { content: "🚨 "; }
+    .card-detail.chart h4::before { content: "📈 "; }
+    .card-detail.config h4::before { content: "⚙️ "; }
+    .card-detail.thermal h4::before { content: "🌡️ "; }
+    .card-detail.power h4::before { content: "⚡ "; }
+    .card-detail.money h4::before { content: "💰 "; }
+    .card-detail.ai h4::before { content: "🤖 "; }
+    .card-detail.camera h4::before { content: "📹 "; }
+    .card-detail.grid h4::before { content: "🔌 "; }
+
+    .field-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 10px;
+    }
+
+    .field-table th, .field-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .field-table th {
+      background: #0f172a;
+      color: white;
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .field-table tr:nth-child(even) { background: #f8fafc; }
+
+    .field-table .field-name {
+      font-weight: 600;
+      color: #1e3a5f;
+      white-space: nowrap;
+    }
+
+    .importance {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .importance h5 {
+      color: white;
+      margin-top: 0;
+      font-size: 12px;
+    }
+
+    .importance p {
+      margin: 0;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px 20px;
+      margin: 15px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .warning h5 {
+      color: #b45309;
+      margin-top: 0;
+    }
+
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px 20px;
+      margin: 15px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .info h5 {
+      color: #1d4ed8;
+      margin-top: 0;
+    }
+
+    .tab-section {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .tab-header {
+      background: #1e3a5f;
+      color: white;
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .tab-content {
+      padding: 20px;
+    }
+
+    .action-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .action-item {
+      background: #f1f5f9;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    .action-item strong {
+      color: #10b981;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    .status-online { background: #22c55e; }
+    .status-offline { background: #94a3b8; }
+    .status-warning { background: #f59e0b; }
+    .status-critical { background: #ef4444; }
+
+    footer {
+      margin-top: 60px;
+      padding: 40px 50px;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
+
+    footer p { margin: 5px 0; }
+
+    @media print {
+      .menu-section { page-break-before: always; }
+      .part-header { page-break-before: always; }
+      body { font-size: 9pt; }
+      .screenshot img { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== CAPA ==================== -->
+<div class="cover">
+  <div class="cover-logo">⚡</div>
+  <h1>Lifo4 <span>EMS</span></h1>
+  <h2>Manual Completo do Sistema</h2>
+  <p class="subtitle">
+    Guia detalhado de todas as funcionalidades do Sistema de Gerenciamento de Energia para BESS
+    (Battery Energy Storage System). Este manual cobre todos os menus do sistema, explicando
+    cada card, aba, campo e sua importância para o gerenciamento remoto de sistemas de armazenamento de energia.
+  </p>
+
+  <div class="cover-info">
+    <div class="cover-info-item">
+      <h4>30+</h4>
+      <p>Menus Documentados</p>
+    </div>
+    <div class="cover-info-item">
+      <h4>29</h4>
+      <p>Screenshots Reais</p>
+    </div>
+    <div class="cover-info-item">
+      <h4>100%</h4>
+      <p>Funcionalidades Cobertas</p>
+    </div>
+  </div>
+
+  <p class="version">Versão 1.0 | Fevereiro 2026 | Lifo4 Energia</p>
+</div>
+
+<!-- ==================== ÍNDICE ==================== -->
+<div class="toc">
+  <h2>Índice Geral</h2>
+
+  <div class="toc-section">
+    <h3>Parte I - Visão Geral e Monitoramento</h3>
+    <ul>
+      <li><a href="#dashboard">1. Dashboard Principal</a></li>
+      <li><a href="#multi-site">2. Multi-Site Dashboard</a></li>
+      <li><a href="#sistemas">3. Lista de Sistemas BESS</a></li>
+      <li><a href="#sistema-detalhe">4. Detalhes do Sistema</a></li>
+      <li><a href="#painel-controle">5. Painel de Controle</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte II - Câmeras e Microgrids</h3>
+    <ul>
+      <li><a href="#cameras">6. Câmeras de Segurança</a></li>
+      <li><a href="#cameras-termicas">7. Monitoramento Térmico</a></li>
+      <li><a href="#microgrids">8. Microgrids</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte III - Analytics e Otimização</h3>
+    <ul>
+      <li><a href="#analytics">9. Analytics</a></li>
+      <li><a href="#saude-bateria">10. Saúde da Bateria</a></li>
+      <li><a href="#otimizacao">11. Otimização</a></li>
+      <li><a href="#simulacao">12. Simulação</a></li>
+      <li><a href="#digital-twin">13. Digital Twin</a></li>
+      <li><a href="#benchmarking">14. Benchmarking</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte IV - Integração e Mercado</h3>
+    <ul>
+      <li><a href="#integracao-rede">15. Integração com Rede</a></li>
+      <li><a href="#vpp">16. Virtual Power Plant (VPP)</a></li>
+      <li><a href="#demand-response">17. Resposta à Demanda</a></li>
+      <li><a href="#trading">18. Energy Trading</a></li>
+      <li><a href="#trading-ia">19. Trading com IA</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte V - Alertas e Manutenção</h3>
+    <ul>
+      <li><a href="#alertas">20. Sistema de Alertas</a></li>
+      <li><a href="#manutencao">21. Manutenção</a></li>
+      <li><a href="#manut-preditiva">22. Manutenção Preditiva</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte VI - Relatórios e Compliance</h3>
+    <ul>
+      <li><a href="#relatorios">23. Relatórios</a></li>
+      <li><a href="#carbono">24. Pegada de Carbono</a></li>
+      <li><a href="#sla">25. SLA Dashboard</a></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte VII - Administração</h3>
+    <ul>
+      <li><a href="#usuarios">26. Gerenciamento de Usuários</a></li>
+      <li><a href="#configuracoes">27. Configurações</a></li>
+      <li><a href="#assistente-ia">28. Assistente Virtual IA</a></li>
+      <li><a href="#gamificacao">29. Gamificação</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== PARTE I ==================== -->
+<div class="content">
+
+<div class="part-header">
+  <h2>Parte I</h2>
+  <h1>Visão Geral e Monitoramento</h1>
+</div>
+
+<!-- ========== 1. DASHBOARD ========== -->
+<div class="menu-section" id="dashboard">
+  <div class="menu-header">
+    <h2>📊 Dashboard Principal</h2>
+    <span class="path">/dashboard</span>
+    <p>Tela inicial do sistema com visão consolidada de todos os ativos BESS, métricas em tempo real, alertas críticos e indicadores de performance.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/01-dashboard.png" alt="Dashboard Principal do EMS">
+    <p class="screenshot-caption">Figura 1: Dashboard Principal com visão geral de todos os sistemas BESS</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Dashboard Principal é a porta de entrada do Lifo4 EMS e foi projetado para fornecer uma visão instantânea
+    do estado de todos os sistemas BESS sob gerenciamento. Em questão de segundos, o operador consegue identificar
+    se há algum problema, qual é a produção atual de energia e como está a performance geral da operação.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Em operações de armazenamento de energia, decisões precisam ser tomadas rapidamente. Uma bateria com temperatura
+      elevada pode entrar em thermal runaway em minutos. Um SOC baixo pode impedir participação em leilões de energia.
+      O Dashboard centraliza estas informações críticas para ação imediata.
+    </p>
+  </div>
+
+  <h3>Cards de Métricas Principais</h3>
+  <p>Na parte superior do Dashboard, você encontra cards com as métricas mais importantes:</p>
+
+  <div class="card-detail power">
+    <h4>Card: Potência Total</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Valor Principal</td>
+        <td>Soma da potência instantânea de todos os sistemas BESS</td>
+        <td>kW ou MW</td>
+        <td>Indica se os sistemas estão carregando (negativo) ou descarregando (positivo). Essencial para saber se você está comprando ou vendendo energia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Indicador de Tendência</td>
+        <td>Seta mostrando se a potência está subindo ou descendo</td>
+        <td>↑ ou ↓</td>
+        <td>Permite antecipar mudanças operacionais.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cor do Card</td>
+        <td>Verde = descarregando, Azul = carregando, Cinza = standby</td>
+        <td>-</td>
+        <td>Identificação visual instantânea do estado operacional.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: SOC Médio (State of Charge)</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Médio</td>
+        <td>Média ponderada do estado de carga de todos os sistemas</td>
+        <td>%</td>
+        <td>Indica a "reserva de energia" disponível. SOC muito baixo (&lt;20%) limita operações.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Mínimo/Máximo</td>
+        <td>Menor e maior SOC entre todos os sistemas</td>
+        <td>%</td>
+        <td>Identifica desbalanceamento entre sistemas.</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <h5>⚠️ Limites Críticos de SOC</h5>
+      <p><strong>SOC &lt; 10%:</strong> Risco de desligamento por subtensão.</p>
+      <p><strong>SOC &gt; 95%:</strong> Estresse nas células. Mantenha cargas prolongadas abaixo de 90%.</p>
+    </div>
+  </div>
+
+  <div class="card-detail thermal">
+    <h4>Card: Temperatura</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Média</td>
+        <td>Média de temperatura de todos os sistemas</td>
+        <td>Baterias de lítio operam idealmente entre 20-35°C.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Máxima</td>
+        <td>Maior temperatura detectada em qualquer sistema</td>
+        <td>CRÍTICO: Acima de 45°C requer atenção; acima de 60°C há risco de thermal runaway.</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <h5>⚠️ THERMAL RUNAWAY - ATENÇÃO MÁXIMA</h5>
+      <p>
+        Thermal runaway é uma reação em cadeia onde o calor gerado pela bateria causa mais calor, podendo resultar
+        em incêndio ou explosão. Qualquer aumento rápido de temperatura (>1°C/min) deve ser investigado imediatamente.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-detail alert">
+    <h4>Card: Alertas Ativos</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Crítico</td>
+        <td>Número de alertas de severidade crítica</td>
+        <td>Requer ação IMEDIATA. Pode indicar risco de segurança.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Alerta</td>
+        <td>Número de alertas de severidade alta</td>
+        <td>Requer atenção em minutos/horas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Aviso</td>
+        <td>Número de avisos de severidade média</td>
+        <td>Monitorar e planejar ação.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Ações Disponíveis no Dashboard</h3>
+  <div class="action-list">
+    <div class="action-item"><strong>Clicar em Sistema:</strong> Abre detalhes completos</div>
+    <div class="action-item"><strong>Botão Atualizar:</strong> Força refresh dos dados</div>
+    <div class="action-item"><strong>Exportar:</strong> Baixa dados em CSV/Excel</div>
+    <div class="action-item"><strong>Filtrar:</strong> Por status, localização, etc.</div>
+  </div>
+</div>
+
+<!-- ========== 2. MULTI-SITE ========== -->
+<div class="menu-section" id="multi-site">
+  <div class="menu-header">
+    <h2>🏢 Multi-Site Dashboard</h2>
+    <span class="path">/multi-site</span>
+    <p>Visão consolidada para gerenciamento de múltiplas instalações BESS distribuídas geograficamente.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/25-multi-site.png" alt="Multi-Site Dashboard">
+    <p class="screenshot-caption">Figura 2: Dashboard Multi-Site com mapa e comparativo de instalações</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Multi-Site Dashboard é projetado para operadores que gerenciam frotas de sistemas BESS em múltiplas
+    localizações. Ele agrega dados de todos os sites, permitindo comparações de performance e identificação de outliers.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Empresas com múltiplos sistemas BESS precisam de visão consolidada para otimizar operações. Este módulo permite
+      identificar qual site está performando abaixo do esperado e comparar métricas entre instalações similares.
+    </p>
+  </div>
+
+  <div class="card-detail">
+    <h4>Mapa de Localização</h4>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Marcadores no Mapa</td>
+        <td>Localização geográfica de cada site BESS</td>
+        <td>Visualização espacial permite correlacionar problemas com eventos regionais.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cor do Marcador</td>
+        <td>Verde = OK, Amarelo = Atenção, Vermelho = Crítico</td>
+        <td>Identificação visual instantânea de sites com problemas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tamanho do Marcador</td>
+        <td>Proporcional à capacidade instalada</td>
+        <td>Sites maiores têm marcadores maiores.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Tabela Comparativa de Sites</h4>
+    <table class="field-table">
+      <tr>
+        <th>Coluna</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Site</td>
+        <td>Nome e localização da instalação</td>
+        <td>Identificação do site para ações de follow-up.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Disponibilidade</td>
+        <td>% do tempo que o sistema esteve operacional</td>
+        <td>Sites com baixa disponibilidade requerem investigação.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Eficiência RT</td>
+        <td>Eficiência round-trip (energia saída / energia entrada)</td>
+        <td>Indica perdas no sistema. Eficiência típica é 85-92%.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Receita</td>
+        <td>Valor gerado no período</td>
+        <td>Métrica final de sucesso.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 3. SISTEMAS ========== -->
+<div class="menu-section" id="sistemas">
+  <div class="menu-header">
+    <h2>🔋 Lista de Sistemas BESS</h2>
+    <span class="path">/systems</span>
+    <p>Catálogo completo de todos os sistemas BESS cadastrados, com filtros avançados e busca.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/02-sistemas.png" alt="Lista de Sistemas">
+    <p class="screenshot-caption">Figura 3: Lista de sistemas BESS com cards de status</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A página de Sistemas é o ponto central para gerenciamento de todos os ativos BESS. Aqui você encontra
+    todos os sistemas cadastrados, podendo filtrar, buscar e acessar rapidamente qualquer sistema específico.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Com dezenas ou centenas de sistemas BESS, encontrar rapidamente o sistema certo é crucial. Esta página
+      funciona como um "inventário vivo" dos ativos, permitindo filtrar por diversos critérios.
+    </p>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card de Sistema</h4>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Nome/ID</td>
+        <td>Identificador do sistema</td>
+        <td>Identificação rápida.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Status</td>
+        <td>Online/Offline/Alerta</td>
+        <td>Estado operacional atual.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC</td>
+        <td>Barra visual de carga</td>
+        <td>Nível de energia disponível.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Potência</td>
+        <td>kW atual</td>
+        <td>O que está fazendo agora.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura</td>
+        <td>°C máxima</td>
+        <td>Saúde térmica.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Localização</td>
+        <td>Cidade/estado</td>
+        <td>Contexto geográfico.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Filtros Disponíveis</h3>
+  <table class="field-table">
+    <tr>
+      <th>Filtro</th>
+      <th>Opções</th>
+      <th>Uso Prático</th>
+    </tr>
+    <tr>
+      <td class="field-name">Status</td>
+      <td>Todos, Online, Offline, Com Alertas</td>
+      <td>Encontrar sistemas que precisam de atenção.</td>
+    </tr>
+    <tr>
+      <td class="field-name">SOC</td>
+      <td>Faixa de valores (0-20%, 20-80%, 80-100%)</td>
+      <td>Encontrar sistemas que precisam carregar/descarregar.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Temperatura</td>
+      <td>Normal, Elevada, Crítica</td>
+      <td>Identificar sistemas com problema térmico.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Localização</td>
+      <td>Estado, Cidade</td>
+      <td>Filtrar por região geográfica.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 4. SISTEMA DETALHE ========== -->
+<div class="menu-section" id="sistema-detalhe">
+  <div class="menu-header">
+    <h2>🔍 Detalhes do Sistema</h2>
+    <span class="path">/systems/{id}</span>
+    <p>Página completa com todas as informações de um sistema BESS específico.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/22-sistema-detalhe.png" alt="Detalhes do Sistema">
+    <p class="screenshot-caption">Figura 4: Página de detalhes com métricas completas do sistema</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A página de Detalhes do Sistema apresenta todas as informações disponíveis sobre um sistema BESS específico,
+    incluindo métricas em tempo real, histórico, configurações e status de componentes.
+  </p>
+
+  <div class="card-detail">
+    <h4>Informações do Sistema</h4>
+    <table class="field-table">
+      <tr>
+        <th>Seção</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Resumo</td>
+        <td>SOC, Potência, Temperatura, SOH</td>
+        <td>Visão instantânea do estado atual.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Gráficos</td>
+        <td>Histórico de potência, SOC, temperatura</td>
+        <td>Análise de tendências e padrões.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Componentes</td>
+        <td>Status de BMS, PCS, inversor, etc.</td>
+        <td>Diagnóstico de problemas específicos.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Alertas</td>
+        <td>Alertas ativos e histórico</td>
+        <td>Problemas atuais e recorrentes.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Configurações</td>
+        <td>Parâmetros operacionais</td>
+        <td>Limites e modos de operação.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 5. PAINEL DE CONTROLE ========== -->
+<div class="menu-section" id="painel-controle">
+  <div class="menu-header">
+    <h2>🎮 Painel de Controle</h2>
+    <span class="path">/systems/{id}/control</span>
+    <p>Interface de operação para enviar comandos ao sistema BESS.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/23-painel-controle.png" alt="Painel de Controle">
+    <p class="screenshot-caption">Figura 5: Painel de controle para operação remota do BESS</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Painel de Controle permite enviar comandos operacionais ao sistema BESS de forma remota.
+    Aqui o operador pode iniciar carga/descarga, ajustar potência, mudar modos de operação e executar procedimentos de emergência.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      O controle remoto é essencial para operação eficiente de sistemas BESS distribuídos. Permite resposta
+      rápida a mudanças de mercado, condições climáticas ou eventos de emergência sem necessidade de presença física.
+    </p>
+  </div>
+
+  <div class="card-detail control">
+    <h4>Controles de Operação</h4>
+    <table class="field-table">
+      <tr>
+        <th>Controle</th>
+        <th>O que faz</th>
+        <th>Quando usar</th>
+      </tr>
+      <tr>
+        <td class="field-name">Iniciar Carga</td>
+        <td>Começa a carregar as baterias</td>
+        <td>Quando energia está barata ou SOC baixo.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Iniciar Descarga</td>
+        <td>Começa a fornecer energia</td>
+        <td>Quando energia está cara ou há demanda.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Standby</td>
+        <td>Coloca sistema em espera</td>
+        <td>Manutenção ou aguardando condições.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ajuste de Potência</td>
+        <td>Define potência de carga/descarga</td>
+        <td>Otimizar conforme necessidade.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Parada de Emergência</td>
+        <td>Desliga sistema imediatamente</td>
+        <td>APENAS em situações críticas de segurança.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="warning">
+    <h5>⚠️ Comandos Críticos</h5>
+    <p>
+      Comandos de operação afetam equipamentos físicos de alto valor. Sempre confirme o sistema correto antes de
+      executar. Parada de emergência deve ser usada APENAS quando há risco iminente de segurança.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== PARTE II ==================== -->
+<div class="part-header">
+  <h2>Parte II</h2>
+  <h1>Câmeras e Microgrids</h1>
+</div>
+
+<!-- ========== 6. CÂMERAS ========== -->
+<div class="menu-section" id="cameras">
+  <div class="menu-header">
+    <h2>📹 Câmeras de Segurança</h2>
+    <span class="path">/cameras</span>
+    <p>Monitoramento visual de todas as instalações BESS com câmeras de segurança em tempo real.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/03-cameras.png" alt="Lista de Câmeras">
+    <p class="screenshot-caption">Figura 6: Grid de câmeras de segurança com visualização em tempo real</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Câmeras permite monitoramento visual das instalações BESS. Isso é crucial para segurança física,
+    verificação de condições ambientais e investigação de incidentes.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Sistemas BESS são alvos de vandalismo e roubo de componentes. Além disso, câmeras permitem verificar
+      visualmente condições como acúmulo de água, presença de animais ou fumaça antes que sensores detectem.
+    </p>
+  </div>
+
+  <div class="card-detail camera">
+    <h4>Card de Câmera</h4>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Thumbnail</td>
+        <td>Imagem atual da câmera</td>
+        <td>Visualização rápida sem abrir stream completo.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Nome</td>
+        <td>Identificação da câmera</td>
+        <td>Localizar câmera específica.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Status</td>
+        <td>Online/Offline</td>
+        <td>Saber se câmera está funcionando.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tipo</td>
+        <td>Normal, PTZ, Térmica</td>
+        <td>Identificar capacidades da câmera.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Localização</td>
+        <td>Site/área monitorada</td>
+        <td>Contexto da imagem.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Funcionalidades</h3>
+  <div class="action-list">
+    <div class="action-item"><strong>Ver ao Vivo:</strong> Stream em tempo real</div>
+    <div class="action-item"><strong>Gravar Clipe:</strong> Salva trecho de vídeo</div>
+    <div class="action-item"><strong>Snapshot:</strong> Captura imagem atual</div>
+    <div class="action-item"><strong>PTZ:</strong> Controle pan/tilt/zoom</div>
+    <div class="action-item"><strong>Editar:</strong> Configurar câmera</div>
+    <div class="action-item"><strong>Excluir:</strong> Remover câmera</div>
+  </div>
+</div>
+
+<!-- ========== 7. CÂMERAS TÉRMICAS ========== -->
+<div class="menu-section" id="cameras-termicas">
+  <div class="menu-header">
+    <h2>🌡️ Monitoramento Térmico</h2>
+    <span class="path">/cameras/thermal</span>
+    <p>Câmeras térmicas especializadas para detecção precoce de anomalias de temperatura em células e componentes.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/04-cameras-termicas.png" alt="Câmeras Térmicas">
+    <p class="screenshot-caption">Figura 7: Monitoramento térmico com detecção de hotspots</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Câmeras térmicas (infravermelhas) são fundamentais para detecção precoce de thermal runaway.
+    Elas conseguem identificar aumentos de temperatura em células específicas antes que sensores pontuais detectem,
+    permitindo ação preventiva.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Thermal runaway geralmente começa em uma única célula que superaquece. Câmeras térmicas podem detectar
+      esta célula "quente" visualmente, permitindo isolar o problema antes que se espalhe. É uma camada
+      adicional de segurança além dos sensores de temperatura tradicionais.
+    </p>
+  </div>
+
+  <div class="card-detail thermal">
+    <h4>Visualização Térmica</h4>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Imagem Térmica</td>
+        <td>Mapa de calor colorido</td>
+        <td>Identificar zonas quentes visualmente.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Escala de Cores</td>
+        <td>Legenda de temperaturas (azul=frio, vermelho=quente)</td>
+        <td>Interpretar as cores da imagem.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Máxima</td>
+        <td>Ponto mais quente detectado</td>
+        <td>Alerta automático se exceder limite.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Hotspots</td>
+        <td>Marcadores em pontos anormais</td>
+        <td>Destacar áreas que precisam de atenção.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="warning">
+    <h5>⚠️ Alertas Térmicos</h5>
+    <p>
+      <strong>Amarelo (35-45°C):</strong> Atenção - Monitorar de perto.<br>
+      <strong>Laranja (45-55°C):</strong> Alerta - Investigar imediatamente.<br>
+      <strong>Vermelho (>55°C):</strong> CRÍTICO - Risco de thermal runaway. Ação imediata necessária.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 8. MICROGRIDS ========== -->
+<div class="menu-section" id="microgrids">
+  <div class="menu-header">
+    <h2>🔌 Microgrids</h2>
+    <span class="path">/microgrids</span>
+    <p>Gerenciamento de microrredes com integração de BESS, solar, eólica e cargas críticas.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/05-microgrids.png" alt="Dashboard de Microgrids">
+    <p class="screenshot-caption">Figura 8: Dashboard de microgrids com fluxo de energia</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Uma microgrid é um sistema elétrico localizado que pode operar conectado à rede principal ou de forma
+    independente (ilhada). O BESS é componente central da microgrid, fornecendo estabilidade e backup.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Em microgrids, o BESS precisa coordenar com geradores solares, eólicos e cargas. Este módulo mostra
+      o balanço de energia em tempo real e permite gerenciar transições entre modos conectado e ilhado.
+    </p>
+  </div>
+
+  <div class="card-detail grid">
+    <h4>Diagrama de Fluxo de Energia</h4>
+    <table class="field-table">
+      <tr>
+        <th>Componente</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Rede Principal</td>
+        <td>Conexão com a concessionária</td>
+        <td>Importação/exportação de energia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Geração Solar</td>
+        <td>Painéis fotovoltaicos</td>
+        <td>Produção de energia renovável.</td>
+      </tr>
+      <tr>
+        <td class="field-name">BESS</td>
+        <td>Sistema de armazenamento</td>
+        <td>Buffer e backup de energia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cargas</td>
+        <td>Consumidores de energia</td>
+        <td>Demanda a ser atendida.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Setas de Fluxo</td>
+        <td>Direção e magnitude do fluxo</td>
+        <td>Entender para onde a energia está indo.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Modos de Operação</h4>
+    <table class="field-table">
+      <tr>
+        <th>Modo</th>
+        <th>O que significa</th>
+        <th>Quando usar</th>
+      </tr>
+      <tr>
+        <td class="field-name">Grid Connected</td>
+        <td>Conectado à rede principal</td>
+        <td>Operação normal com suporte da rede.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Islanded</td>
+        <td>Operação independente</td>
+        <td>Falha na rede ou por escolha.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Black Start</td>
+        <td>Partida sem rede externa</td>
+        <td>Recuperação após blackout.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== PARTE III ==================== -->
+<div class="part-header">
+  <h2>Parte III</h2>
+  <h1>Analytics e Otimização</h1>
+</div>
+
+<!-- ========== 9. ANALYTICS ========== -->
+<div class="menu-section" id="analytics">
+  <div class="menu-header">
+    <h2>📊 Analytics</h2>
+    <span class="path">/analytics</span>
+    <p>Análise avançada de dados com gráficos interativos, tendências e insights sobre performance dos sistemas.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/06-analytics.png" alt="Analytics Dashboard">
+    <p class="screenshot-caption">Figura 9: Dashboard de analytics com gráficos e métricas</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Analytics oferece ferramentas para análise profunda dos dados dos sistemas BESS.
+    Permite identificar padrões, tendências e anomalias que não são visíveis no monitoramento em tempo real.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Dados históricos revelam oportunidades de otimização: horários ideais para carga/descarga,
+      correlações entre temperatura e eficiência, impacto de ciclos na degradação. Analytics transforma dados brutos em insights acionáveis.
+    </p>
+  </div>
+
+  <div class="card-detail chart">
+    <h4>Tipos de Análise</h4>
+    <table class="field-table">
+      <tr>
+        <th>Análise</th>
+        <th>O que mostra</th>
+        <th>Insight fornecido</th>
+      </tr>
+      <tr>
+        <td class="field-name">Tendência de SOH</td>
+        <td>Degradação ao longo do tempo</td>
+        <td>Previsão de vida útil restante.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Perfil de Carga</td>
+        <td>Padrões de uso por hora/dia</td>
+        <td>Otimização de estratégia operacional.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Eficiência</td>
+        <td>Round-trip efficiency ao longo do tempo</td>
+        <td>Identificar degradação de eficiência.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Correlações</td>
+        <td>Relações entre variáveis</td>
+        <td>Entender causas de problemas.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 10. SAÚDE DA BATERIA ========== -->
+<div class="menu-section" id="saude-bateria">
+  <div class="menu-header">
+    <h2>🔋 Saúde da Bateria</h2>
+    <span class="path">/battery-health</span>
+    <p>Análise detalhada do estado de saúde (SOH) das baterias com projeções de vida útil.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/07-saude-bateria.png" alt="Saúde da Bateria">
+    <p class="screenshot-caption">Figura 10: Dashboard de saúde da bateria com indicadores de degradação</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Saúde da Bateria fornece análise aprofundada do estado de degradação das células.
+    Inclui métricas de SOH, projeções de vida útil, análise de ciclos e recomendações para maximizar durabilidade.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Baterias são o componente mais caro de um BESS. Entender e gerenciar a degradação permite maximizar
+      o retorno sobre investimento, planejar substituições e evitar falhas inesperadas.
+    </p>
+  </div>
+
+  <div class="card-detail">
+    <h4>Métricas de Saúde</h4>
+    <table class="field-table">
+      <tr>
+        <th>Métrica</th>
+        <th>O que significa</th>
+        <th>Valor típico</th>
+      </tr>
+      <tr>
+        <td class="field-name">SOH</td>
+        <td>Capacidade atual vs original</td>
+        <td>100% (nova) até 70-80% (fim de vida)</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ciclos</td>
+        <td>Número de ciclos completos</td>
+        <td>Depende da química (LFP: 3000-6000)</td>
+      </tr>
+      <tr>
+        <td class="field-name">Taxa de Degradação</td>
+        <td>Perda de SOH por período</td>
+        <td>2-5% ao ano típico</td>
+      </tr>
+      <tr>
+        <td class="field-name">Vida Restante</td>
+        <td>Estimativa até EOL</td>
+        <td>Calculado baseado em tendência.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 11. OTIMIZAÇÃO ========== -->
+<div class="menu-section" id="otimizacao">
+  <div class="menu-header">
+    <h2>⚡ Otimização</h2>
+    <span class="path">/optimization</span>
+    <p>Algoritmos de otimização para maximizar valor econômico e eficiência operacional do BESS.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/19-otimizacao.png" alt="Otimização">
+    <p class="screenshot-caption">Figura 11: Painel de otimização com algoritmos e recomendações</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Otimização usa algoritmos avançados para determinar a melhor estratégia de operação
+    do BESS, considerando preços de energia, previsão de demanda, condições da bateria e restrições operacionais.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      A diferença entre uma operação boa e excelente pode significar milhares de reais por mês.
+      Otimização automática encontra oportunidades que operadores humanos podem perder.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 12. SIMULAÇÃO ========== -->
+<div class="menu-section" id="simulacao">
+  <div class="menu-header">
+    <h2>🎯 Simulação</h2>
+    <span class="path">/simulation</span>
+    <p>Ambiente de simulação para testar estratégias e cenários antes de implementar em produção.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/20-simulacao.png" alt="Simulação">
+    <p class="screenshot-caption">Figura 12: Ambiente de simulação com cenários e resultados</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A Simulação permite testar estratégias operacionais em ambiente virtual antes de aplicar em sistemas reais.
+    Use dados históricos ou cenários hipotéticos para avaliar resultados potenciais.
+  </p>
+</div>
+
+<!-- ========== 13. DIGITAL TWIN ========== -->
+<div class="menu-section" id="digital-twin">
+  <div class="menu-header">
+    <h2>🔮 Digital Twin</h2>
+    <span class="path">/digital-twin</span>
+    <p>Gêmeo digital do sistema BESS para simulação avançada e análise preditiva.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/08-digital-twin.png" alt="Digital Twin">
+    <p class="screenshot-caption">Figura 13: Digital Twin com modelo 3D e simulação PyBAMM</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Digital Twin é uma réplica virtual do sistema BESS que simula seu comportamento com alta fidelidade.
+    Utiliza modelos eletroquímicos (PyBAMM) para prever degradação e comportamento sob diferentes condições.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      O Digital Twin permite "ver o futuro" - simular anos de operação em minutos para prever degradação,
+      testar estratégias sem risco e otimizar operações com base em física real das células.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 14. BENCHMARKING ========== -->
+<div class="menu-section" id="benchmarking">
+  <div class="menu-header">
+    <h2>📊 Benchmarking</h2>
+    <span class="path">/benchmarking</span>
+    <p>Comparação de performance entre sistemas, identificando melhores práticas e oportunidades de melhoria.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/26-benchmarking.png" alt="Benchmarking">
+    <p class="screenshot-caption">Figura 14: Benchmarking com ranking e comparativos</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Benchmarking compara a performance de diferentes sistemas BESS, identificando quais estão acima ou abaixo
+    da média e permitindo aprender com os melhores performers.
+  </p>
+</div>
+
+<!-- ==================== PARTE IV ==================== -->
+<div class="part-header">
+  <h2>Parte IV</h2>
+  <h1>Integração e Mercado</h1>
+</div>
+
+<!-- ========== 15. INTEGRAÇÃO COM REDE ========== -->
+<div class="menu-section" id="integracao-rede">
+  <div class="menu-header">
+    <h2>🔌 Integração com Rede</h2>
+    <span class="path">/grid</span>
+    <p>Gerenciamento da conexão com a rede elétrica, incluindo medição bidirecional e serviços ancilares.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/14-integracao-rede.png" alt="Integração com Rede">
+    <p class="screenshot-caption">Figura 15: Dashboard de integração com a rede elétrica</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Este módulo gerencia a interface entre o BESS e a rede elétrica. Monitora qualidade de energia,
+    frequência, tensão e coordena serviços ancilares como regulação de frequência.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      A conexão com a rede é fundamental para a operação comercial do BESS. Problemas de qualidade
+      de energia podem danificar equipamentos ou resultar em penalidades do operador da rede.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 16. VPP ========== -->
+<div class="menu-section" id="vpp">
+  <div class="menu-header">
+    <h2>🏭 Virtual Power Plant (VPP)</h2>
+    <span class="path">/vpp</span>
+    <p>Agregação de múltiplos ativos distribuídos para participação conjunta no mercado de energia.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/15-vpp.png" alt="Virtual Power Plant">
+    <p class="screenshot-caption">Figura 16: Dashboard VPP com ativos agregados</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A Virtual Power Plant (VPP) agrega múltiplos sistemas BESS distribuídos para operar como uma única
+    "usina virtual", permitindo participação em mercados que exigem capacidade mínima.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Sistemas BESS individuais podem ser pequenos demais para participar de certos mercados de energia.
+      A VPP combina vários sistemas para atingir a escala necessária e distribuir riscos.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 17. DEMAND RESPONSE ========== -->
+<div class="menu-section" id="demand-response">
+  <div class="menu-header">
+    <h2>📉 Resposta à Demanda</h2>
+    <span class="path">/demand-response</span>
+    <p>Participação em programas de resposta à demanda para redução de carga em horários críticos.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/24-demand-response.png" alt="Demand Response">
+    <p class="screenshot-caption">Figura 17: Dashboard de resposta à demanda com eventos e performance</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Resposta à Demanda (DR) são programas onde consumidores/geradores recebem incentivos para ajustar
+    seu consumo/geração em resposta a sinais do operador da rede.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      BESS pode responder instantaneamente a eventos DR, descarregando durante picos de demanda.
+      Isso gera receita adicional e ajuda a estabilizar a rede.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 18. TRADING ========== -->
+<div class="menu-section" id="trading">
+  <div class="menu-header">
+    <h2>💰 Energy Trading</h2>
+    <span class="path">/trading</span>
+    <p>Plataforma de trading de energia para arbitragem e participação em mercados de energia.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/10-trading.png" alt="Energy Trading">
+    <p class="screenshot-caption">Figura 18: Plataforma de trading de energia</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Trading permite comprar e vender energia no mercado spot e futuro,
+    realizando arbitragem entre períodos de preço baixo (carga) e alto (descarga).
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Arbitragem de energia é uma das principais fontes de receita para BESS comerciais.
+      Comprar energia barata à noite e vender cara durante o dia pode gerar retornos significativos.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 19. TRADING IA ========== -->
+<div class="menu-section" id="trading-ia">
+  <div class="menu-header">
+    <h2>🤖 Trading com IA</h2>
+    <span class="path">/trading-dashboard</span>
+    <p>Trading automatizado usando inteligência artificial e deep reinforcement learning.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/11-trading-ia.png" alt="Trading com IA">
+    <p class="screenshot-caption">Figura 19: Dashboard de trading com IA e previsões</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Trading com IA usa algoritmos de machine learning para prever preços de energia e
+    tomar decisões de trading automaticamente, maximizando lucros.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      A IA pode processar mais dados e reagir mais rápido que operadores humanos,
+      capturando oportunidades de arbitragem que seriam perdidas.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== PARTE V ==================== -->
+<div class="part-header">
+  <h2>Parte V</h2>
+  <h1>Alertas e Manutenção</h1>
+</div>
+
+<!-- ========== 20. ALERTAS ========== -->
+<div class="menu-section" id="alertas">
+  <div class="menu-header">
+    <h2>🚨 Sistema de Alertas</h2>
+    <span class="path">/alerts</span>
+    <p>Central de alertas e notificações de todos os sistemas BESS monitorados.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/09-alertas.png" alt="Sistema de Alertas">
+    <p class="screenshot-caption">Figura 20: Central de alertas com histórico e filtros</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Sistema de Alertas centraliza todas as notificações de problemas, anomalias e eventos importantes
+    dos sistemas BESS. Permite filtrar, priorizar e investigar alertas.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Alertas são a primeira linha de defesa contra problemas. Configuração adequada garante que
+      problemas críticos sejam detectados rapidamente sem gerar excesso de notificações falsas.
+    </p>
+  </div>
+
+  <div class="card-detail alert">
+    <h4>Níveis de Severidade</h4>
+    <table class="field-table">
+      <tr>
+        <th>Nível</th>
+        <th>Cor</th>
+        <th>Significado</th>
+        <th>Ação esperada</th>
+      </tr>
+      <tr>
+        <td class="field-name">Crítico</td>
+        <td>🔴 Vermelho</td>
+        <td>Risco iminente de segurança ou falha</td>
+        <td>Ação IMEDIATA</td>
+      </tr>
+      <tr>
+        <td class="field-name">Alto</td>
+        <td>🟠 Laranja</td>
+        <td>Problema sério que pode escalar</td>
+        <td>Ação em minutos/horas</td>
+      </tr>
+      <tr>
+        <td class="field-name">Médio</td>
+        <td>🟡 Amarelo</td>
+        <td>Condição anormal a monitorar</td>
+        <td>Investigar durante o turno</td>
+      </tr>
+      <tr>
+        <td class="field-name">Baixo</td>
+        <td>🔵 Azul</td>
+        <td>Informação ou aviso menor</td>
+        <td>Revisar quando conveniente</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 21. MANUTENÇÃO ========== -->
+<div class="menu-section" id="manutencao">
+  <div class="menu-header">
+    <h2>🔧 Manutenção</h2>
+    <span class="path">/maintenance</span>
+    <p>Gerenciamento de atividades de manutenção preventiva e corretiva.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/12-manutencao.png" alt="Manutenção">
+    <p class="screenshot-caption">Figura 21: Dashboard de manutenção com ordens de serviço</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Manutenção organiza todas as atividades de manutenção dos sistemas BESS,
+    incluindo ordens de serviço, cronogramas e histórico de intervenções.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Manutenção adequada maximiza vida útil e disponibilidade do BESS. Negligenciar manutenção
+      resulta em degradação acelerada, falhas inesperadas e custos maiores a longo prazo.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 22. MANUTENÇÃO PREDITIVA ========== -->
+<div class="menu-section" id="manut-preditiva">
+  <div class="menu-header">
+    <h2>🔮 Manutenção Preditiva</h2>
+    <span class="path">/predictive</span>
+    <p>Análise preditiva para antecipar falhas e otimizar cronogramas de manutenção.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/21-manut-preditiva.png" alt="Manutenção Preditiva">
+    <p class="screenshot-caption">Figura 22: Dashboard de manutenção preditiva com previsões de falha</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A Manutenção Preditiva usa machine learning para analisar dados dos sistemas e prever
+    quando componentes podem falhar, permitindo manutenção proativa antes da falha ocorrer.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Prever falhas antes que ocorram evita paradas não programadas, reduz custos de manutenção
+      emergencial e aumenta a disponibilidade do sistema.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== PARTE VI ==================== -->
+<div class="part-header">
+  <h2>Parte VI</h2>
+  <h1>Relatórios e Compliance</h1>
+</div>
+
+<!-- ========== 23. RELATÓRIOS ========== -->
+<div class="menu-section" id="relatorios">
+  <div class="menu-header">
+    <h2>📋 Relatórios</h2>
+    <span class="path">/reports</span>
+    <p>Geração de relatórios customizados para análise de performance e compliance.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/13-relatorios.png" alt="Relatórios">
+    <p class="screenshot-caption">Figura 23: Central de relatórios com templates e agendamentos</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Relatórios permite gerar documentos detalhados sobre a operação dos sistemas BESS,
+    incluindo relatórios de performance, financeiros, de manutenção e de compliance.
+  </p>
+
+  <div class="card-detail">
+    <h4>Tipos de Relatório</h4>
+    <table class="field-table">
+      <tr>
+        <th>Relatório</th>
+        <th>Conteúdo</th>
+        <th>Público-alvo</th>
+      </tr>
+      <tr>
+        <td class="field-name">Performance Operacional</td>
+        <td>SOC, ciclos, disponibilidade, eficiência</td>
+        <td>Operações</td>
+      </tr>
+      <tr>
+        <td class="field-name">Financeiro</td>
+        <td>Receita, custos, ROI, payback</td>
+        <td>Gestão/Investidores</td>
+      </tr>
+      <tr>
+        <td class="field-name">Manutenção</td>
+        <td>Intervenções, custos, MTBF</td>
+        <td>Manutenção</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ambiental</td>
+        <td>CO2 evitado, energia renovável</td>
+        <td>Sustentabilidade/ESG</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 24. CARBONO ========== -->
+<div class="menu-section" id="carbono">
+  <div class="menu-header">
+    <h2>🌱 Pegada de Carbono</h2>
+    <span class="path">/carbon</span>
+    <p>Monitoramento de emissões evitadas e impacto ambiental positivo do BESS.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/29-pegada-carbono.png" alt="Pegada de Carbono">
+    <p class="screenshot-caption">Figura 24: Dashboard de sustentabilidade e emissões evitadas</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Este módulo calcula e reporta o impacto ambiental positivo do BESS, incluindo emissões de CO2
+    evitadas, energia renovável armazenada e contribuição para metas de sustentabilidade.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Relatórios ESG (Environmental, Social, Governance) são cada vez mais importantes para investidores
+      e reguladores. Demonstrar impacto ambiental positivo pode ser requisito para financiamento e licenciamento.
+    </p>
+  </div>
+</div>
+
+<!-- ========== 25. SLA ========== -->
+<div class="menu-section" id="sla">
+  <div class="menu-header">
+    <h2>📊 SLA Dashboard</h2>
+    <span class="path">/sla</span>
+    <p>Monitoramento de acordos de nível de serviço e métricas de disponibilidade.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/28-sla.png" alt="SLA Dashboard">
+    <p class="screenshot-caption">Figura 25: Dashboard de SLA com métricas de disponibilidade</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O SLA Dashboard monitora o cumprimento de acordos de nível de serviço, incluindo disponibilidade,
+    tempo de resposta e performance acordados com clientes ou operadores de rede.
+  </p>
+</div>
+
+<!-- ==================== PARTE VII ==================== -->
+<div class="part-header">
+  <h2>Parte VII</h2>
+  <h1>Administração</h1>
+</div>
+
+<!-- ========== 26. USUÁRIOS ========== -->
+<div class="menu-section" id="usuarios">
+  <div class="menu-header">
+    <h2>👥 Gerenciamento de Usuários</h2>
+    <span class="path">/users</span>
+    <p>Administração de contas de usuário, permissões e controle de acesso.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/16-usuarios.png" alt="Gerenciamento de Usuários">
+    <p class="screenshot-caption">Figura 26: Painel de gerenciamento de usuários e permissões</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    Este módulo permite gerenciar quem tem acesso ao sistema EMS e quais ações cada usuário pode executar.
+    Suporta diferentes níveis de permissão e auditoria de ações.
+  </p>
+
+  <div class="card-detail">
+    <h4>Níveis de Permissão</h4>
+    <table class="field-table">
+      <tr>
+        <th>Perfil</th>
+        <th>Permissões</th>
+        <th>Uso típico</th>
+      </tr>
+      <tr>
+        <td class="field-name">Visualizador</td>
+        <td>Apenas leitura</td>
+        <td>Clientes, stakeholders</td>
+      </tr>
+      <tr>
+        <td class="field-name">Operador</td>
+        <td>Leitura + controle operacional</td>
+        <td>Equipe de operações</td>
+      </tr>
+      <tr>
+        <td class="field-name">Técnico</td>
+        <td>Operador + configurações</td>
+        <td>Equipe técnica</td>
+      </tr>
+      <tr>
+        <td class="field-name">Administrador</td>
+        <td>Acesso completo</td>
+        <td>Gestores do sistema</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 27. CONFIGURAÇÕES ========== -->
+<div class="menu-section" id="configuracoes">
+  <div class="menu-header">
+    <h2>⚙️ Configurações</h2>
+    <span class="path">/settings</span>
+    <p>Configurações gerais do sistema EMS, integrações e preferências.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/17-configuracoes.png" alt="Configurações">
+    <p class="screenshot-caption">Figura 27: Painel de configurações do sistema</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Configurações permite personalizar o comportamento do sistema EMS,
+    incluindo limites de alerta, integrações com sistemas externos, preferências de interface e muito mais.
+  </p>
+</div>
+
+<!-- ========== 28. ASSISTENTE IA ========== -->
+<div class="menu-section" id="assistente-ia">
+  <div class="menu-header">
+    <h2>🤖 Assistente Virtual IA</h2>
+    <span class="path">/assistant</span>
+    <p>Assistente inteligente para consultas em linguagem natural e suporte operacional.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/18-assistente-ia.png" alt="Assistente IA">
+    <p class="screenshot-caption">Figura 28: Assistente virtual com interface de chat</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Assistente Virtual usa processamento de linguagem natural para responder perguntas sobre
+    o sistema, fornecer insights e auxiliar na operação. Você pode perguntar em português natural.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      O Assistente democratiza o acesso a informações complexas. Usuários não precisam saber
+      onde encontrar dados específicos - basta perguntar "Qual a eficiência do BESS-001 este mês?".
+    </p>
+  </div>
+
+  <div class="card-detail ai">
+    <h4>Exemplos de Perguntas</h4>
+    <ul>
+      <li>"Qual sistema tem menor SOC agora?"</li>
+      <li>"Resuma os alertas críticos de hoje"</li>
+      <li>"Compare a eficiência dos sistemas do Nordeste"</li>
+      <li>"Quando devo fazer manutenção no BESS-003?"</li>
+      <li>"Qual foi a receita de arbitragem esta semana?"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ========== 29. GAMIFICAÇÃO ========== -->
+<div class="menu-section" id="gamificacao">
+  <div class="menu-header">
+    <h2>🏆 Gamificação</h2>
+    <span class="path">/gamification</span>
+    <p>Sistema de pontos, conquistas e ranking para engajamento de operadores.</p>
+  </div>
+
+  <div class="screenshot">
+    <img src="screenshots/27-gamificacao.png" alt="Gamificação">
+    <p class="screenshot-caption">Figura 29: Dashboard de gamificação com pontos e conquistas</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O módulo de Gamificação adiciona elementos de jogo à operação do EMS, incentivando boas práticas
+    através de pontos, conquistas e rankings entre operadores e equipes.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Gamificação aumenta engajamento da equipe, incentiva resolução rápida de alertas,
+      manutenção proativa e compartilhamento de conhecimento entre operadores.
+    </p>
+  </div>
+</div>
+
+</div>
+
+<!-- ==================== RODAPÉ ==================== -->
+<footer>
+  <p><strong>Lifo4 EMS</strong> - Sistema de Gerenciamento de Energia</p>
+  <p>Manual Completo - Versão 1.0 | Fevereiro 2026</p>
+  <p>&copy; 2026 Lifo4 Energia. Todos os direitos reservados.</p>
+</footer>
+
+</body>
+</html>

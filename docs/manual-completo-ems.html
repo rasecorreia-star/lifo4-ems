@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Completo Lifo4 EMS - Guia Detalhado de Todas as Funcionalidades</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fff;
+      font-size: 10pt;
+    }
+
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      color: white;
+      text-align: center;
+      padding: 60px;
+      page-break-after: always;
+    }
+
+    .cover-logo {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      margin-bottom: 50px;
+      box-shadow: 0 30px 60px rgba(16, 185, 129, 0.4);
+    }
+
+    .cover h1 {
+      font-size: 56px;
+      margin-bottom: 15px;
+      font-weight: 800;
+    }
+
+    .cover h1 span { color: #10b981; }
+
+    .cover h2 {
+      font-size: 28px;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    .cover .subtitle {
+      font-size: 16px;
+      opacity: 0.8;
+      max-width: 700px;
+      margin-bottom: 60px;
+    }
+
+    .cover-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .cover-info-item {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .cover-info-item h4 {
+      font-size: 32px;
+      color: #10b981;
+    }
+
+    .cover-info-item p {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .cover .version {
+      margin-top: 60px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    /* Table of Contents */
+    .toc {
+      padding: 50px;
+      page-break-after: always;
+    }
+
+    .toc h2 {
+      font-size: 32px;
+      color: #0f172a;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 4px solid #10b981;
+    }
+
+    .toc-section {
+      margin-bottom: 25px;
+    }
+
+    .toc-section h3 {
+      font-size: 14px;
+      color: #10b981;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .toc ul { list-style: none; }
+
+    .toc li {
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .toc li a {
+      color: #1a1a2e;
+      text-decoration: none;
+    }
+
+    /* Content */
+    .content { padding: 40px 50px; }
+
+    .part-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: white;
+      padding: 80px 50px;
+      margin: -40px -50px 40px -50px;
+      text-align: center;
+      page-break-before: always;
+    }
+
+    .part-header h2 {
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.7;
+      margin-bottom: 15px;
+    }
+
+    .part-header h1 {
+      font-size: 42px;
+      font-weight: 700;
+    }
+
+    .menu-section {
+      page-break-before: always;
+      margin-bottom: 50px;
+    }
+
+    .menu-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-left: 5px solid #10b981;
+      padding: 25px 30px;
+      margin-bottom: 30px;
+    }
+
+    .menu-header h2 {
+      font-size: 24px;
+      color: #0f172a;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .menu-header .path {
+      font-size: 12px;
+      color: #10b981;
+      font-family: monospace;
+      background: #10b98120;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .menu-header p {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    h3 {
+      font-size: 18px;
+      color: #0f172a;
+      margin: 30px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #10b981;
+    }
+
+    h4 {
+      font-size: 14px;
+      color: #1e3a5f;
+      margin: 20px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h4::before {
+      content: "▸";
+      color: #10b981;
+    }
+
+    h5 {
+      font-size: 12px;
+      color: #475569;
+      margin: 15px 0 8px 0;
+      font-weight: 600;
+    }
+
+    p { margin-bottom: 12px; text-align: justify; }
+
+    ul, ol { margin: 12px 0 12px 25px; }
+    li { margin-bottom: 6px; }
+
+    .card-detail {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .card-detail h4 {
+      margin-top: 0;
+      color: #0f172a;
+      font-size: 15px;
+    }
+
+    .card-detail h4::before { content: "📊 "; }
+
+    .card-detail.control h4::before { content: "🎮 "; }
+    .card-detail.alert h4::before { content: "🚨 "; }
+    .card-detail.chart h4::before { content: "📈 "; }
+    .card-detail.config h4::before { content: "⚙️ "; }
+    .card-detail.thermal h4::before { content: "🌡️ "; }
+    .card-detail.power h4::before { content: "⚡ "; }
+    .card-detail.money h4::before { content: "💰 "; }
+    .card-detail.ai h4::before { content: "🤖 "; }
+
+    .field-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 10px;
+    }
+
+    .field-table th, .field-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .field-table th {
+      background: #0f172a;
+      color: white;
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .field-table tr:nth-child(even) { background: #f8fafc; }
+
+    .field-table .field-name {
+      font-weight: 600;
+      color: #1e3a5f;
+      white-space: nowrap;
+    }
+
+    .importance {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .importance h5 {
+      color: white;
+      margin-top: 0;
+      font-size: 12px;
+    }
+
+    .importance p {
+      margin: 0;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px 20px;
+      margin: 15px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .warning h5 {
+      color: #b45309;
+      margin-top: 0;
+    }
+
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px 20px;
+      margin: 15px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .info h5 {
+      color: #1d4ed8;
+      margin-top: 0;
+    }
+
+    .tab-section {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .tab-header {
+      background: #1e3a5f;
+      color: white;
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .tab-content {
+      padding: 20px;
+    }
+
+    .screenshot-placeholder {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+      border: 2px dashed #3b82f6;
+      border-radius: 12px;
+      padding: 40px;
+      margin: 20px 0;
+      text-align: center;
+      color: #94a3b8;
+    }
+
+    .action-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .action-item {
+      background: #f1f5f9;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    .action-item strong {
+      color: #10b981;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    .status-online { background: #22c55e; }
+    .status-offline { background: #94a3b8; }
+    .status-warning { background: #f59e0b; }
+    .status-critical { background: #ef4444; }
+
+    footer {
+      margin-top: 60px;
+      padding: 40px 50px;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
+
+    footer p { margin: 5px 0; }
+
+    @media print {
+      .menu-section { page-break-before: always; }
+      .part-header { page-break-before: always; }
+      body { font-size: 9pt; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== CAPA ==================== -->
+<div class="cover">
+  <div class="cover-logo">⚡</div>
+  <h1>Lifo4 <span>EMS</span></h1>
+  <h2>Manual Completo do Sistema</h2>
+  <p class="subtitle">
+    Guia detalhado de todas as funcionalidades do Sistema de Gerenciamento de Energia para BESS
+    (Battery Energy Storage System). Este manual cobre todos os 59 menus do sistema, explicando
+    cada card, aba, campo e sua importância para o gerenciamento remoto de sistemas de armazenamento de energia.
+  </p>
+
+  <div class="cover-info">
+    <div class="cover-info-item">
+      <h4>59</h4>
+      <p>Menus Documentados</p>
+    </div>
+    <div class="cover-info-item">
+      <h4>200+</h4>
+      <p>Páginas de Conteúdo</p>
+    </div>
+    <div class="cover-info-item">
+      <h4>100%</h4>
+      <p>Funcionalidades Cobertas</p>
+    </div>
+  </div>
+
+  <p class="version">Versão 1.0 Completa | Fevereiro 2026 | Lifo4 Energia</p>
+</div>
+
+<!-- ==================== ÍNDICE ==================== -->
+<div class="toc">
+  <h2>Índice Geral</h2>
+
+  <div class="toc-section">
+    <h3>Parte I - Visão Geral e Monitoramento</h3>
+    <ul>
+      <li><a href="#dashboard">1. Dashboard Principal</a><span>5</span></li>
+      <li><a href="#multi-site">2. Multi-Site Dashboard</a><span>12</span></li>
+      <li><a href="#meu-sistema">3. Meu Sistema (Portal do Cliente)</a><span>18</span></li>
+      <li><a href="#sistemas">4. Lista de Sistemas BESS</a><span>22</span></li>
+      <li><a href="#sistema-detalhe">5. Detalhes do Sistema</a><span>30</span></li>
+      <li><a href="#painel-controle">6. Painel de Controle</a><span>42</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte II - Monitoramento Especializado</h3>
+    <ul>
+      <li><a href="#cameras">7. Câmeras de Segurança</a><span>52</span></li>
+      <li><a href="#cameras-termicas">8. Monitoramento Térmico</a><span>60</span></li>
+      <li><a href="#microgrids">9. Microgrids</a><span>68</span></li>
+      <li><a href="#carregadores-ev">10. Carregadores de Veículos Elétricos</a><span>78</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte III - Analytics e Otimização</h3>
+    <ul>
+      <li><a href="#analytics">11. Analytics</a><span>85</span></li>
+      <li><a href="#benchmarking">12. Benchmarking</a><span>92</span></li>
+      <li><a href="#saude-bateria">13. Saúde da Bateria</a><span>98</span></li>
+      <li><a href="#perfil-carga">14. Perfil de Carga</a><span>106</span></li>
+      <li><a href="#custos-energia">15. Custos de Energia</a><span>112</span></li>
+      <li><a href="#meteorologia">16. Meteorologia</a><span>118</span></li>
+      <li><a href="#otimizacao">17. Otimização</a><span>124</span></li>
+      <li><a href="#simulacao">18. Simulação</a><span>132</span></li>
+      <li><a href="#digital-twin">19. Digital Twin</a><span>140</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte IV - Integração e Mercado</h3>
+    <ul>
+      <li><a href="#integracao-rede">20. Integração com Rede</a><span>150</span></li>
+      <li><a href="#vpp">21. Virtual Power Plant (VPP)</a><span>158</span></li>
+      <li><a href="#demand-response">22. Resposta à Demanda</a><span>166</span></li>
+      <li><a href="#trading">23. Energy Trading</a><span>174</span></li>
+      <li><a href="#trading-ia">24. Trading com IA</a><span>182</span></li>
+      <li><a href="#black-start">25. Black Start</a><span>190</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte V - Alertas e Manutenção</h3>
+    <ul>
+      <li><a href="#alertas">26. Sistema de Alertas</a><span>198</span></li>
+      <li><a href="#config-alarmes">27. Configuração de Alarmes</a><span>206</span></li>
+      <li><a href="#manutencao">28. Manutenção</a><span>214</span></li>
+      <li><a href="#manut-preditiva">29. Manutenção Preditiva</a><span>222</span></li>
+      <li><a href="#garantias">30. Garantias</a><span>230</span></li>
+      <li><a href="#ordens-servico">31. Ordens de Serviço</a><span>236</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte VI - Relatórios e Compliance</h3>
+    <ul>
+      <li><a href="#relatorios">32. Relatórios</a><span>244</span></li>
+      <li><a href="#carbono">33. Pegada de Carbono</a><span>252</span></li>
+      <li><a href="#compliance">34. Conformidade</a><span>258</span></li>
+      <li><a href="#sla">35. SLA Dashboard</a><span>266</span></li>
+      <li><a href="#auditoria">36. Auditoria</a><span>272</span></li>
+      <li><a href="#eventos">37. Log de Eventos</a><span>278</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte VII - Administração do Sistema</h3>
+    <ul>
+      <li><a href="#usuarios">38. Gerenciamento de Usuários</a><span>284</span></li>
+      <li><a href="#configuracoes">39. Configurações</a><span>292</span></li>
+      <li><a href="#backup">40. Backup e Restauração</a><span>300</span></li>
+      <li><a href="#api-keys">41. API Keys</a><span>306</span></li>
+      <li><a href="#integracoes">42. Hub de Integrações</a><span>312</span></li>
+      <li><a href="#firmware">43. Gerenciamento de Firmware</a><span>320</span></li>
+      <li><a href="#rede">44. Configuração de Rede</a><span>326</span></li>
+      <li><a href="#logs">45. Logs do Sistema</a><span>332</span></li>
+    </ul>
+  </div>
+
+  <div class="toc-section">
+    <h3>Parte VIII - Recursos Adicionais</h3>
+    <ul>
+      <li><a href="#assistente-ia">46. Assistente Virtual IA</a><span>338</span></li>
+      <li><a href="#gamificacao">47. Gamificação</a><span>346</span></li>
+      <li><a href="#treinamentos">48. Centro de Treinamentos</a><span>352</span></li>
+      <li><a href="#documentacao">49. Documentação</a><span>358</span></li>
+      <li><a href="#suporte">50. Suporte Técnico</a><span>362</span></li>
+      <li><a href="#ajuda">51. Central de Ajuda</a><span>368</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== PARTE I ==================== -->
+<div class="content">
+
+<div class="part-header">
+  <h2>Parte I</h2>
+  <h1>Visão Geral e Monitoramento</h1>
+</div>
+
+<!-- ========== 1. DASHBOARD ========== -->
+<div class="menu-section" id="dashboard">
+  <div class="menu-header">
+    <h2>📊 Dashboard Principal</h2>
+    <span class="path">/dashboard</span>
+    <p>Tela inicial do sistema com visão consolidada de todos os ativos BESS, métricas em tempo real, alertas críticos e indicadores de performance.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Dashboard Principal é a porta de entrada do Lifo4 EMS e foi projetado para fornecer uma visão instantânea
+    do estado de todos os sistemas BESS sob gerenciamento. Em questão de segundos, o operador consegue identificar
+    se há algum problema, qual é a produção atual de energia e como está a performance geral da operação.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Em operações de armazenamento de energia, decisões precisam ser tomadas rapidamente. Uma bateria com temperatura
+      elevada pode entrar em thermal runaway em minutos. Um SOC baixo pode impedir participação em leilões de energia.
+      O Dashboard centraliza estas informações críticas para ação imediata, sendo a primeira linha de defesa na
+      operação remota de sistemas BESS.
+    </p>
+  </div>
+
+  <h3>Cards de Métricas Principais</h3>
+  <p>Na parte superior do Dashboard, você encontra cards com as métricas mais importantes:</p>
+
+  <div class="card-detail power">
+    <h4>Card: Potência Total</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Valor Principal</td>
+        <td>Soma da potência instantânea de todos os sistemas BESS</td>
+        <td>kW ou MW</td>
+        <td>Indica se os sistemas estão carregando (negativo) ou descarregando (positivo). Essencial para saber se você está comprando ou vendendo energia neste momento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Indicador de Tendência</td>
+        <td>Seta mostrando se a potência está subindo ou descendo</td>
+        <td>↑ ou ↓</td>
+        <td>Permite antecipar mudanças operacionais. Se a potência está caindo rapidamente, pode indicar problema ou fim de ciclo de descarga.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cor do Card</td>
+        <td>Verde = descarregando, Azul = carregando, Cinza = standby</td>
+        <td>-</td>
+        <td>Identificação visual instantânea do estado operacional sem precisar ler números.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: Energia Armazenada</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Energia Total</td>
+        <td>Soma da energia disponível em todos os sistemas</td>
+        <td>kWh ou MWh</td>
+        <td>Determina quanto tempo você consegue fornecer energia ou quanto pode vender no mercado. Base para decisões de trading.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Percentual</td>
+        <td>Energia atual vs capacidade total instalada</td>
+        <td>%</td>
+        <td>Mostra a utilização da capacidade. Se muito baixo, pode ser necessário carregar; se muito alto, há oportunidade de vender.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Barra de Progresso</td>
+        <td>Visualização gráfica do percentual</td>
+        <td>-</td>
+        <td>Permite avaliação visual rápida sem necessidade de interpretar números.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: SOC Médio (State of Charge)</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Médio</td>
+        <td>Média ponderada do estado de carga de todos os sistemas</td>
+        <td>%</td>
+        <td>Indica a "reserva de energia" disponível. SOC muito baixo (&lt;20%) limita operações; muito alto (&gt;90%) indica oportunidade de descarga.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Mínimo</td>
+        <td>Menor SOC entre todos os sistemas</td>
+        <td>%</td>
+        <td>Identifica o sistema mais crítico. Se um sistema tem SOC muito diferente dos outros, pode indicar problema de balanceamento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOC Máximo</td>
+        <td>Maior SOC entre todos os sistemas</td>
+        <td>%</td>
+        <td>Ajuda a identificar desbalanceamento entre sistemas e oportunidades de arbitragem.</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <h5>⚠️ Limites Críticos de SOC</h5>
+      <p><strong>SOC &lt; 10%:</strong> Risco de desligamento por subtensão. Evite descarregar abaixo deste limite.</p>
+      <p><strong>SOC &gt; 95%:</strong> Estresse nas células. Mantenha cargas prolongadas abaixo de 90% para preservar vida útil.</p>
+    </div>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: SOH Médio (State of Health)</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">SOH Médio</td>
+        <td>Saúde média das baterias (capacidade atual vs original)</td>
+        <td>%</td>
+        <td>Indica degradação acumulada. SOH de 80% significa que a bateria perdeu 20% da capacidade original. Abaixo de 70-80%, considera-se fim de vida útil para aplicações BESS.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Taxa de Degradação</td>
+        <td>Perda de SOH por mês ou ano</td>
+        <td>%/ano</td>
+        <td>Permite projetar quando a bateria precisará ser substituída e planejar CAPEX de reposição.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Vida Restante</td>
+        <td>Estimativa de anos até SOH atingir limite mínimo</td>
+        <td>Anos</td>
+        <td>Fundamental para planejamento financeiro e decisões de manutenção/substituição.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail thermal">
+    <h4>Card: Temperatura</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Média</td>
+        <td>Média de temperatura de todos os sistemas</td>
+        <td>°C</td>
+        <td>Baterias de lítio operam idealmente entre 20-35°C. Fora desta faixa, a degradação acelera e há riscos de segurança.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Temperatura Máxima</td>
+        <td>Maior temperatura detectada em qualquer sistema</td>
+        <td>°C</td>
+        <td>CRÍTICO: Temperaturas acima de 45°C requerem atenção; acima de 60°C há risco de thermal runaway.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Alerta Visual</td>
+        <td>Cor do card muda conforme temperatura</td>
+        <td>-</td>
+        <td>Verde (&lt;35°C), Amarelo (35-45°C), Laranja (45-55°C), Vermelho (&gt;55°C)</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <h5>⚠️ THERMAL RUNAWAY - ATENÇÃO MÁXIMA</h5>
+      <p>
+        Thermal runaway é uma reação em cadeia onde o calor gerado pela bateria causa mais calor, podendo resultar
+        em incêndio ou explosão. Monitorar temperatura é a principal forma de prevenir este evento catastrófico.
+        Qualquer aumento rápido de temperatura (>1°C/min) deve ser investigado imediatamente.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-detail alert">
+    <h4>Card: Alertas Ativos</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Crítico</td>
+        <td>Número de alertas de severidade crítica</td>
+        <td>Requer ação IMEDIATA. Pode indicar risco de segurança ou perda financeira significativa.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Alerta</td>
+        <td>Número de alertas de severidade alta</td>
+        <td>Requer atenção em minutos/horas. Pode escalar para crítico se não tratado.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Contador Aviso</td>
+        <td>Número de avisos de severidade média</td>
+        <td>Monitorar e planejar ação. Indica condição anormal que pode piorar.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Link "Ver Todos"</td>
+        <td>Acesso direto à página de Alertas</td>
+        <td>Permite investigação detalhada de cada alerta.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail money">
+    <h4>Card: Receita/Economia do Período</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Unidade</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Valor Total</td>
+        <td>Receita gerada ou economia realizada no período selecionado</td>
+        <td>R$</td>
+        <td>Demonstra o valor financeiro que o sistema BESS está gerando. Fundamental para ROI e justificativa de investimento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Comparativo</td>
+        <td>Variação em relação ao período anterior</td>
+        <td>%</td>
+        <td>Indica se a performance financeira está melhorando ou piorando.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Breakdown</td>
+        <td>Divisão por fonte (arbitragem, peak shaving, serviços ancilares)</td>
+        <td>R$</td>
+        <td>Identifica quais estratégias estão gerando mais valor.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Gráfico de Potência em Tempo Real</h3>
+
+  <div class="card-detail chart">
+    <h4>Gráfico de Área: Potência ao Longo do Tempo</h4>
+    <p>Este é o gráfico principal do Dashboard, mostrando a potência de todos os sistemas ao longo do tempo.</p>
+
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que representa</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Área Verde (acima de zero)</td>
+        <td>Descarga - sistema fornecendo energia para a rede/carga</td>
+        <td>Período de geração de receita através de venda de energia ou redução de demanda.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Área Azul (abaixo de zero)</td>
+        <td>Carga - sistema consumindo energia da rede</td>
+        <td>Período de acumulação de energia, idealmente durante tarifas baixas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Linha de Zero</td>
+        <td>Limite entre carga e descarga</td>
+        <td>Referência visual para identificar transições operacionais.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Seletores de Período</td>
+        <td>Botões para 1h, 6h, 24h, 7d, 30d</td>
+        <td>Permite análise de diferentes horizontes temporais para identificar padrões.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tooltip no Hover</td>
+        <td>Valores exatos ao passar o mouse</td>
+        <td>Permite leitura precisa de qualquer ponto no gráfico.</td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <h5>💡 Dica de Interpretação</h5>
+      <p>
+        Um perfil de potência ideal para arbitragem mostra carga durante a madrugada (energia barata) e
+        descarga durante horário de pico (energia cara). Se o perfil está invertido, revise a estratégia de operação.
+      </p>
+    </div>
+  </div>
+
+  <h3>Lista de Sistemas</h3>
+  <p>Na parte inferior do Dashboard, uma lista resumida mostra o status de cada sistema BESS individual:</p>
+
+  <table class="field-table">
+    <tr>
+      <th>Coluna</th>
+      <th>O que mostra</th>
+      <th>Por que é importante</th>
+    </tr>
+    <tr>
+      <td class="field-name">Nome/ID</td>
+      <td>Identificador único do sistema</td>
+      <td>Permite identificar rapidamente qual sistema requer atenção.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Status</td>
+      <td><span class="status-indicator status-online"></span>Online, <span class="status-indicator status-offline"></span>Offline, <span class="status-indicator status-warning"></span>Alerta</td>
+      <td>Indica imediatamente se o sistema está operacional.</td>
+    </tr>
+    <tr>
+      <td class="field-name">SOC</td>
+      <td>Estado de carga atual com barra visual</td>
+      <td>Permite comparar níveis de carga entre sistemas.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Potência</td>
+      <td>Potência instantânea do sistema</td>
+      <td>Mostra contribuição individual para potência total.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Temperatura</td>
+      <td>Temperatura máxima das células</td>
+      <td>Identificação rápida de sistemas com temperatura elevada.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Localização</td>
+      <td>Cidade/região do sistema</td>
+      <td>Contextualiza eventos climáticos ou problemas regionais.</td>
+    </tr>
+  </table>
+
+  <h3>Ações Disponíveis no Dashboard</h3>
+
+  <div class="action-list">
+    <div class="action-item"><strong>Clicar em Sistema:</strong> Abre detalhes completos</div>
+    <div class="action-item"><strong>Botão Atualizar:</strong> Força refresh dos dados</div>
+    <div class="action-item"><strong>Exportar:</strong> Baixa dados em CSV/Excel</div>
+    <div class="action-item"><strong>Filtrar:</strong> Por status, localização, etc.</div>
+    <div class="action-item"><strong>Alterar Período:</strong> Muda intervalo do gráfico</div>
+    <div class="action-item"><strong>Ver Alertas:</strong> Acesso rápido aos alertas</div>
+  </div>
+</div>
+
+<!-- ========== 2. MULTI-SITE ========== -->
+<div class="menu-section" id="multi-site">
+  <div class="menu-header">
+    <h2>🏢 Multi-Site Dashboard</h2>
+    <span class="path">/multi-site</span>
+    <p>Visão consolidada para gerenciamento de múltiplas instalações BESS distribuídas geograficamente, com comparativos de performance e gestão centralizada.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O Multi-Site Dashboard é projetado para operadores que gerenciam frotas de sistemas BESS em múltiplas
+    localizações. Ele agrega dados de todos os sites, permitindo comparações de performance, identificação
+    de outliers e gestão otimizada de recursos distribuídos.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Empresas com múltiplos sistemas BESS (ex: em diferentes subestações ou clientes) precisam de visão
+      consolidada para otimizar operações. Este módulo permite identificar qual site está performando
+      abaixo do esperado, comparar métricas entre instalações similares e alocar recursos de manutenção
+      de forma eficiente. Sem esta visão, seria necessário verificar cada sistema individualmente.
+    </p>
+  </div>
+
+  <h3>Mapa de Localização</h3>
+
+  <div class="card-detail">
+    <h4>Mapa Interativo de Sites</h4>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Marcadores no Mapa</td>
+        <td>Localização geográfica de cada site BESS</td>
+        <td>Visualização espacial permite correlacionar problemas com eventos regionais (clima, rede elétrica).</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cor do Marcador</td>
+        <td>Verde = OK, Amarelo = Atenção, Vermelho = Crítico</td>
+        <td>Identificação visual instantânea de sites com problemas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tamanho do Marcador</td>
+        <td>Proporcional à capacidade instalada</td>
+        <td>Sites maiores têm marcadores maiores, indicando sua importância relativa.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tooltip</td>
+        <td>Resumo do site ao passar o mouse</td>
+        <td>Acesso rápido a informações sem precisar navegar.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Cluster</td>
+        <td>Agrupamento de sites próximos em zoom baixo</td>
+        <td>Evita sobreposição de marcadores em áreas densas.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Tabela Comparativa de Sites</h3>
+
+  <div class="card-detail">
+    <h4>Ranking de Performance por Site</h4>
+    <table class="field-table">
+      <tr>
+        <th>Coluna</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Site</td>
+        <td>Nome e localização da instalação</td>
+        <td>Identificação do site para ações de follow-up.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Capacidade</td>
+        <td>Potência (kW) e energia (kWh) instaladas</td>
+        <td>Contextualiza métricas - um site maior naturalmente processa mais energia.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Disponibilidade</td>
+        <td>% do tempo que o sistema esteve operacional</td>
+        <td>Sites com baixa disponibilidade requerem investigação de problemas técnicos.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Eficiência RT</td>
+        <td>Eficiência round-trip (energia saída / energia entrada)</td>
+        <td>Indica perdas no sistema. Eficiência típica é 85-92%. Valores baixos indicam problemas.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Ciclos/Mês</td>
+        <td>Número de ciclos completos realizados</td>
+        <td>Indica intensidade de uso. Muitos ciclos = mais degradação mas mais receita.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Receita</td>
+        <td>Valor gerado no período</td>
+        <td>Métrica final de sucesso - qual site está gerando mais valor?</td>
+      </tr>
+      <tr>
+        <td class="field-name">R$/kWh</td>
+        <td>Receita normalizada por capacidade</td>
+        <td>Permite comparação justa entre sites de tamanhos diferentes.</td>
+      </tr>
+      <tr>
+        <td class="field-name">SOH</td>
+        <td>Estado de saúde das baterias</td>
+        <td>Identifica sites que podem precisar de substituição de baterias em breve.</td>
+      </tr>
+    </table>
+
+    <div class="info">
+      <h5>💡 Como usar esta tabela</h5>
+      <p>
+        Ordene por R$/kWh para identificar os sites mais e menos eficientes economicamente.
+        Os sites na parte inferior do ranking merecem investigação: podem ter problemas técnicos,
+        estratégia de operação inadequada ou condições de mercado desfavoráveis.
+      </p>
+    </div>
+  </div>
+
+  <h3>Cards de Agregação</h3>
+
+  <div class="card-detail">
+    <h4>Métricas Agregadas de Toda a Frota</h4>
+    <table class="field-table">
+      <tr>
+        <th>Card</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Capacidade Total</td>
+        <td>Soma da capacidade de todos os sites</td>
+        <td>Dimensiona o tamanho total da operação para relatórios e planejamento.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Energia Armazenada Total</td>
+        <td>Soma da energia disponível em todos os sites</td>
+        <td>Indica reserva total disponível para comercialização ou serviços.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Receita Total</td>
+        <td>Soma da receita de todos os sites</td>
+        <td>Visão consolidada do valor gerado pela operação completa.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Sites Online</td>
+        <td>Contador de sites operacionais vs total</td>
+        <td>Indica saúde geral da frota. Ex: "45/50 sites online".</td>
+      </tr>
+      <tr>
+        <td class="field-name">Alertas Ativos</td>
+        <td>Soma de alertas em todos os sites</td>
+        <td>Indica carga de trabalho para equipe de operações.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Filtros e Agrupamentos</h3>
+
+  <table class="field-table">
+    <tr>
+      <th>Filtro</th>
+      <th>Opções</th>
+      <th>Uso</th>
+    </tr>
+    <tr>
+      <td class="field-name">Por Região</td>
+      <td>Norte, Sul, Sudeste, etc.</td>
+      <td>Análise de performance regional, identificação de problemas geográficos.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Por Status</td>
+      <td>Todos, Online, Offline, Com Alertas</td>
+      <td>Foco em sites que precisam de atenção.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Por Tamanho</td>
+      <td>Pequeno (&lt;100kW), Médio, Grande (&gt;1MW)</td>
+      <td>Comparação entre sites de porte similar.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Por Cliente</td>
+      <td>Lista de clientes</td>
+      <td>Visão por contrato/cliente para relatórios e SLA.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Período</td>
+      <td>Hoje, 7 dias, 30 dias, Personalizado</td>
+      <td>Análise de diferentes horizontes temporais.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 3. MEU SISTEMA ========== -->
+<div class="menu-section" id="meu-sistema">
+  <div class="menu-header">
+    <h2>🏠 Meu Sistema (Portal do Cliente)</h2>
+    <span class="path">/my-system</span>
+    <p>Interface simplificada para clientes finais acompanharem o desempenho do seu sistema BESS pessoal, com métricas de economia e impacto ambiental.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    O portal "Meu Sistema" é uma interface simplificada projetada para usuários finais (clientes) que possuem
+    um sistema BESS mas não são especialistas técnicos. Diferente do Dashboard completo, este portal foca em
+    informações que fazem sentido para o proprietário: quanto está economizando, qual o impacto ambiental e
+    se o sistema está funcionando corretamente.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Clientes satisfeitos renovam contratos e indicam novos clientes. Este portal demonstra o valor do sistema
+      BESS de forma clara e acessível, mostrando economia em reais, redução de CO2 e equivalências que o cliente
+      entende (ex: "equivalente a X árvores plantadas"). É uma ferramenta de retenção e marketing.
+    </p>
+  </div>
+
+  <h3>Cards Principais</h3>
+
+  <div class="card-detail money">
+    <h4>Card: Economia do Mês</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Valor Economizado</td>
+        <td>Total em R$ economizado no mês atual</td>
+        <td>Demonstra valor financeiro direto do sistema para o cliente.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Comparativo</td>
+        <td>Variação vs mês anterior</td>
+        <td>Mostra tendência de economia - se está aumentando ou diminuindo.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Acumulado Ano</td>
+        <td>Total economizado no ano</td>
+        <td>Visão de longo prazo do benefício do sistema.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Projeção</td>
+        <td>Economia estimada para o mês completo</td>
+        <td>Permite planejamento financeiro do cliente.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: Status do Sistema</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Status Geral</td>
+        <td>"Funcionando Normalmente" ou indicação de problema</td>
+        <td>Resposta simples à pergunta principal do cliente: "Está funcionando?"</td>
+      </tr>
+      <tr>
+        <td class="field-name">Nível de Bateria</td>
+        <td>SOC apresentado como "bateria do celular"</td>
+        <td>Analogia familiar que o cliente entende imediatamente.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Modo Atual</td>
+        <td>"Carregando", "Economizando", "Em Espera"</td>
+        <td>Linguagem simples para o estado operacional.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card-detail">
+    <h4>Card: Impacto Ambiental</h4>
+    <table class="field-table">
+      <tr>
+        <th>Campo</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">CO2 Evitado</td>
+        <td>Quilogramas de CO2 não emitidos</td>
+        <td>Apelo ambiental - cliente se sente contribuindo para o planeta.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Equivalente Árvores</td>
+        <td>Número de árvores equivalentes plantadas</td>
+        <td>Equivalência tangível que o cliente pode visualizar.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Equivalente Km</td>
+        <td>Quilômetros de carro evitados</td>
+        <td>Outra equivalência familiar para o cliente.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Gráfico Simplificado</h3>
+
+  <div class="card-detail chart">
+    <h4>Gráfico: Economia Diária</h4>
+    <p>Gráfico de barras simples mostrando quanto foi economizado em cada dia do mês.</p>
+    <table class="field-table">
+      <tr>
+        <th>Elemento</th>
+        <th>O que mostra</th>
+        <th>Por que é importante</th>
+      </tr>
+      <tr>
+        <td class="field-name">Barras Verdes</td>
+        <td>Economia de cada dia</td>
+        <td>Visualização clara de que o sistema está gerando valor diariamente.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Linha de Meta</td>
+        <td>Meta diária de economia</td>
+        <td>Mostra se o sistema está atingindo a performance prometida.</td>
+      </tr>
+      <tr>
+        <td class="field-name">Tooltip</td>
+        <td>Valor exato ao tocar na barra</td>
+        <td>Detalhes sob demanda sem poluir a visualização.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Ações Disponíveis</h3>
+
+  <div class="action-list">
+    <div class="action-item"><strong>Ver Detalhes:</strong> Mais informações técnicas</div>
+    <div class="action-item"><strong>Baixar Relatório:</strong> PDF com resumo mensal</div>
+    <div class="action-item"><strong>Abrir Chamado:</strong> Solicitar suporte técnico</div>
+    <div class="action-item"><strong>Compartilhar:</strong> Redes sociais (impacto ambiental)</div>
+  </div>
+</div>
+
+<!-- ========== 4. SISTEMAS ========== -->
+<div class="menu-section" id="sistemas">
+  <div class="menu-header">
+    <h2>🔋 Lista de Sistemas BESS</h2>
+    <span class="path">/systems</span>
+    <p>Catálogo completo de todos os sistemas BESS cadastrados, com filtros avançados, busca e acesso rápido a operações comuns.</p>
+  </div>
+
+  <h3>Visão Geral</h3>
+  <p>
+    A página de Sistemas é o ponto central para gerenciamento de todos os ativos BESS. Aqui você encontra
+    todos os sistemas cadastrados, podendo filtrar, buscar e acessar rapidamente qualquer sistema específico
+    para visualização detalhada ou operação.
+  </p>
+
+  <div class="importance">
+    <h5>🎯 Por que este menu é importante para BESS?</h5>
+    <p>
+      Com dezenas ou centenas de sistemas BESS, encontrar rapidamente o sistema certo é crucial. Esta página
+      funciona como um "inventário vivo" dos ativos, permitindo filtrar por diversos critérios para encontrar
+      sistemas específicos, identificar padrões (ex: todos os sistemas de um fabricante com problemas) e
+      executar ações em lote quando necessário.
+    </p>
+  </div>
+
+  <h3>Modos de Visualização</h3>
+
+  <div class="tab-section">
+    <div class="tab-header">📊 Visualização em Grid (Cards)</div>
+    <div class="tab-content">
+      <p>Cada sistema é exibido como um card com informações resumidas:</p>
+      <table class="field-table">
+        <tr>
+          <th>Elemento do Card</th>
+          <th>O que mostra</th>
+          <th>Por que é importante</th>
+        </tr>
+        <tr>
+          <td class="field-name">Cabeçalho</td>
+          <td>Nome do sistema + ícone de status</td>
+          <td>Identificação rápida com indicação visual de saúde.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Barra de SOC</td>
+          <td>Estado de carga com preenchimento visual</td>
+          <td>Visualização instantânea do nível de carga.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Potência Atual</td>
+          <td>kW com indicação de carga/descarga</td>
+          <td>O que o sistema está fazendo agora.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Temperatura</td>
+          <td>Temperatura máxima das células</td>
+          <td>Alerta visual se fora da faixa normal.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Localização</td>
+          <td>Cidade/estado</td>
+          <td>Contexto geográfico.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Menu de Ações</td>
+          <td>Botão com opções rápidas</td>
+          <td>Acesso a operações sem navegar para detalhes.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-section">
+    <div class="tab-header">📋 Visualização em Lista (Tabela)</div>
+    <div class="tab-content">
+      <p>Formato tabular com mais informações por sistema:</p>
+      <table class="field-table">
+        <tr>
+          <th>Coluna</th>
+          <th>O que mostra</th>
+          <th>Ordenável</th>
+          <th>Por que é importante</th>
+        </tr>
+        <tr>
+          <td class="field-name">ID</td>
+          <td>Identificador único</td>
+          <td>Sim</td>
+          <td>Referência para documentação e suporte.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Nome</td>
+          <td>Nome amigável do sistema</td>
+          <td>Sim</td>
+          <td>Identificação fácil.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Status</td>
+          <td>Online/Offline/Alerta/Manutenção</td>
+          <td>Sim</td>
+          <td>Estado operacional atual.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOC</td>
+          <td>Percentual de carga</td>
+          <td>Sim</td>
+          <td>Ordenar para encontrar sistemas mais/menos carregados.</td>
+        </tr>
+        <tr>
+          <td class="field-name">SOH</td>
+          <td>Saúde da bateria</td>
+          <td>Sim</td>
+          <td>Identificar sistemas com degradação avançada.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Potência</td>
+          <td>kW atual</td>
+          <td>Sim</td>
+          <td>Ordenar para ver sistemas mais ativos.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Temperatura</td>
+          <td>°C máxima</td>
+          <td>Sim</td>
+          <td>Ordenar para identificar sistemas mais quentes.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Capacidade</td>
+          <td>kW / kWh</td>
+          <td>Sim</td>
+          <td>Tamanho do sistema.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Localização</td>
+          <td>Cidade, Estado</td>
+          <td>Sim</td>
+          <td>Agrupar por região.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Último Contato</td>
+          <td>Timestamp da última comunicação</td>
+          <td>Sim</td>
+          <td>Identificar sistemas sem comunicação recente.</td>
+        </tr>
+        <tr>
+          <td class="field-name">Ações</td>
+          <td>Botões de ação rápida</td>
+          <td>Não</td>
+          <td>Operações sem navegar.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>Filtros Avançados</h3>
+
+  <table class="field-table">
+    <tr>
+      <th>Filtro</th>
+      <th>Opções</th>
+      <th>Uso Prático</th>
+    </tr>
+    <tr>
+      <td class="field-name">Status</td>
+      <td>Todos, Online, Offline, Com Alertas, Em Manutenção</td>
+      <td>Encontrar sistemas que precisam de atenção.</td>
+    </tr>
+    <tr>
+      <td class="field-name">SOC</td>
+      <td>Faixa de valores (ex: 0-20%, 20-80%, 80-100%)</td>
+      <td>Encontrar sistemas que precisam carregar ou podem descarregar.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Temperatura</td>
+      <td>Normal (&lt;35°C), Elevada (35-45°C), Crítica (&gt;45°C)</td>
+      <td>Identificar sistemas com problema térmico.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Fabricante</td>
+      <td>Lista de fabricantes cadastrados</td>
+      <td>Analisar performance por fabricante, identificar recalls.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Modelo</td>
+      <td>Lista de modelos</td>
+      <td>Comparar modelos específicos.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Capacidade</td>
+      <td>Faixas de potência/energia</td>
+      <td>Filtrar por tamanho de sistema.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Localização</td>
+      <td>Estado, Cidade, CEP</td>
+      <td>Filtrar por região geográfica.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Idade</td>
+      <td>Data de instalação</td>
+      <td>Identificar sistemas antigos que podem precisar de upgrade.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Contrato</td>
+      <td>Tipo de contrato, cliente</td>
+      <td>Filtrar por aspectos comerciais.</td>
+    </tr>
+  </table>
+
+  <h3>Busca</h3>
+
+  <div class="card-detail">
+    <h4>Campo de Busca Global</h4>
+    <p>O campo de busca no topo da página pesquisa em múltiplos campos simultaneamente:</p>
+    <ul>
+      <li><strong>Nome do sistema:</strong> Busca parcial (ex: "BESS" encontra "BESS-001", "BESS-SUL")</li>
+      <li><strong>ID:</strong> Busca exata ou parcial</li>
+      <li><strong>Número de série:</strong> Para identificação por hardware</li>
+      <li><strong>Localização:</strong> Cidade, endereço</li>
+      <li><strong>Cliente:</strong> Nome do cliente associado</li>
+      <li><strong>Tags:</strong> Etiquetas personalizadas</li>
+    </ul>
+  </div>
+
+  <h3>Ações em Lote</h3>
+
+  <div class="card-detail control">
+    <h4>Seleção Múltipla e Ações em Grupo</h4>
+    <p>Selecione múltiplos sistemas usando checkboxes e execute ações em lote:</p>
+    <div class="action-list">
+      <div class="action-item"><strong>Iniciar Carga:</strong> Inicia carga em todos os selecionados</div>
+      <div class="action-item"><strong>Parar Todos:</strong> Para operação de todos os selecionados</div>
+      <div class="action-item"><strong>Exportar:</strong> Baixa dados dos sistemas selecionados</div>
+      <div class="action-item"><strong>Agendar Manutenção:</strong> Cria ordem de serviço em lote</div>
+      <div class="action-item"><strong>Atualizar Firmware:</strong> Aplica atualização em grupo</div>
+      <div class="action-item"><strong>Alterar Modo:</strong> Muda modo de operação em lote</div>
+    </div>
+
+    <div class="warning">
+      <h5>⚠️ Cuidado com Ações em Lote</h5>
+      <p>
+        Ações em lote afetam múltiplos sistemas simultaneamente. Sempre verifique a seleção antes de confirmar.
+        O sistema pedirá confirmação e mostrará quantos sistemas serão afetados.
+      </p>
+    </div>
+  </div>
+
+  <h3>Ações Rápidas por Sistema</h3>
+
+  <p>No menu de três pontos (⋮) de cada sistema, você encontra:</p>
+
+  <table class="field-table">
+    <tr>
+      <th>Ação</th>
+      <th>O que faz</th>
+      <th>Quando usar</th>
+    </tr>
+    <tr>
+      <td class="field-name">Ver Detalhes</td>
+      <td>Abre página completa do sistema</td>
+      <td>Para análise aprofundada.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Painel de Controle</td>
+      <td>Abre interface de operação</td>
+      <td>Para executar comandos.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Iniciar Carga</td>
+      <td>Inicia carregamento imediatamente</td>
+      <td>Quando precisa carregar rapidamente.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Iniciar Descarga</td>
+      <td>Inicia descarga imediatamente</td>
+      <td>Quando precisa descarregar rapidamente.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Parar</td>
+      <td>Coloca em standby</td>
+      <td>Para interromper operação atual.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Ver Alertas</td>
+      <td>Mostra alertas deste sistema</td>
+      <td>Para investigar problemas.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Configurações</td>
+      <td>Abre configurações do sistema</td>
+      <td>Para ajustar parâmetros.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Histórico</td>
+      <td>Mostra dados históricos</td>
+      <td>Para análise de tendências.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Exportar Dados</td>
+      <td>Baixa dados em CSV/Excel</td>
+      <td>Para análise externa ou relatórios.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Editar</td>
+      <td>Edita informações cadastrais</td>
+      <td>Para atualizar nome, localização, etc.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Desativar</td>
+      <td>Marca sistema como inativo</td>
+      <td>Quando sistema será descomissionado.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- Continua nos próximos arquivos... -->
+
+</div>
+
+<footer>
+  <p><strong>Lifo4 EMS</strong> - Sistema de Gerenciamento de Energia</p>
+  <p>Manual Completo - Versão 1.0 | Fevereiro 2026</p>
+  <p>Este documento continua com os demais menus nos arquivos complementares.</p>
+  <p>&copy; 2026 Lifo4 Energia. Todos os direitos reservados.</p>
+</footer>
+
+</body>
+</html>

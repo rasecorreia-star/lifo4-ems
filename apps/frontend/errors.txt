@@ -1,0 +1,77 @@
+src/__tests__/components.test.tsx(2,32): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/__tests__/setup.ts(3,25): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/__tests__/types.test.ts(31,43): error TS2554: Expected 1 arguments, but got 2.
+src/pages/AssetManagement.tsx(52,41): error TS2322: Type '({ id: string; assetTag: string; name: string; category: "battery"; manufacturer: string; model: string; serialNumber: string; status: "operational"; location: string; systemId: string; systemName: string; ... 6 more ...; documents: number; } | ... 5 more ... | { ...; })[]' is not assignable to type 'Asset[]'.
+  Type '{ id: string; assetTag: string; name: string; category: "battery"; manufacturer: string; model: string; serialNumber: string; status: "operational"; location: string; systemId: string; systemName: string; ... 6 more ...; documents: number; } | ... 5 more ... | { ...; }' is not assignable to type 'Asset'.
+    Type '{ id: string; assetTag: string; name: string; category: "battery"; manufacturer: string; model: string; serialNumber: string; status: "operational"; location: string; systemId: string; systemName: string; ... 6 more ...; documents: number; }' is not assignable to type 'Asset'.
+      Types of property 'specifications' are incompatible.
+        Type '{ Capacidade: string; 'Tensao Nominal': string; Ciclos: string; Peso: string; Potencia?: undefined; Eficiencia?: undefined; 'Tensao AC'?: undefined; Frequencia?: undefined; 'Celulas Suportadas'?: undefined; ... 9 more ...; MPPT?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property ''Potencia'' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+src/pages/cameras/SecurityZones.tsx(301,18): error TS2345: Argument of type '(prev: SecurityZone[]) => { updatedAt: string; cameraId: string; name: string; type: string; polygon: Point[]; color: string; isActive: boolean; sensitivity: number; minObjectSize: number; ... 5 more ...; createdAt: string; }[]' is not assignable to parameter of type 'SetStateAction<SecurityZone[]>'.
+  Type '(prev: SecurityZone[]) => { updatedAt: string; cameraId: string; name: string; type: string; polygon: Point[]; color: string; isActive: boolean; sensitivity: number; minObjectSize: number; ... 5 more ...; createdAt: string; }[]' is not assignable to type '(prevState: SecurityZone[]) => SecurityZone[]'.
+    Type '{ updatedAt: string; cameraId: string; name: string; type: string; polygon: Point[]; color: string; isActive: boolean; sensitivity: number; minObjectSize: number; maxObjectSize: number; detectionTypes: string[]; alertSeverity: "critical" | ... 2 more ... | "low"; id: string; schedule?: { ...; } | undefined; createdA...' is not assignable to type 'SecurityZone[]'.
+      Type '{ updatedAt: string; cameraId: string; name: string; type: string; polygon: Point[]; color: string; isActive: boolean; sensitivity: number; minObjectSize: number; maxObjectSize: number; detectionTypes: string[]; alertSeverity: "critical" | ... 2 more ... | "low"; id: string; schedule?: { enabled: boolean; days: numb...' is not assignable to type 'SecurityZone'.
+        Types of property 'type' are incompatible.
+          Type 'string' is not assignable to type '"intrusion" | "tripwire" | "loitering" | "line_crossing" | "fire_detection" | "smoke_detection"'.
+src/pages/Dashboard.tsx(393,11): error TS2322: Type 'boolean | null' is not assignable to type 'boolean | undefined'.
+  Type 'null' is not assignable to type 'boolean | undefined'.
+src/pages/EnergyTrading.tsx(147,67): error TS2339: Property 'spotPrice' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(148,66): error TS2339: Property 'spotPrice' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(149,62): error TS2339: Property 'spotPrice' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(150,62): error TS2339: Property 'spotPrice' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(152,83): error TS2339: Property 'netRevenue' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(153,75): error TS2339: Property 'netRevenue' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(154,72): error TS2339: Property 'sold' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(155,74): error TS2339: Property 'bought' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(378,34): error TS2339: Property 'time' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(378,51): error TS2339: Property 'spotPrice' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(378,75): error TS2339: Property 'action' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(383,28): error TS2339: Property 'action' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(384,28): error TS2339: Property 'action' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(385,28): error TS2339: Property 'action' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(389,45): error TS2339: Property 'time' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(504,37): error TS2339: Property 'netRevenue' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(582,34): error TS2339: Property 'id' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(583,82): error TS2339: Property 'id' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(587,31): error TS2339: Property 'type' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(589,32): error TS2339: Property 'type' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(595,31): error TS2339: Property 'status' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(596,31): error TS2339: Property 'status' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(597,31): error TS2339: Property 'status' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(599,32): error TS2339: Property 'status' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(599,76): error TS2339: Property 'status' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(602,81): error TS2339: Property 'quantity' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(603,84): error TS2339: Property 'price' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(605,33): error TS2339: Property 'total' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(607,76): error TS2339: Property 'timestamp' does not exist on type 'never'.
+src/pages/EnergyTrading.tsx(608,76): error TS2339: Property 'market' does not exist on type 'never'.
+src/pages/ev-chargers/SmartCharging.tsx(863,70): error TS2345: Argument of type '{ chargingSchedule: { chargingSchedulePeriod: ChargingSchedulePeriod[]; duration?: number; startSchedule?: string; chargingRateUnit?: ChargingRateUnit | undefined; minChargingRate?: number; }; ... 14 more ...; updatedAt?: string | undefined; }' is not assignable to parameter of type 'Partial<ChargingProfile>'.
+  The types of 'chargingSchedule.chargingRateUnit' are incompatible between these types.
+    Type 'ChargingRateUnit | undefined' is not assignable to type 'ChargingRateUnit'.
+      Type 'undefined' is not assignable to type 'ChargingRateUnit'.
+src/pages/ev-chargers/SmartCharging.tsx(866,58): error TS2345: Argument of type '{ chargingSchedule: { chargingSchedulePeriod: ChargingSchedulePeriod[]; duration?: number; startSchedule?: string; chargingRateUnit?: ChargingRateUnit | undefined; minChargingRate?: number; }; ... 14 more ...; updatedAt?: string | undefined; }' is not assignable to parameter of type 'Partial<ChargingProfile>'.
+  The types of 'chargingSchedule.chargingRateUnit' are incompatible between these types.
+    Type 'ChargingRateUnit | undefined' is not assignable to type 'ChargingRateUnit'.
+      Type 'undefined' is not assignable to type 'ChargingRateUnit'.
+src/pages/microgrids/IslandingControl.tsx(632,19): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: TooltipProps<ValueType, NameType>): Tooltip<ValueType, NameType>', gave the following error.
+    Type '(value: number | null) => [string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+      Types of parameters 'value' and 'value' are incompatible.
+        Type 'ValueType' is not assignable to type 'number | null'.
+          Type 'string' is not assignable to type 'number'.
+  Overload 2 of 2, '(props: TooltipProps<ValueType, NameType>, context: any): Tooltip<ValueType, NameType>', gave the following error.
+    Type '(value: number | null) => [string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+      Types of parameters 'value' and 'value' are incompatible.
+        Type 'ValueType' is not assignable to type 'number | null'.
+          Type 'string' is not assignable to type 'number'.
+src/pages/Reports.tsx(198,13): error TS18048: 'systemsRes.data.data.length' is possibly 'undefined'.
+src/pages/Reports.tsx(199,29): error TS18048: 'systemsRes.data.data' is possibly 'undefined'.
+src/pages/systems/BMSConfig.tsx(279,19): error TS2345: Argument of type 'BessSystem | undefined' is not assignable to parameter of type 'SetStateAction<BessSystem | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<BessSystem | null>'.
+src/pages/systems/SystemList.tsx(78,31): error TS2345: Argument of type '{ name: string; model: string; capacity: number; nominalVoltage: number; maxChargePower: number; maxDischargePower: number; location: { lat: number; lng: number; address: string; city: string; state: string; }; batterySpec: { ...; }; bmsConfig: { ...; }; inverterConfig: { ...; }; }' is not assignable to parameter of type 'Partial<BessSystem>'.
+  Types of property 'batterySpec' are incompatible.
+    Type '{ chemistry: string; cellManufacturer: string; cellModel: string; nominalCellVoltage: number; cellsInSeries: number; cellsInParallel: number; }' is missing the following properties from type 'BatterySpecification': nominalCapacity, nominalVoltage, energyCapacity, cellCount, and 6 more.
+src/pages/systems/SystemList.tsx(231,13): error TS2322: Type '(showLoading?: boolean) => Promise<void>' is not assignable to type 'MouseEventHandler<HTMLButtonElement>'.
+  Types of parameters 'showLoading' and 'event' are incompatible.
+    Type 'MouseEvent<HTMLButtonElement, MouseEvent>' is not assignable to type 'boolean | undefined'.

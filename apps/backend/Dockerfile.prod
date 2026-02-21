@@ -1,0 +1,47 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy root package files
+COPY ../../package*.json ./
+COPY ../../package-lock.json ./
+
+# Copy backend package files
+COPY ./package*.json ./apps/backend/
+
+# Install dependencies
+RUN npm ci
+
+# Copy backend source
+COPY . ./apps/backend/
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files for production
+COPY ../../package*.json ./
+COPY ../../package-lock.json ./
+
+# Copy backend package files
+COPY ./apps/backend/package*.json ./apps/backend/
+
+# Install production dependencies only
+RUN npm ci --production
+
+# Copy built/source from builder
+COPY --from=builder /app/apps/backend ./apps/backend
+
+# Set working directory to backend
+WORKDIR /app/apps/backend
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Start the application
+CMD ["npm", "start"]

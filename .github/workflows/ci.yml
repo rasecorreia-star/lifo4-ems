@@ -1,0 +1,218 @@
+name: CI — Linting, Type Check, Build, Tests
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  # Job 1: Linting
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint (ESLint)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 🚨 Check for hardcoded isDemoMode = true
+        run: |
+          if grep -r "isDemoMode\s*=\s*true" --include="*.ts" --include="*.tsx" .; then
+            echo "❌ ERRO: isDemoMode = true encontrado no código!"
+            echo "   Use import.meta.env.VITE_DEMO_MODE === 'true' em vez disso"
+            exit 1
+          fi
+          echo "✅ Nenhum isDemoMode = true hardcoded encontrado"
+
+      - name: 🚨 Check for hardcoded credentials
+        run: |
+          # PHASE 1 SECURITY: Check entire codebase for demo credentials
+          # Exclude node_modules, .git, and build artifacts
+          if grep -r "demo@lifo4.com.br\|demo123" \
+            --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+            --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist \
+            --exclude-dir=build . 2>/dev/null; then
+            echo "❌ ERRO: Credenciais hardcoded encontradas!"
+            echo "   Use variáveis de environment:"
+            echo "   - Frontend: import.meta.env.VITE_DEMO_EMAIL / VITE_DEMO_PASSWORD"
+            echo "   - Backend: process.env.DEMO_EMAIL / DEMO_PASSWORD"
+            exit 1
+          fi
+          echo "✅ Nenhuma credencial hardcoded encontrada em nenhum arquivo do projeto"
+
+      - name: Check for console.log in production code
+        run: |
+          if grep -r "console\.log\|console\.warn\|console\.error" --include="*.ts" --include="*.tsx" apps/frontend/src/ 2>/dev/null | grep -v "\.test\." | grep -v "\.spec\." | grep -v node_modules; then
+            echo "❌ ERRO: console.* encontrado em código de produção"
+            echo "   Use logger ou adicione warning específico se necessário"
+            exit 1
+          else
+            echo "✅ Nenhum console.* encontrado"
+          fi
+
+      - name: Check for TODO/FIXME in critical code
+        run: |
+          if grep -r "TODO:\|FIXME:" --include="*.ts" --include="*.tsx" apps/frontend/src/{store,services,components/auth}/ 2>/dev/null; then
+            echo "❌ ERRO: TODO/FIXME encontrados em código crítico (auth, store, services)"
+            echo "   Resolva ou mova para código não-crítico antes do merge"
+            exit 1
+          else
+            echo "✅ Nenhum TODO/FIXME em código crítico"
+          fi
+
+      - name: ESLint — Frontend
+        run: npm run lint --workspace=lifo4-ems-frontend
+        continue-on-error: false
+
+      - name: ESLint — Backend
+        run: npm run lint --workspace=lifo4-ems-backend
+        continue-on-error: false
+
+  # Job 2: Type Check
+  type-check:
+    runs-on: ubuntu-latest
+    name: Type Check (TypeScript)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript Check — Frontend
+        run: cd apps/frontend && npx tsc --noEmit
+        continue-on-error: false
+
+      - name: TypeScript Check — Backend
+        run: npm run type-check --workspace=lifo4-ems-backend
+        continue-on-error: false
+
+  # Job 3: Build
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    needs: [lint, type-check]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        run: npm run build --workspace=lifo4-ems-frontend
+        env:
+          VITE_DEMO_MODE: 'false'
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:3001' }}
+          VITE_WS_URL: ${{ secrets.VITE_WS_URL || 'http://localhost:3001' }}
+
+      - name: Verificar build sem warnings
+        run: |
+          if npm run build --workspace=lifo4-ems-frontend 2>&1 | grep -i "warning"; then
+            echo "⚠️  Build com warnings"
+          else
+            echo "✅ Build sem warnings"
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: apps/frontend/dist/
+          retention-days: 1
+
+  # Job 4: Security — npm audit
+  security:
+    runs-on: ubuntu-latest
+    name: Security (npm audit)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --production
+        continue-on-error: false
+
+  # Job 5: Tests (quando existirem)
+  test:
+    runs-on: ubuntu-latest
+    name: Tests (E2E)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check if tests exist
+        id: check-tests
+        run: |
+          if [ -d "apps/frontend/tests" ] && [ -f "apps/frontend/playwright.config.ts" ]; then
+            echo "has-e2e-tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-e2e-tests=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -f "apps/frontend/vitest.config.ts" ] || [ -f "apps/frontend/vitest.config.js" ]; then
+            echo "has-unit-tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-unit-tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Vitest Unit Tests (Frontend)
+        if: steps.check-tests.outputs.has-unit-tests == 'true'
+        run: npm run test --workspace=lifo4-ems-frontend
+        continue-on-error: false
+
+      - name: Playwright E2E Tests (Frontend)
+        if: steps.check-tests.outputs.has-e2e-tests == 'true'
+        run: npm run test:e2e --workspace=lifo4-ems-frontend
+        continue-on-error: false
+
+  # Status final
+  status:
+    runs-on: ubuntu-latest
+    name: CI Status
+    needs: [lint, type-check, build, security, test]
+    if: always()
+    steps:
+      - name: Check CI Status
+        run: |
+          if [ "${{ needs.lint.result }}" = "failure" ] || \
+             [ "${{ needs.type-check.result }}" = "failure" ] || \
+             [ "${{ needs.build.result }}" = "failure" ] || \
+             [ "${{ needs.test.result }}" = "failure" ]; then
+            echo "❌ CI FALHOU"
+            exit 1
+          fi
+          echo "✅ CI PASSOU"

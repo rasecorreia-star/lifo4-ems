@@ -1,0 +1,45 @@
+{
+  "name": "lifo4-ems",
+  "version": "1.0.0",
+  "description": "LIFO4 EMS - Energy Management System for Battery Storage (BESS)",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=lifo4-ems-frontend",
+    "build": "npm run build --workspace=lifo4-ems-frontend",
+    "build:check": "npm run build:check --workspace=lifo4-ems-frontend",
+    "test": "npm run test --workspace=lifo4-ems-frontend",
+    "test:e2e": "npm run test:e2e --workspace=lifo4-ems-frontend",
+    "lint": "npm run lint --workspace=lifo4-ems-frontend",
+    "lint:fix": "npm run lint:fix --workspace=lifo4-ems-frontend",
+    "type-check": "npm run type-check --workspace=lifo4-ems-frontend",
+    "clean": "rm -rf apps/*/dist apps/*/node_modules packages/*/node_modules node_modules",
+    "install-all": "npm ci && npm ci --workspace=lifo4-ems-frontend"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "ems",
+    "bess",
+    "battery",
+    "energy",
+    "management",
+    "monorepo",
+    "vite",
+    "react",
+    "typescript"
+  ],
+  "author": "Lifo4 Energia",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lifo4/lifo4-ems"
+  }
+}

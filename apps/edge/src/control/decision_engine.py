@@ -2,16 +2,16 @@
 Local Decision Engine — the edge controller's brain.
 
 Three operating modes:
-  ONLINE:    Cloud is available → receives setpoints via MQTT, executes them
-  AUTONOMOUS: Cloud offline >15min → makes local decisions using cached data
+  ONLINE:    Cloud is available → cloud setpoint is Priority 3 (contractual authority)
+  AUTONOMOUS: Cloud offline >15min → local algorithms at all priorities
   SAFE_MODE: Critical error → minimal operation, maintain SOC 20-80%
 
 Priority order (same as cloud UnifiedDecisionEngine):
   1. SAFETY      → handled by SafetyManager BEFORE calling this engine
   2. GRID_CODE   → black start, grid failure response
-  3. CONTRACTUAL → peak shaving (protect demand limit)
-  4. ECONOMIC    → energy arbitrage
-  5. LONGEVITY   → battery health preservation
+  3. CONTRACTUAL → ONLINE: cloud setpoint | AUTONOMOUS: local peak shaving
+  4. ECONOMIC    → energy arbitrage or solar self-consumption
+  5. LONGEVITY   → battery health preservation (safe mode)
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ import asyncio
 import time
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from src.config import EdgeConfig
 from src.control.arbitrage import ArbitrageController
@@ -30,6 +30,9 @@ from src.data.cache_manager import CacheManager
 from src.safety.safety_manager import TelemetrySnapshot
 from src.utils.logger import get_logger
 from src.utils.metrics import DECISIONS_TOTAL
+
+if TYPE_CHECKING:
+    from src.data.local_db import LocalDatabase
 
 logger = get_logger(__name__)
 
@@ -46,10 +49,11 @@ class LocalDecisionEngine:
     Coordinates all optimization strategies with priority ordering.
     """
 
-    def __init__(self, config: EdgeConfig):
+    def __init__(self, config: EdgeConfig, db: Optional["LocalDatabase"] = None):
         self._config = config
         self._site_id = config.site.id
         self._mode = EngineMode.ONLINE
+        self._db = db          # F17: inject for mode persistence across restarts
         self._cache = CacheManager()
         self._last_cloud_contact = time.monotonic()
         self._cloud_timeout = config.control.cloud_timeout_minutes * 60
@@ -81,6 +85,30 @@ class LocalDecisionEngine:
 
         self._black_start = BlackStartController(site_id=self._site_id)
 
+    async def initialize(self) -> None:
+        """
+        F17: Restore engine mode from SQLite after restart.
+        Call this after construction and DB connect, before the first decide().
+        """
+        if self._db:
+            saved_mode = await self._db.get_engine_state("engine_mode")
+            if saved_mode:
+                try:
+                    self._mode = EngineMode(saved_mode)
+                    logger.info("engine_mode_restored", mode=self._mode.value)
+                except ValueError:
+                    logger.warning("engine_mode_restore_invalid", saved=saved_mode,
+                                   fallback=EngineMode.ONLINE.value)
+                    self._mode = EngineMode.ONLINE
+
+    async def _persist_mode(self) -> None:
+        """F17: Write current mode to SQLite so it survives process restarts."""
+        if self._db:
+            try:
+                await self._db.save_engine_state("engine_mode", self._mode.value)
+            except Exception as e:
+                logger.warning("engine_mode_persist_failed", error=str(e))
+
     @property
     def mode(self) -> EngineMode:
         return self._mode
@@ -91,6 +119,7 @@ class LocalDecisionEngine:
         if self._mode != EngineMode.ONLINE:
             logger.info("engine_mode_restored_to_online", previous=self._mode.value)
         self._mode = EngineMode.ONLINE
+        asyncio.create_task(self._persist_mode())   # F17
         self._cache.set_cloud_setpoint(command)
 
         # Apply any config updates embedded in the command
@@ -123,6 +152,7 @@ class LocalDecisionEngine:
                 "engine_switched_to_autonomous",
                 cloud_offline_minutes=elapsed / 60,
             )
+            asyncio.create_task(self._persist_mode())   # F17
 
     async def decide(self, telemetry: TelemetrySnapshot) -> dict:
         """
@@ -148,9 +178,26 @@ class LocalDecisionEngine:
             DECISIONS_TOTAL.labels(site_id=self._site_id, action=decision["action"]).inc()
             return decision
 
-        # ─── PRIORITY 3: CONTRACTUAL — Peak shaving ──────────────────────
-        # Note: demand_kw would come from a CT meter; here we estimate from power
-        estimated_demand_kw = abs(telemetry.power_kw) + 20.0  # Rough estimate
+        # ─── PRIORITY 3: CONTRACTUAL ──────────────────────────────────────
+        # F18: In ONLINE mode, cloud is the contractual authority — its setpoint
+        # is Priority 3, superseding local peak shaving. The cloud's optimized
+        # setpoint already incorporates demand management decisions.
+        if self._mode == EngineMode.ONLINE and self._cache.is_cloud_setpoint_valid():
+            setpoint = self._cache.cloud_setpoint.value or {}
+            return self._build_decision(
+                action=setpoint.get("action", "IDLE"),
+                power_kw=setpoint.get("power_kw", 0.0),
+                priority="CONTRACTUAL",
+                reason=f"Cloud setpoint: {setpoint.get('reason', 'optimized')}",
+            )
+
+        if self._mode == EngineMode.SAFE_MODE:
+            return self._safe_mode_decision(telemetry.soc)
+
+        # PRIORITY 3 (AUTONOMOUS fallback): local peak shaving
+        # F21: Use configurable demand offset from site config (default 20kW)
+        demand_offset_kw = getattr(self._config.optimization, "demand_offset_kw", 20.0)
+        estimated_demand_kw = abs(telemetry.power_kw) + demand_offset_kw
         ps_decision = self._peak_shaving.decide(
             current_demand_kw=estimated_demand_kw,
             soc=telemetry.soc,
@@ -166,24 +213,17 @@ class LocalDecisionEngine:
             )
 
         # ─── PRIORITY 4: ECONOMIC — Arbitrage or Solar ───────────────────
-        if self._mode == EngineMode.ONLINE and self._cache.is_cloud_setpoint_valid():
-            # ONLINE: Execute cloud setpoint
-            setpoint = self._cache.cloud_setpoint.value or {}
-            return self._build_decision(
-                action=setpoint.get("action", "IDLE"),
-                power_kw=setpoint.get("power_kw", 0.0),
-                priority="ECONOMIC",
-                reason=f"Cloud setpoint: {setpoint.get('reason', 'optimized')}",
-            )
-
-        if self._mode == EngineMode.SAFE_MODE:
-            return self._safe_mode_decision(telemetry.soc)
-
-        # AUTONOMOUS: Use local algorithms
-        # Solar first (if solar data available)
-        solar_gen = self._cache.solar_forecast.get()
-        hour = datetime.now().hour
-        solar_kw = solar_gen[hour] if len(solar_gen) > hour else 0.0
+        # F20: Prefer real Modbus solar measurement over ML forecast.
+        # solar_power_kw is populated from Modbus register 0x0200 if BMS supports it.
+        solar_kw = 0.0
+        modbus_solar = getattr(telemetry, "solar_power_kw", None)
+        if modbus_solar is not None and modbus_solar > 0.0:
+            solar_kw = modbus_solar  # F20: real measurement
+        else:
+            # Fall back to ML forecast when Modbus solar register not available
+            solar_gen = self._cache.solar_forecast.get()
+            hour = datetime.now().hour
+            solar_kw = solar_gen[hour] if len(solar_gen) > hour else 0.0
 
         if solar_kw > 0.5:
             solar_decision = self._solar.decide(
@@ -216,6 +256,7 @@ class LocalDecisionEngine:
     def enter_safe_mode(self, reason: str) -> None:
         logger.critical("engine_entering_safe_mode", reason=reason)
         self._mode = EngineMode.SAFE_MODE
+        asyncio.create_task(self._persist_mode())   # F17
 
     def _safe_mode_decision(self, soc: float) -> dict:
         """Minimal operation: keep SOC between 20-80%."""
@@ -261,10 +302,12 @@ class LocalDecisionEngine:
         priority: str,
         reason: str,
     ) -> dict:
+        # F19: sign convention — DISCHARGE is negative power (convention: + charge, - discharge)
+        signed_power = -abs(power_kw) if action == "DISCHARGE" else abs(power_kw)
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "action": action,
-            "power_kw": round(power_kw, 2),
+            "power_kw": round(signed_power, 2),
             "priority": priority,
             "reason": reason,
             "mode": self._mode.value,

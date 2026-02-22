@@ -6,7 +6,8 @@
 set -e
 
 INFLUX_URL="http://localhost:8086"
-TOKEN="${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN:-lifo4-dev-token-change-in-production}"
+# F14: use :? to fail hard if token is not set — never fall back to insecure default
+TOKEN="${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN:?Error: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN must be set in environment}"
 ORG="lifo4"
 
 echo "Waiting for InfluxDB to be ready..."

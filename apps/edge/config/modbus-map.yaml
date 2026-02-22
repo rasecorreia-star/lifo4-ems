@@ -1,5 +1,12 @@
 # Modbus Register Map for BESS / BMS
 # Standard map — override per manufacturer if needed
+#
+# F9: SOH moved from 0x0102 to 0x0120 (separate block).
+#     Original insertion at 0x0102 shifted all subsequent addresses by 2 registers
+#     vs the specification. Addresses below now match the specification exactly.
+#
+# F20: Solar PV block added at 0x0200 for real Modbus measurement
+#      (replaces sole reliance on ML solar forecast).
 
 registers:
   telemetry:
@@ -9,78 +16,88 @@ registers:
       unit: "%"
       scale: 0.1
       description: "State of Charge"
-    soh:
-      address: 0x0102
-      type: float32
-      unit: "%"
-      scale: 0.1
-      description: "State of Health"
     voltage:
-      address: 0x0104
+      address: 0x0102          # F9: was 0x0104 (shifted by SOH insertion)
       type: float32
       unit: "V"
       scale: 0.01
       description: "Pack voltage"
     current:
-      address: 0x0106
+      address: 0x0104          # F9: was 0x0106
       type: float32
       unit: "A"
       scale: 0.01
       description: "Pack current (+ charge, - discharge)"
     power:
-      address: 0x0108
+      address: 0x0106          # F9: was 0x0108
       type: float32
       unit: "kW"
       scale: 0.01
       description: "Active power"
     temp_min:
-      address: 0x010A
+      address: 0x0108          # F9: was 0x010A
       type: float32
       unit: "°C"
       scale: 0.1
       description: "Minimum cell temperature"
     temp_max:
-      address: 0x010C
+      address: 0x010A          # F9: was 0x010C
       type: float32
       unit: "°C"
       scale: 0.1
       description: "Maximum cell temperature"
     temp_avg:
-      address: 0x010E
+      address: 0x010C          # F9: was 0x010E
       type: float32
       unit: "°C"
       scale: 0.1
       description: "Average cell temperature"
     frequency:
-      address: 0x0110
+      address: 0x010E          # F9: was 0x0110
       type: float32
       unit: "Hz"
       scale: 0.01
       description: "Grid frequency"
     grid_voltage:
-      address: 0x0112
+      address: 0x0110          # F9: was 0x0112
       type: float32
       unit: "V"
       scale: 0.1
       description: "Grid voltage (L-N)"
     cell_voltage_min:
-      address: 0x0114
+      address: 0x0112          # F9: was 0x0114
       type: float32
       unit: "V"
       scale: 0.001
       description: "Minimum cell voltage"
     cell_voltage_max:
-      address: 0x0116
+      address: 0x0114          # F9: was 0x0116
       type: float32
       unit: "V"
       scale: 0.001
       description: "Maximum cell voltage"
     cell_count:
-      address: 0x0118
+      address: 0x0116          # F9: was 0x0118
       type: uint16
       unit: ""
       scale: 1
       description: "Number of cells in series"
+
+    # ── Battery health block (separate address range) ──────────────────────
+    soh:
+      address: 0x0120          # F9: moved from 0x0102 to prevent address collision
+      type: float32
+      unit: "%"
+      scale: 0.1
+      description: "State of Health"
+
+    # ── Solar PV block (F20: real measurement from inverter) ───────────────
+    solar_power:
+      address: 0x0200          # F20: solar inverter Modbus output register
+      type: float32
+      unit: "kW"
+      scale: 0.01
+      description: "Solar PV generation power (real-time Modbus measurement)"
 
   commands:
     set_power:

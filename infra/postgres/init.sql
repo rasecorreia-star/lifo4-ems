@@ -95,6 +95,18 @@ CREATE TABLE IF NOT EXISTS alarms (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- F13: Row-Level Security for alarms — tenant isolation via system membership
+ALTER TABLE alarms ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY alarms_tenant_isolation ON alarms
+    USING (
+        system_id IN (
+            SELECT id FROM systems
+            WHERE organization_id::text = current_setting('app.current_org_id', TRUE)
+        )
+        OR current_setting('app.bypass_rls', TRUE) = 'true'
+    );
+
 CREATE INDEX IF NOT EXISTS idx_alarms_system_time ON alarms(system_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alarms_unresolved ON alarms(system_id) WHERE resolved = FALSE;
 CREATE INDEX IF NOT EXISTS idx_alarms_severity ON alarms(severity, created_at DESC);
@@ -115,6 +127,18 @@ CREATE TABLE IF NOT EXISTS decisions (
     soc_at_decision REAL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- F13: Row-Level Security for decisions — tenant isolation via system membership
+ALTER TABLE decisions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY decisions_tenant_isolation ON decisions
+    USING (
+        system_id IN (
+            SELECT id FROM systems
+            WHERE organization_id::text = current_setting('app.current_org_id', TRUE)
+        )
+        OR current_setting('app.bypass_rls', TRUE) = 'true'
+    );
 
 CREATE INDEX IF NOT EXISTS idx_decisions_system_time ON decisions(system_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_decisions_action ON decisions(action, created_at DESC);
@@ -169,6 +193,18 @@ CREATE TABLE IF NOT EXISTS optimization_configs (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     updated_by UUID REFERENCES users(id)
 );
+
+-- F13: Row-Level Security for optimization_configs — tenant isolation
+ALTER TABLE optimization_configs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY optimization_configs_tenant_isolation ON optimization_configs
+    USING (
+        system_id IN (
+            SELECT id FROM systems
+            WHERE organization_id::text = current_setting('app.current_org_id', TRUE)
+        )
+        OR current_setting('app.bypass_rls', TRUE) = 'true'
+    );
 
 -- ============================================================
 -- ML Models Registry

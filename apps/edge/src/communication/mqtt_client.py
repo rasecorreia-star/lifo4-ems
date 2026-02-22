@@ -18,6 +18,15 @@ from src.utils.metrics import CLOUD_CONNECTION_STATUS, MQTT_MESSAGES_SENT
 
 logger = get_logger(__name__)
 
+# F2: QoS requirements per topic suffix
+# commands/config/models are safety-critical — require exactly-once (QoS 2)
+# telemetry/alarms/status/heartbeat use lower QoS for throughput
+_TOPIC_QOS: dict[str, int] = {
+    "commands": 2,  # Exactly-once: BMS commands must not duplicate or be lost
+    "config":   2,  # Exactly-once: config changes must be applied exactly once
+    "models":   2,  # Exactly-once: ML model OTA must not partially update
+}
+
 
 class MqttMessage:
     """Buffered message awaiting delivery."""
@@ -33,7 +42,7 @@ class EdgeMqttClient:
     MQTT client with:
     - Auto-reconnect with exponential backoff
     - Offline buffer (up to N messages)
-    - QoS differentiation (0=telemetry, 1=alarms, 2=commands)
+    - QoS differentiation (0=telemetry, 1=alarms, 2=commands/config/models)
     - Last Will Testament (LWT) for disconnect detection
     - mTLS support
     """
@@ -44,7 +53,8 @@ class EdgeMqttClient:
         self._client: Optional[aiomqtt.Client] = None
         self._connected = False
         self._offline_buffer: deque[MqttMessage] = deque(maxlen=config.offline_buffer_size)
-        self._message_handlers: dict[str, Callable] = {}
+        # F2: store (handler, qos) per topic
+        self._message_handlers: dict[str, tuple[Callable, int]] = {}
         self._reconnect_delay = config.reconnect_min_delay
         self._running = False
 
@@ -55,17 +65,25 @@ class EdgeMqttClient:
     def _topic(self, suffix: str) -> str:
         return f"lifo4/{self._site_id}/{suffix}"
 
+    def _topic_qos(self, topic: str) -> int:
+        """Return the required QoS for a topic (by its last segment)."""
+        suffix = topic.rsplit("/", 1)[-1]
+        return _TOPIC_QOS.get(suffix, 1)
+
     def subscribe_commands(self, handler: Callable[[dict], Any]) -> None:
-        """Register handler for commands received from cloud."""
-        self._message_handlers[self._topic("commands")] = handler
+        """Register handler for commands received from cloud (QoS 2 — exactly-once)."""
+        topic = self._topic("commands")
+        self._message_handlers[topic] = (handler, 2)  # F2: QoS 2
 
     def subscribe_config(self, handler: Callable[[dict], Any]) -> None:
-        """Register handler for config updates from cloud."""
-        self._message_handlers[self._topic("config")] = handler
+        """Register handler for config updates from cloud (QoS 2 — exactly-once)."""
+        topic = self._topic("config")
+        self._message_handlers[topic] = (handler, 2)  # F2: QoS 2
 
     def subscribe_models(self, handler: Callable[[dict], Any]) -> None:
-        """Register handler for ML model OTA updates."""
-        self._message_handlers[self._topic("models")] = handler
+        """Register handler for ML model OTA updates (QoS 2 — exactly-once)."""
+        topic = self._topic("models")
+        self._message_handlers[topic] = (handler, 2)  # F2: QoS 2
 
     async def start(self) -> None:
         """Start MQTT client with auto-reconnect loop."""
@@ -127,10 +145,10 @@ class EdgeMqttClient:
                         retain=True,
                     )
 
-                    # Subscribe to command topics
-                    for topic in self._message_handlers:
-                        await client.subscribe(topic, qos=1)
-                        logger.info("mqtt_subscribed", topic=topic)
+                    # F2: Subscribe each topic with its required QoS
+                    for topic, (_, qos) in self._message_handlers.items():
+                        await client.subscribe(topic, qos=qos)
+                        logger.info("mqtt_subscribed", topic=topic, qos=qos)
 
                     # Flush offline buffer
                     await self._flush_offline_buffer()
@@ -158,8 +176,9 @@ class EdgeMqttClient:
     async def _handle_message(self, message: aiomqtt.Message) -> None:
         """Route incoming MQTT message to registered handler."""
         topic = str(message.topic)
-        handler = self._message_handlers.get(topic)
-        if handler:
+        entry = self._message_handlers.get(topic)
+        if entry:
+            handler, _ = entry
             try:
                 payload = json.loads(message.payload.decode())
                 await handler(payload) if asyncio.iscoroutinefunction(handler) else handler(payload)
@@ -187,12 +206,21 @@ class EdgeMqttClient:
             logger.info("mqtt_buffer_flushed", count=flushed)
 
     async def publish_telemetry(self, data: dict) -> None:
-        """Publish telemetry — QoS 0 (fire and forget)."""
+        """Publish standard telemetry — QoS 0 (fire and forget, 1Hz cadence)."""
         topic = self._topic("telemetry")
         if self._connected:
             await self._publish_raw(topic, data, qos=0)
         else:
             self._offline_buffer.append(MqttMessage(topic, data, qos=0))
+
+    async def publish_fast_telemetry(self, data: dict) -> None:
+        """
+        F8: Publish fast telemetry — QoS 0 on dedicated high-frequency topic.
+        Used for real-time dashboard updates at 10Hz cadence.
+        Not buffered offline (fire-and-forget — stale fast data has no value).
+        """
+        if self._connected:
+            await self._publish_raw(self._topic("telemetry/fast"), data, qos=0)
 
     async def publish_alarm(self, alarm: dict) -> None:
         """Publish alarm — QoS 1 (at least once)."""

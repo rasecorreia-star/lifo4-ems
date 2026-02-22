@@ -1,6 +1,6 @@
 """
 SQLite local database for the edge controller.
-Stores telemetry, decisions, alarms, and sync queue.
+Stores telemetry, decisions, alarms, sync queue, and engine state.
 Retention: 72h telemetry, 30 days decisions/alarms.
 Uses WAL mode for better concurrent performance.
 """
@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import aiosqlite
 
@@ -65,6 +65,13 @@ CREATE TABLE IF NOT EXISTS sync_queue (
     qos INTEGER DEFAULT 0,
     created_at TEXT NOT NULL,
     sent INTEGER DEFAULT 0
+);
+
+-- F17: persist engine mode across restarts
+CREATE TABLE IF NOT EXISTS engine_state (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_telemetry_ts ON telemetry(timestamp DESC);
@@ -191,6 +198,25 @@ class LocalDatabase:
             f"UPDATE sync_queue SET sent = 1 WHERE id IN ({placeholders})", ids
         )
         await self._db.commit()
+
+    # ─── Engine State (F17) ────────────────────────────────────────────────
+
+    async def save_engine_state(self, key: str, value: str) -> None:
+        """Persist a key-value pair for engine state across restarts."""
+        await self._db.execute(
+            """INSERT OR REPLACE INTO engine_state (key, value, updated_at)
+               VALUES (?,?,?)""",
+            (key, value, datetime.utcnow().isoformat()),
+        )
+        await self._db.commit()
+
+    async def get_engine_state(self, key: str) -> Optional[str]:
+        """Retrieve a persisted engine state value by key. Returns None if not found."""
+        async with self._db.execute(
+            "SELECT value FROM engine_state WHERE key = ?", (key,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row["value"] if row else None
 
     # ─── Cleanup ───────────────────────────────────────────────────────────
 

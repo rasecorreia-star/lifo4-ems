@@ -65,20 +65,46 @@ services:
     image: postgres:16-alpine
     container_name: lifo4-postgres
     environment:
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_USER=${DB_USER:-lifo4admin}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-lifo4secret}
       - POSTGRES_DB=${DB_NAME:-lifo4_ems}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "${DB_PORT:-5432}:5432"
     networks:
       - lifo4-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-lifo4_ems}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lifo4admin} -d ${DB_NAME:-lifo4_ems}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: lifo4-influxdb
+    ports:
+      - "${INFLUXDB_PORT:-8086}:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME:-lifo4admin}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD:-lifo4secret}
+      - DOCKER_INFLUXDB_INIT_ORG=lifo4
+      - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+      - DOCKER_INFLUXDB_INIT_RETENTION=90d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN:-lifo4-dev-token-change-in-production}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - ./infra/influxdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - lifo4-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   mosquitto:
     image: eclipse-mosquitto:2.0
@@ -86,9 +112,11 @@ services:
     ports:
       - "${MQTT_PORT:-1883}:1883"
       - "${MQTT_WS_PORT:-9001}:9001"
+      - "${MQTT_TLS_PORT:-8883}:8883"
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_logs:/mosquitto/log
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     networks:
       - lifo4-network
     healthcheck:
@@ -112,14 +140,148 @@ services:
       timeout: 5s
       retries: 5
 
+  ml-service:
+    build:
+      context: ./apps/ml-service
+      dockerfile: Dockerfile
+    container_name: lifo4-ml-service
+    ports:
+      - "${ML_PORT:-8000}:8000"
+    environment:
+      - MQTT_URL=${MQTT_URL:-mqtt://mosquitto:1883}
+      - INFLUX_URL=${INFLUX_URL:-http://influxdb:8086}
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-}
+      - INFLUX_ORG=${INFLUX_ORG:-lifo4}
+      - MODEL_DIR=/app/models
+    volumes:
+      - ml_models:/app/models
+    depends_on:
+      - mosquitto
+    networks:
+      - lifo4-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: lifo4-prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    networks:
+      - lifo4-network
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: lifo4-grafana
+    volumes:
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-lifo4grafana}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/fleet-overview.json
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - lifo4-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: lifo4-loki
+    volumes:
+      - ./infra/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki_data:/tmp/loki
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - lifo4-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: lifo4-alertmanager
+    volumes:
+      - ./infra/alertmanager/config.yml.template:/etc/alertmanager/config.yml.template
+      - alertmanager_data:/alertmanager
+    ports:
+      - "${ALERTMANAGER_PORT:-9093}:9093"
+    entrypoint: /bin/sh -c "envsubst < /etc/alertmanager/config.yml.template > /tmp/alertmanager.yml && /bin/alertmanager --config.file=/tmp/alertmanager.yml --storage.path=/alertmanager"
+    networks:
+      - lifo4-network
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: lifo4-postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${DB_USER:-lifo4admin}:${DB_PASSWORD:-lifo4secret}@postgres:5432/${DB_NAME:-lifo4_ems}?sslmode=disable
+    ports:
+      - "${POSTGRES_EXPORTER_PORT:-9187}:9187"
+    depends_on:
+      - postgres
+    networks:
+      - lifo4-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.56.0
+    container_name: lifo4-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "${REDIS_EXPORTER_PORT:-9121}:9121"
+    depends_on:
+      - redis
+    networks:
+      - lifo4-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
+    driver: local
+  influxdb_data:
     driver: local
   mosquitto_data:
     driver: local
   mosquitto_logs:
     driver: local
   redis_data:
+    driver: local
+
+  ml_models:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+  alertmanager_data:
     driver: local
 
 networks:

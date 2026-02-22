@@ -1,0 +1,132 @@
+groups:
+  - name: bess_critical
+    rules:
+      # P1 — CRITICAL (immediate: phone + SMS)
+      - alert: BESSOffline
+        expr: (time() - bess_last_heartbeat_timestamp) > 300
+        for: 1m
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "BESS {{ $labels.system_id }} offline for 5+ minutes"
+          description: "No heartbeat received from {{ $labels.system_id }} since {{ $value | humanizeDuration }} ago"
+          runbook: "Check edge controller connectivity and Modbus link"
+
+      - alert: BESSOverTemperature
+        expr: battery_temperature_celsius > 50
+        for: 30s
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "BESS {{ $labels.system_id }} over-temperature: {{ $value }}°C"
+          description: "Battery temperature exceeds 50°C safety limit"
+          runbook: "Check cooling system, reduce load, consider emergency stop"
+
+      - alert: BESSSafetyViolation
+        expr: increase(safety_violations_total[5m]) > 0
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "Safety violation on {{ $labels.system_id }}"
+          description: "{{ $value }} safety violations in the last 5 minutes"
+          runbook: "Review safety logs, check BMS alarms"
+
+      - alert: BESSEmergencyStop
+        expr: bess_emergency_stop_active == 1
+        for: 0m
+        labels:
+          severity: critical
+          priority: P1
+        annotations:
+          summary: "Emergency stop active on {{ $labels.system_id }}"
+          description: "System in emergency stop state — requires manual inspection"
+
+  - name: bess_warning
+    rules:
+      # P2 — HIGH (15 min delay: SMS + email)
+      - alert: BESSSoHDegraded
+        expr: battery_soh < 85
+        for: 1h
+        labels:
+          severity: high
+          priority: P2
+        annotations:
+          summary: "Battery SoH degraded: {{ $value }}% on {{ $labels.system_id }}"
+          description: "State of Health below 85% — plan replacement"
+          runbook: "Schedule battery assessment and begin procurement process"
+
+      - alert: BESSModbusErrors
+        expr: rate(modbus_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          priority: P2
+        annotations:
+          summary: "High Modbus error rate on {{ $labels.system_id }}"
+          description: "Modbus error rate: {{ $value | humanize }}/s — communication degraded"
+
+      - alert: BESSLowSoC
+        expr: battery_soc < 15
+        for: 2m
+        labels:
+          severity: high
+          priority: P2
+        annotations:
+          summary: "Battery SoC critically low: {{ $value }}% on {{ $labels.system_id }}"
+          description: "SoC below 15% minimum — check discharge strategy"
+
+      - alert: MQTTDisconnected
+        expr: mqtt_connected == 0
+        for: 5m
+        labels:
+          severity: high
+          priority: P2
+        annotations:
+          summary: "MQTT disconnected on {{ $labels.system_id }}"
+          description: "Edge lost MQTT connectivity — operating in offline mode"
+
+  - name: bess_info
+    rules:
+      # P3 — MEDIUM (auto ticket, SLA 4h)
+      - alert: MLModelStale
+        expr: (time() - ml_model_last_update_timestamp) > 1209600
+        for: 1h
+        labels:
+          severity: medium
+          priority: P3
+        annotations:
+          summary: "ML model stale on {{ $labels.system_id }} (>14 days)"
+          description: "Model has not been retrained in 14+ days — accuracy may have degraded"
+
+      - alert: EdgeDiskHigh
+        expr: edge_disk_usage_percent > 80
+        for: 15m
+        labels:
+          severity: medium
+          priority: P3
+        annotations:
+          summary: "Edge disk usage high: {{ $value }}% on {{ $labels.system_id }}"
+          description: "Disk usage above 80% — cleanup may be needed"
+
+      - alert: EdgeMemoryHigh
+        expr: edge_memory_usage_percent > 80
+        for: 10m
+        labels:
+          severity: medium
+          priority: P3
+        annotations:
+          summary: "Edge memory usage high: {{ $value }}% on {{ $labels.system_id }}"
+
+      # P4 — LOW (dashboard only)
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: low
+          priority: P4
+        annotations:
+          summary: "High API latency (p95 = {{ $value }}s)"
+          description: "95th percentile API response time exceeds 2 seconds"

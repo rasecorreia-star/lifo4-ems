@@ -63,6 +63,12 @@ npm run build:check
 # Unit tests (Vitest)
 npm run test
 
+# Integration tests (requires Docker)
+npm run test:integration
+
+# Stress tests — 100 BESS, 1000 commands, 10 failover cycles
+npm run test:stress
+
 # E2E tests (Playwright)
 npm run test:e2e
 
@@ -82,10 +88,15 @@ npm run lint:fix
 
 ## 📚 Documentation
 
-- **[Environment Variables](./docs/ENVIRONMENT_VARIABLES.md)** — All configurable variables
 - **[Architecture](./docs/ARCHITECTURE.md)** — System design and components
-- **[Frontend README](./apps/frontend/README.md)** — Frontend setup and structure
-- **[Backend README](./apps/backend/README.md)** — Backend API documentation
+- **[Deployment Guide](./docs/DEPLOYMENT.md)** — Dev setup, production deploy, provisioning, OTA, rollback
+- **[Operations Runbook](./docs/OPERATIONS.md)** — Incident response and operational procedures
+- **[Edge Controller](./docs/EDGE_CONTROLLER.md)** — Edge hardware, modes, safety limits, Modbus
+- **[ML Pipeline](./docs/ML_PIPELINE.md)** — Forecasting models, training, deploy
+- **[Security](./docs/SECURITY.md)** — Threat model, auth, encryption, incident response
+- **[API Reference](./docs/API.md)** — REST endpoints, authentication, error codes
+- **[Environment Variables](./docs/ENVIRONMENT_VARIABLES.md)** — All configurable variables
+- **[Production Checklist](./docs/PRODUCTION_CHECKLIST.md)** — Pre-deploy verification
 - **[Changelog](./docs/CHANGELOG.md)** — Version history
 
 ## 🔐 Security

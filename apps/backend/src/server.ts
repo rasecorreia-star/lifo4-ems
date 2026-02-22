@@ -4,9 +4,10 @@
  * Initializes Socket.IO for real-time communication
  */
 
-import app from './app';
+import app from './app.js';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import { logger } from './lib/logger.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -22,28 +23,28 @@ const io = new SocketIOServer(server, {
 
 // Socket.IO event handlers
 io.on('connection', (socket) => {
-  console.log(`[Socket.IO] Client connected: ${socket.id}`);
+  logger.debug('Socket.IO client connected', { socketId: socket.id });
 
   // Handle decision updates
   socket.on('subscribe-decision', (systemId: string) => {
     socket.join(`decision:${systemId}`);
-    console.log(`[Socket.IO] Client ${socket.id} subscribed to decisions for system ${systemId}`);
+    logger.debug('Socket subscribed to decisions', { socketId: socket.id, systemId });
   });
 
   // Handle telemetry updates
   socket.on('subscribe-telemetry', (systemId: string) => {
     socket.join(`telemetry:${systemId}`);
-    console.log(`[Socket.IO] Client ${socket.id} subscribed to telemetry for system ${systemId}`);
+    logger.debug('Socket subscribed to telemetry', { socketId: socket.id, systemId });
   });
 
   // Handle grid services updates
   socket.on('subscribe-grid', (systemId: string) => {
     socket.join(`grid:${systemId}`);
-    console.log(`[Socket.IO] Client ${socket.id} subscribed to grid services for system ${systemId}`);
+    logger.debug('Socket subscribed to grid services', { socketId: socket.id, systemId });
   });
 
   socket.on('disconnect', () => {
-    console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
+    logger.debug('Socket.IO client disconnected', { socketId: socket.id });
   });
 });
 
@@ -52,44 +53,23 @@ export { io };
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`
-╔════════════════════════════════════════════════════════════════╗
-║                                                                ║
-║         🔋 LIFO4 EMS - Energy Management System API            ║
-║                                                                ║
-║  Server running on: http://localhost:${PORT}
-║  Environment: ${NODE_ENV}
-║  API Documentation: http://localhost:${PORT}/api/v1/docs
-║                                                                ║
-║  Available Modules:                                            ║
-║  - Unified Decision Engine (5-level priority)                  ║
-║  - Energy Arbitrage (buy/sell optimization)                    ║
-║  - Peak Shaving (demand management)                            ║
-║  - Grid Services (grid integration & VPP)                      ║
-║  - Black Start (grid restoration)                              ║
-║  - Forecasting (5 ML models - 94.5% accuracy)                  ║
-║  - Battery Health (SOH monitoring & RUL)                       ║
-║  - Predictive Maintenance (failure prediction)                 ║
-║                                                                ║
-╚════════════════════════════════════════════════════════════════╝
-  `);
+  logger.info('LIFO4 EMS API started', {
+    port: PORT,
+    environment: NODE_ENV,
+    docs: `http://localhost:${PORT}/api/v1/docs`,
+  });
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
+function shutdown(signal: string) {
+  logger.info(`${signal} received — shutting down gracefully`);
   server.close(() => {
-    console.log('Server closed');
+    logger.info('HTTP server closed');
     process.exit(0);
   });
-});
+}
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 export default server;

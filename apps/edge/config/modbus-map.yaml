@@ -1,0 +1,115 @@
+# Modbus Register Map for BESS / BMS
+# Standard map — override per manufacturer if needed
+
+registers:
+  telemetry:
+    soc:
+      address: 0x0100
+      type: float32
+      unit: "%"
+      scale: 0.1
+      description: "State of Charge"
+    soh:
+      address: 0x0102
+      type: float32
+      unit: "%"
+      scale: 0.1
+      description: "State of Health"
+    voltage:
+      address: 0x0104
+      type: float32
+      unit: "V"
+      scale: 0.01
+      description: "Pack voltage"
+    current:
+      address: 0x0106
+      type: float32
+      unit: "A"
+      scale: 0.01
+      description: "Pack current (+ charge, - discharge)"
+    power:
+      address: 0x0108
+      type: float32
+      unit: "kW"
+      scale: 0.01
+      description: "Active power"
+    temp_min:
+      address: 0x010A
+      type: float32
+      unit: "°C"
+      scale: 0.1
+      description: "Minimum cell temperature"
+    temp_max:
+      address: 0x010C
+      type: float32
+      unit: "°C"
+      scale: 0.1
+      description: "Maximum cell temperature"
+    temp_avg:
+      address: 0x010E
+      type: float32
+      unit: "°C"
+      scale: 0.1
+      description: "Average cell temperature"
+    frequency:
+      address: 0x0110
+      type: float32
+      unit: "Hz"
+      scale: 0.01
+      description: "Grid frequency"
+    grid_voltage:
+      address: 0x0112
+      type: float32
+      unit: "V"
+      scale: 0.1
+      description: "Grid voltage (L-N)"
+    cell_voltage_min:
+      address: 0x0114
+      type: float32
+      unit: "V"
+      scale: 0.001
+      description: "Minimum cell voltage"
+    cell_voltage_max:
+      address: 0x0116
+      type: float32
+      unit: "V"
+      scale: 0.001
+      description: "Maximum cell voltage"
+    cell_count:
+      address: 0x0118
+      type: uint16
+      unit: ""
+      scale: 1
+      description: "Number of cells in series"
+
+  commands:
+    set_power:
+      address: 0x0000
+      type: float32
+      unit: "kW"
+      description: "Target power setpoint (+ charge, - discharge)"
+    set_soc_target:
+      address: 0x0002
+      type: float32
+      unit: "%"
+      description: "SOC target for charge/discharge"
+    emergency_stop:
+      address: 0x0050
+      type: coil
+      description: "Emergency stop (1 = stop)"
+    charge_enable:
+      address: 0x0051
+      type: coil
+      description: "Enable charging (1 = enable)"
+    discharge_enable:
+      address: 0x0052
+      type: coil
+      description: "Enable discharging (1 = enable)"
+    grid_contactor:
+      address: 0x0053
+      type: coil
+      description: "Grid contactor (1 = closed)"
+    backup_contactor:
+      address: 0x0054
+      type: coil
+      description: "Backup load contactor (1 = closed)"

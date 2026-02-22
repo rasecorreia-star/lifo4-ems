@@ -1,0 +1,27 @@
+# SAFETY LIMITS — LiFePO4 BESS
+# WARNING: These are HARDCODED in safety_manager.py as constants.
+# This file is documentation only. Values cannot be overridden remotely.
+# To change limits, a new software deployment is required (intentional).
+
+cell_voltage:
+  min_v: 2.5       # Absolute minimum — stop discharge immediately
+  max_v: 3.65      # Absolute maximum — stop charge immediately
+  delta_max_mv: 100 # Maximum imbalance between cells
+
+pack_temperature:
+  min_c: -10       # Stop all operations if below this
+  max_c: 55        # Emergency stop if above this
+  warn_c: 45       # Reduce power if above this
+
+state_of_charge:
+  absolute_min_pct: 5    # Emergency discharge stop
+  absolute_max_pct: 98   # Emergency charge stop
+
+current:
+  overload_factor: 1.1   # Allow 10% over spec for <5 seconds (ramp)
+
+grid:
+  frequency_min_hz: 49.0   # Below this: grid failure detected
+  frequency_max_hz: 51.0   # Above this: grid anomaly
+  voltage_min_v: 180        # Below this: grid failure
+  voltage_max_v: 265        # Above this: grid overvoltage

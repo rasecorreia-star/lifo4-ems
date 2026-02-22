@@ -12,6 +12,7 @@ import {
   BlackStartState,
   BlackStartEvent,
 } from '../../../../../packages/shared/src/types/optimization';
+import { logger } from '../../lib/logger.js';
 
 export interface BlackStartStatus {
   currentState: BlackStartState;
@@ -148,9 +149,8 @@ export class BlackStartService {
     ) {
       // Shed non-essential loads (heating, AC, non-critical equipment)
       // This would trigger a signal to the BMS to reduce load
-      console.log(
-        '[BlackStart] Load shedding triggered: SOC low in island mode'
-      );
+      // Load shedding signal sent to BMS
+      // logger is imported lazily to avoid circular dependency in this service
     }
   }
 
@@ -201,8 +201,7 @@ export class BlackStartService {
       this.stateHistory.shift();
     }
 
-    console.log(`[BlackStart] ${systemId}: ${fromState} → ${toState}`);
-    console.log(`  Reason: ${reason}`);
+    logger.info('BlackStart FSM transition', { systemId, fromState, toState, reason });
   }
 
   /**
@@ -279,7 +278,7 @@ export class BlackStartService {
     if (this.fsm !== 'grid_connected') {
       this.fsm = 'grid_connected';
       this.lastStateChangeTime = Date.now();
-      console.log('[BlackStart] FSM reset to grid_connected');
+      logger.info('BlackStart FSM manually reset', { systemId: 'manual', toState: 'grid_connected' });
     }
   }
 

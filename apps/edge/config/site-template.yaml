@@ -1,0 +1,40 @@
+# Site-specific configuration template
+# Copy to config/site.yaml and fill in values for each deployment
+
+site:
+  id: "REPLACE_WITH_SITE_ID"
+  name: "REPLACE_WITH_SITE_NAME"
+  organization_id: "REPLACE_WITH_ORG_ID"
+
+battery:
+  chemistry: "LiFePO4"
+  capacity_kwh: 100         # Total capacity in kWh
+  nominal_voltage: 48.0     # Nominal pack voltage
+  cell_count: 16            # Cells in series
+  max_charge_power_kw: 50
+  max_discharge_power_kw: 50
+  max_charge_current_a: 200
+  max_discharge_current_a: 200
+
+modbus:
+  mode: "tcp"               # tcp or rtu
+  # TCP settings:
+  host: "192.168.1.100"
+  port: 502
+  # RTU settings (if mode=rtu):
+  # serial_port: "/dev/ttyUSB0"
+  # baud_rate: 9600
+  unit_id: 1
+
+mqtt:
+  broker_host: "REPLACE_WITH_CLOUD_MQTT_HOST"
+  broker_port: 8883
+  use_tls: true
+  # TLS certificates (mTLS):
+  # ca_cert: "/certs/ca.crt"
+  # client_cert: "/certs/client.crt"
+  # client_key: "/certs/client.key"
+
+optimization:
+  peak_shaving:
+    demand_limit_kw: 100    # Client's contracted demand

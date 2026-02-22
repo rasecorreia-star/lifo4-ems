@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Edge Controller development compose
+# Runs: edge controller + BMS simulator + local MQTT broker
+
+services:
+  edge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lifo4-edge
+    environment:
+      - SITE_ID=site-dev-001
+      - SQLITE_PATH=/data/edge.db
+      - MQTT_BROKER_HOST=mqtt-broker
+    volumes:
+      - edge-data:/data
+      - ./config/site.yaml:/app/config/site.yaml:ro
+      - ./src/ml/models:/app/src/ml/models
+    depends_on:
+      - bms-simulator
+      - mqtt-broker
+    networks:
+      - edge-network
+    restart: unless-stopped
+    ports:
+      - "9100:9100"  # Prometheus metrics
+
+  bms-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lifo4-bms-simulator
+    environment:
+      - SCENARIO=${BMS_SCENARIO:-normal}
+    command: ["python", "scripts/simulate_bms.py", "--scenario", "${BMS_SCENARIO:-normal}", "--port", "5020"]
+    networks:
+      - edge-network
+    ports:
+      - "5020:5020"  # Modbus TCP (accessible from host for debugging)
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: lifo4-edge-mqtt
+    volumes:
+      - ./config/mosquitto-dev.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - edge-network
+    ports:
+      - "1884:1883"  # Local MQTT (different port from main stack)
+
+volumes:
+  edge-data:
+
+networks:
+  edge-network:
+    driver: bridge

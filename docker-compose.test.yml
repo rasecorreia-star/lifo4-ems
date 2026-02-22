@@ -1,0 +1,149 @@
+# docker-compose.test.yml
+# Test environment for integration and stress tests.
+# Uses isolated test volumes and no-auth MQTT for simplicity.
+
+version: '3.8'
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: lifo4-test-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto-test.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - lifo4-test-network
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$$SYS/#", "-C", "1", "-i", "hc-test", "-W", "3"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: lifo4-test-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=testadmin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=testpassword
+      - DOCKER_INFLUXDB_INIT_ORG=lifo4
+      - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+      - DOCKER_INFLUXDB_INIT_RETENTION=1d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=dev-token
+    volumes:
+      - influxdb_test_data:/var/lib/influxdb2
+    networks:
+      - lifo4-test-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: lifo4-test-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpassword
+      - POSTGRES_DB=ems_test
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - lifo4-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d ems_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: lifo4-test-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - lifo4-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: lifo4-test-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=test
+      - PORT=3001
+      - JWT_SECRET=test-only-insecure-secret-minimum-32-chars
+      - JWT_ISSUER=lifo4-ems-test
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ems_test
+      - DB_USER=testuser
+      - DB_PASSWORD=testpassword
+      - MQTT_URL=mqtt://mqtt:1883
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=dev-token
+      - INFLUX_ORG=lifo4
+      - INFLUX_BUCKET=telemetry
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGIN=http://localhost:5173
+      - VITE_DEMO_MODE=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lifo4-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  edge:
+    build:
+      context: ./apps/edge
+      dockerfile: Dockerfile
+    container_name: lifo4-test-edge
+    environment:
+      - MQTT_BROKER_HOST=mqtt
+      - MQTT_BROKER_PORT=1883
+      - SYSTEM_ID=test-bess-001
+      - BACKEND_URL=http://backend:3001
+      - NODE_ENV=test
+    depends_on:
+      mqtt:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - lifo4-test-network
+
+networks:
+  lifo4-test-network:
+    driver: bridge
+
+volumes:
+  influxdb_test_data:
+  postgres_test_data:

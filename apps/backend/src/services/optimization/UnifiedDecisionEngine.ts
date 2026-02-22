@@ -20,7 +20,8 @@ import {
   MarketData,
   SystemConstraints,
   OptimizationConfig,
-} from '../../../../../packages/shared/src/types/optimization';
+} from '../../../../../packages/shared/src/types/optimization.js';
+import { logger } from '../../lib/logger.js';
 
 export class UnifiedDecisionEngine {
   private systemId: string;
@@ -48,13 +49,13 @@ export class UnifiedDecisionEngine {
   ): Promise<DecisionResult> {
     const timestamp = new Date();
 
-    console.log(`[${timestamp.toISOString()}] UDE: Decision cycle for ${this.systemId}`);
+    logger.debug('UDE decision cycle', { systemId: this.systemId, timestamp: timestamp.toISOString() });
 
     // PRIORITY 1: SAFETY (hard constraints)
     {
       const safetyDecision = this.checkSafety(telemetry);
       if (safetyDecision) {
-        console.log(`[UDE][${this.systemId}] Priority:${safetyDecision.priority} Action:${safetyDecision.action} Reason:${safetyDecision.reason}`);
+        logger.info('UDE decision', { systemId: this.systemId, priority: safetyDecision.priority, action: safetyDecision.action, reason: safetyDecision.reason });
         return safetyDecision;
       }
     }
@@ -63,7 +64,7 @@ export class UnifiedDecisionEngine {
     if (gridState.gridConnected) {
       const gridDecision = this.checkGridCode(telemetry, gridState);
       if (gridDecision) {
-        console.log(`[UDE][${this.systemId}] Priority:${gridDecision.priority} Action:${gridDecision.action} Reason:${gridDecision.reason}`);
+        logger.info('UDE decision', { systemId: this.systemId, priority: gridDecision.priority, action: gridDecision.action, reason: gridDecision.reason });
         return gridDecision;
       }
     }
@@ -72,7 +73,7 @@ export class UnifiedDecisionEngine {
     {
       const contractualDecision = this.checkContractual(telemetry, marketData);
       if (contractualDecision) {
-        console.log(`[UDE][${this.systemId}] Priority:${contractualDecision.priority} Action:${contractualDecision.action} Reason:${contractualDecision.reason}`);
+        logger.info('UDE decision', { systemId: this.systemId, priority: contractualDecision.priority, action: contractualDecision.action, reason: contractualDecision.reason });
         return contractualDecision;
       }
     }
@@ -81,7 +82,7 @@ export class UnifiedDecisionEngine {
     {
       const economicDecision = this.checkEconomic(telemetry, marketData, forecast);
       if (economicDecision) {
-        console.log(`[UDE][${this.systemId}] Priority:${economicDecision.priority} Action:${economicDecision.action} Reason:${economicDecision.reason}`);
+        logger.info('UDE decision', { systemId: this.systemId, priority: economicDecision.priority, action: economicDecision.action, reason: economicDecision.reason });
         return economicDecision;
       }
     }
@@ -90,7 +91,7 @@ export class UnifiedDecisionEngine {
     {
       const longevityDecision = this.checkLongevity(telemetry);
       if (longevityDecision) {
-        console.log(`[UDE][${this.systemId}] Priority:${longevityDecision.priority} Action:${longevityDecision.action} Reason:${longevityDecision.reason}`);
+        logger.info('UDE decision', { systemId: this.systemId, priority: longevityDecision.priority, action: longevityDecision.action, reason: longevityDecision.reason });
         return longevityDecision;
       }
     }
@@ -106,7 +107,7 @@ export class UnifiedDecisionEngine {
       timestamp,
       nextReviewAt: new Date(timestamp.getTime() + 5 * 60000),
     };
-    console.log(`[UDE][${this.systemId}] Priority:${defaultDecision.priority} Action:${defaultDecision.action} Reason:${defaultDecision.reason}`);
+    logger.debug('UDE decision', { systemId: this.systemId, priority: defaultDecision.priority, action: defaultDecision.action, reason: defaultDecision.reason });
     return defaultDecision;
   }
 

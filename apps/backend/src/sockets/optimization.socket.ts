@@ -4,24 +4,25 @@
  */
 
 import { Server, Socket } from 'socket.io';
-import { UnifiedDecisionEngine } from '../services/optimization/UnifiedDecisionEngine';
+import { UnifiedDecisionEngine } from '../services/optimization/UnifiedDecisionEngine.js';
+import { logger } from '../lib/logger.js';
 
 export function setupOptimizationSockets(io: Server) {
   const connections = new Map<string, Socket>();
 
   io.on('connection', (socket: Socket) => {
-    console.log(`[Socket] User connected: ${socket.id}`);
+    logger.debug('WebSocket client connected', { socketId: socket.id });
 
     // Subscribe to system updates
     socket.on('subscribe:system', (systemId: string) => {
       socket.join(`system:${systemId}`);
-      console.log(`[Socket] User subscribed to ${systemId}`);
+      logger.debug('WebSocket subscribed to system', { socketId: socket.id, systemId });
     });
 
     // Unsubscribe from system
     socket.on('unsubscribe:system', (systemId: string) => {
       socket.leave(`system:${systemId}`);
-      console.log(`[Socket] User unsubscribed from ${systemId}`);
+      logger.debug('WebSocket unsubscribed from system', { socketId: socket.id, systemId });
     });
 
     // Request immediate decision
@@ -45,7 +46,7 @@ export function setupOptimizationSockets(io: Server) {
 
     // Disconnect
     socket.on('disconnect', () => {
-      console.log(`[Socket] User disconnected: ${socket.id}`);
+      logger.debug('WebSocket client disconnected', { socketId: socket.id });
       connections.delete(socket.id);
     });
   });

@@ -1,0 +1,23 @@
+{
+  "name": "@lifo4/tests",
+  "version": "1.0.0",
+  "description": "Integration and stress tests for LIFO4 EMS",
+  "type": "module",
+  "scripts": {
+    "test:integration": "node --import=./register-hooks.mjs --test integration/*.ts",
+    "test:stress": "node --import=./register-hooks.mjs --test stress/*.ts",
+    "test:all": "node --import=./register-hooks.mjs --test integration/*.ts stress/*.ts"
+  },
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.33.2",
+    "mqtt": "^5.3.4",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/pg": "^8.11.5",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.3"
+  }
+}

@@ -1,0 +1,85 @@
+# Default Edge Controller Configuration
+# Override via site-specific config or environment variables
+
+site:
+  id: "site-001"
+  name: "LIFO4 Site Default"
+  organization_id: "org-001"
+
+battery:
+  chemistry: "LiFePO4"
+  capacity_kwh: 100
+  nominal_voltage: 48.0
+  cell_count: 16
+  max_charge_power_kw: 50
+  max_discharge_power_kw: 50
+  max_charge_current_a: 200
+  max_discharge_current_a: 200
+
+modbus:
+  mode: "tcp"               # tcp or rtu
+  host: "192.168.1.100"
+  port: 502
+  unit_id: 1
+  timeout_ms: 5000
+  retry_count: 3
+  retry_delay_ms: 500
+  register_map: "config/modbus-map.yaml"
+
+mqtt:
+  broker_host: "localhost"
+  broker_port: 1883
+  broker_tls_port: 8883
+  use_tls: false
+  client_id: "edge-site-001"
+  keepalive_seconds: 60
+  reconnect_min_delay: 1
+  reconnect_max_delay: 120
+  offline_buffer_size: 1000  # messages
+  qos_telemetry: 0
+  qos_alarms: 1
+  qos_commands: 2
+
+control:
+  sample_interval_seconds: 5
+  optimization_interval_seconds: 300   # 5 minutes
+  cloud_timeout_minutes: 15            # switch to AUTONOMOUS after this
+  heartbeat_interval_seconds: 30
+
+data:
+  sqlite_path: "/data/edge.db"
+  telemetry_retention_hours: 72
+  decisions_retention_days: 30
+  alarms_retention_days: 30
+  cleanup_interval_hours: 1
+
+optimization:
+  arbitrage:
+    buy_threshold_price: 0.45
+    sell_threshold_price: 0.85
+    min_soc_for_sell: 30
+    max_soc_for_buy: 90
+  peak_shaving:
+    demand_limit_kw: 100
+    trigger_percent: 80
+    min_soc_percent: 20
+    ramp_rate_kw_per_sec: 10
+    recharge_start_hour: 22
+    recharge_end_hour: 6
+  solar:
+    min_solar_excess_kw: 1
+    target_soc: 80
+    night_discharge: true
+  safe_mode:
+    min_soc: 20
+    max_soc: 80
+
+metrics:
+  enabled: true
+  port: 9100
+  path: "/metrics"
+
+logging:
+  level: "INFO"
+  format: "json"
+  output: "stdout"

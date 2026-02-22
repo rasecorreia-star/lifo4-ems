@@ -107,6 +107,7 @@ import IslandingControl from './pages/microgrids/IslandingControl';
 import SecurityZones from './pages/cameras/SecurityZones';
 import VoiceMessages from './pages/cameras/VoiceMessages';
 import OptimizationDashboard from './pages/OptimizationDashboard';
+import FinancialDashboard from './pages/FinancialDashboard';
 import MicrogridEnergyTrading from './pages/microgrids/EnergyTrading';
 
 // Components
@@ -221,6 +222,7 @@ function App() {
         {/* Additional Pages */}
         <Route path="/simple-dashboard" element={<SimpleDashboard />} />
         <Route path="/roi" element={<ROICalculator />} />
+        <Route path="/financial/:systemId?" element={<FinancialDashboard />} />
         <Route path="/changelog" element={<Changelog />} />
         <Route path="/energy-forecasting" element={<EnergyForecasting />} />
         <Route path="/solar" element={<SolarPlant />} />
